@@ -441,6 +441,11 @@
   #print-root .p-veh-h{font-weight:800;font-size:12px;border-bottom:1.5px solid #000;padding-bottom:4px;margin:4px 0 8px}
   #print-root .p-veh{display:grid;grid-template-columns:1fr 1fr;gap:5px 30px;font-size:11.5px;border-bottom:1px solid #000;padding-bottom:12px;margin-bottom:12px}
   #print-root .p-veh div span{color:#666;display:inline-block;min-width:66px}
+  #print-root .p-stdeq{font-size:9.5px;line-height:1.5;columns:2;column-gap:22px;margin:2px 0 12px;border-bottom:1px solid #000;padding-bottom:10px}
+  #print-root .p-stdeq .se-grp{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:6px}
+  #print-root .p-stdeq .se-gh{font-weight:700;font-size:10px;margin-bottom:1px}
+  #print-root .p-stdeq .se-item{padding-left:9px;text-indent:-9px}
+  #print-root .p-stdeq .se-item::before{content:"· "}
   #print-root .p-payline{font-size:11.5px;margin:8px 0 2px}
   #print-root .p-firstnote{font-size:10px;color:#333;line-height:1.55;margin:4px 0 8px}
   #print-root .p-break{page-break-before:always;height:0}
@@ -598,6 +603,10 @@
           <div id="sumBreakdown"></div>
           <div class="sum-opts" id="sumOpts"></div>
           <div class="total"><span class="lbl">總價 Total</span><span class="amt" id="sumTotal">£0</span></div>
+          <div class="deposit" id="sumLuxBox" style="display:none">
+            <div><span>奢侈稅（達 300 萬・預估 10%）</span><b id="sumLux">—</b></div>
+            <div class="bal"><span>預估含奢侈稅總價</span><b id="sumGrand">—</b></div>
+          </div>
           <div class="deposit" id="depositBox">
             <div><span>訂金 Deposit <small id="depPctLbl"></small></span><b id="sumDep">—</b></div>
             <div class="bal"><span>交車前餘款 Balance</span><b id="sumBal">—</b></div>
@@ -651,6 +660,7 @@
     <div class="field" style="margin-top:10px"><label class="f">係數 Coefficient（預設加成倍率）</label><input class="t" id="s_coef" type="number" step="0.05"></div>
     <div class="field" style="margin-top:10px"><label class="f">加權 Weighting（係數後加值 · NT$）</label><input class="t" id="s_weight" type="number" step="100"></div>
     <div class="field" style="margin-top:10px"><label class="f">訂金比例 Deposit %（訂金 = 總價 × 此比例，交一次）</label><input class="t" id="s_deposit" type="number" step="1" min="0" max="100" placeholder="例如 30"></div>
+    <label class="f" style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-weight:400"><input type="checkbox" id="s_luxTax" style="width:auto;margin:0"> 奢侈稅：合約成交價達 300 萬時，自動加收 10%（特種貨物稅）</label>
     <div class="row2" style="margin-top:10px">
       <div class="field"><label class="f">品項取整方式 Item rounding</label>
         <select class="t" id="s_roundMode">
@@ -2937,7 +2947,7 @@ function renderLineTabs(){
 function renderYearTabs(){
   if(curBrand!=="sunlight"){ yearTabs.style.display="none"; yearTabs.innerHTML=""; return; }
   yearTabs.style.display="";
-  yearTabs.innerHTML=[["25","MY25 · 2025 年式"],["26","MY26 · 2026 年式"]]
+  yearTabs.innerHTML=[["26","MY26 · 2026 年式"]]
     .map(([y,l])=>`<button class="yeartab ${y===curYear?'sel':''}" onclick="pickYear('${y}')">${l}</button>`).join("");
 }
 function resetSelectionUI(){
@@ -3678,14 +3688,18 @@ function updateSummary(){
   sumOpts.innerHTML = optHtml;
   sumTotal.textContent = sales ? ntfmtRaw(total) : (CURSYM+Math.round(total).toLocaleString("en-GB"));
   const isCat = cur.brandId==="caterham";
+  const luxSum = (sales && luxTaxOn() && total>=LUX_TAX_MIN) ? Math.round(total*LUX_TAX_RATE) : 0;   // 報價預估奢侈稅（達 300 萬）
+  const grandSum = total + luxSum;
+  { const lb=document.getElementById("sumLuxBox");
+    if(lb){ if(luxSum>0){ lb.style.display=""; document.getElementById("sumLux").textContent="＋"+ntfmtRaw(luxSum); document.getElementById("sumGrand").textContent=ntfmtRaw(grandSum); } else lb.style.display="none"; } }
   const showDep = true;   // 所有檢視（含客戶端）都顯示訂金；沒選配也顯示（僅車價）
   depositBox.style.display = showDep ? "" : "none";
   if(showDep){
-    const dep = Math.round(total * (DEPOSIT_PCT/100));
+    const dep = Math.round(grandSum * (DEPOSIT_PCT/100));
     const depLbl=document.getElementById("depPctLbl"); if(depLbl) depLbl.textContent = `（${DEPOSIT_PCT}%）`;
     const money = v => sales ? ntfmtRaw(v) : (CURSYM+Math.round(v).toLocaleString("en-GB"));
     sumDep.textContent = money(dep);
-    sumBal.textContent = money(Math.max(0, total - dep));
+    sumBal.textContent = money(Math.max(0, grandSum - dep));
   }
 }
 function removeSel(kind,id){
@@ -4493,6 +4507,7 @@ function openSettings(){
   s_logoPrev.innerHTML = s.logo?`<img src="${s.logo}" style="max-height:46px"><button class="mini" style="margin-left:10px" onclick="clearLogo()">移除 Logo</button>`:"";
   s_fxGBP.value=s.fxGBP||FX.GBP; s_fxEUR.value=s.fxEUR||FX.EUR; s_coef.value=s.coef||COEF; s_weight.value=s.weight||0;
   s_deposit.value=(s.depositPct!=null?s.depositPct:DEPOSIT_PCT);
+  { const e=document.getElementById("s_luxTax"); if(e) e.checked=(s.luxTax!==false); }
   s_roundMode.value=s.roundMode||"none"; s_roundUnit.value=s.roundUnit||1;
   s_roundTMode.value=s.roundTMode||"none"; s_roundTUnit.value=s.roundTUnit||1;
   const acc=getAccounts();
@@ -4754,6 +4769,7 @@ function saveSettings(){
   if(pendingLogo!==undefined) s.logo=pendingLogo;
   s.fxGBP=+s_fxGBP.value||FX.GBP; s.fxEUR=+s_fxEUR.value||FX.EUR; s.coef=+s_coef.value||COEF; s.weight=+s_weight.value||0;
   s.depositPct=Math.max(0,Math.min(100,+s_deposit.value||0));
+  { const e=document.getElementById("s_luxTax"); s.luxTax = e?e.checked:true; }
   { const g=id=>{const e=document.getElementById(id);return e?e.value.trim():"";}; const on=document.getElementById("s_en_on");
     s.emailNotify={on:!!(on&&on.checked), service:g("s_en_service"), template:g("s_en_template"), pubkey:g("s_en_pubkey"), fallback:g("s_en_fallback"), always:g("s_en_always")}; }
   s.roundMode=s_roundMode.value; s.roundUnit=+s_roundUnit.value||1;
@@ -4898,6 +4914,9 @@ const SELLER_INFO={
   bankAcctName:"歐馬企業股份有限公司",
   bankAcctNo:"023-03-501376-8"
 };
+/* 奢侈稅（特種貨物稅）：合約成交價達門檻時加收。可於「公司資料 → 定價設定」開關（預設開）。 */
+const LUX_TAX_RATE=0.10, LUX_TAX_MIN=3000000;   // 10%；成交價達 300 萬（含）加收
+function luxTaxOn(){ return getSettings().luxTax!==false; }   // 預設開啟
 /* 取得目前這張報價的品項與含稅總額（合約書用；與列印邏輯一致） */
 function contractItemsTotal(){
   const base=cur.variants[variant].base, baseKey=cur.id+"|base";
@@ -4906,6 +4925,18 @@ function contractItemsTotal(){
   const allItems=[{name:`${cur.brand} ${cur.name} · ${cur.variants[variant].label}`,price:base,key:baseKey}].concat(items);
   const total=roundTotal(allItems.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0)+roundRetail(WEIGHT));
   return {allItems, total, baseKey};
+}
+/* 標準配備清單（報價單／合約列印用）：回傳 HTML；grouped 或 flat 都支援。 */
+function includedPrintHTML(){
+  const list=(cur && cur.included && cur.included[variant])||[];
+  if(!list.length) return "";
+  let inner="";
+  if(Array.isArray(list[0])){   // 分組 [[群組,[項目...]]]
+    inner=list.map(([g,items])=>`<div class="se-grp"><div class="se-gh">${g}</div>`+(items||[]).map(x=>`<div class="se-item">${x}</div>`).join("")+`</div>`).join("");
+  }else{
+    inner=list.map(x=>`<div class="se-item">${x}</div>`).join("");
+  }
+  return `<div class="p-veh-h" style="margin-top:12px">標準配備 Standard Equipment（本車已內含，不另計價）</div><div class="p-stdeq">${inner}</div>`;
 }
 function openContract(){
   if(!cur||!variant){ toast("請先選好車型與配備"); return; }
@@ -4935,7 +4966,7 @@ let CONTRACT_PRICE_OVERRIDE=null;
 function printContractDirect(){
   if(!cur||!variant){ toast("請先選好車型與配備"); return; }
   let listTotal=0; try{ listTotal=contractItemsTotal().total; }catch(e){}
-  const inp=prompt("成交價（合約總價 NT$）\n直接按「確定」＝用目前報價金額；有議價請改成實際成交價。", String(listTotal));
+  const inp=prompt("成交價（車價 NT$，未含奢侈稅）\n達 300 萬會自動加收 10% 奢侈稅。直接按「確定」＝用目前報價金額；有議價請改成實際成交價。", String(listTotal));
   if(inp===null) return;   // 取消 → 不列印
   const dp=Math.round(+String(inp).replace(/[,\s]/g,""));
   CONTRACT_PRICE_OVERRIDE=(isFinite(dp)&&dp>0)?dp:listTotal;
@@ -4948,13 +4979,15 @@ function printContract(){
   const total=(CONTRACT_PRICE_OVERRIDE!=null && CONTRACT_PRICE_OVERRIDE>0)?CONTRACT_PRICE_OVERRIDE:listTotal;  // 成交價優先
   const dealDiscount=Math.max(0, listTotal-total);   // 議價折讓 = 配備小計 − 成交價
   CONTRACT_PRICE_OVERRIDE=null;
+  const luxTax=(luxTaxOn() && total>=LUX_TAX_MIN)?Math.round(total*LUX_TAX_RATE):0;   // 奢侈稅（特種貨物稅）
+  const grandTotal=total+luxTax;   // 合約總價（含奢侈稅）
   const nt=n=>"NT$"+Math.round(+n||0).toLocaleString("en-US");
   const g=id=>{const e=document.getElementById(id);return e?e.value.trim():"";};
   const gn=id=>{const n=Math.round(+g(id).replace(/[,\s]/g,"")); return isFinite(n)&&n>0?n:0;};
   // \u4e09\u6bb5\u4ed8\u6b3e\uff1a\u8a02\u91d1\uff08\u5408\u7d04\u7c3d\u8a02\u65e5\uff09\uff0f\u4e8c\u6b21\u6b3e\u9805\uff08\u8eca\u6e2c\u5b8c\u6210\u65e5\uff09\uff0f\u5c3e\u6b3e\uff08\u4ea4\u8eca\uff09\u3002\u91d1\u984d\u53d6\u81ea\u8868\u55ae\uff0c\u672a\u586b\u5247\u81ea\u52d5\u4f30\u7b97\u3002
   let dep1=gn("k_dep1"), dep2=gn("k_dep2");
-  if(!dep1){ dep1=Math.round(total*0.20); if(!dep2) dep2=Math.round(total*0.90)-dep1; }  // 未填→成交價 20% / 累計付至 90%
-  let bal=total-dep1-dep2; if(bal<0) bal=0;
+  if(!dep1){ dep1=Math.round(grandTotal*0.20); if(!dep2) dep2=Math.round(grandTotal*0.90)-dep1; }  // 訂金/二次以「含奢侈稅總價」20% / 累計 90% 計
+  let bal=grandTotal-dep1-dep2; if(bal<0) bal=0;
   const U="＿＿＿＿＿＿";
   const kName=g("k_name")||U, kId=g("k_id")||U, kPhone=g("k_phone")||U, kEmail=g("k_email")||U, kBirth=g("k_birth")||U,
         kAddr=g("k_addr")||"＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿", kReg=g("k_regname")||"同買方", kRegId=g("k_regid")||"—",
@@ -5007,17 +5040,19 @@ function printContract(){
       <div><span>式樣/版本</span>${cur.variants[variant].label}</div><div><span>產地</span>${kOrigin}</div>
       <div><span>車身號碼</span>${kVin}</div><div><span>數量</span>1</div>
     </div>
+    ${includedPrintHTML()}
     <table class="p-items">
       <thead><tr><th class="no">\u5e8f\u865f</th><th>\u8a02\u8cfc\u6a19\u7684\uff08\u8eca\u578b / \u914d\u5099\uff09</th><th class="qty">\u6578\u91cf</th><th class="pr">\u91d1\u984d</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
     ${dealDiscount>0?`<div class="p-sub"><span>配備小計</span><span class="a">${nt(listTotal)}</span></div><div class="p-sub"><span>議價折讓</span><span class="a">−${nt(dealDiscount)}</span></div>`:""}
-    <div class="p-sum"><span>${dealDiscount>0?"成交總價（含稅）":"價金總額（含稅）"}</span><span class="a">${nt(total)}</span></div>
+    ${luxTax>0?`<div class="p-sub"><span>成交價（車價）</span><span class="a">${nt(total)}</span></div><div class="p-sub"><span>奢侈稅（特種貨物稅 10%）</span><span class="a">＋${nt(luxTax)}</span></div>`:""}
+    <div class="p-sum"><span>${luxTax>0?"合約總價（含奢侈稅）":(dealDiscount>0?"成交總價（含稅）":"價金總額（含稅）")}</span><span class="a">${nt(grandTotal)}</span></div>
     <table class="p-pay">
       <thead><tr><th>付款條件</th><th class="pr">費用</th><th>支付時間</th></tr></thead>
       <tbody>
-        <tr><td>訂金（車價 20%）</td><td class="pr">${nt(dep1)}</td><td>合約簽訂日</td></tr>
-        ${dep2>0?`<tr><td>二次款項（付至車價 90%）</td><td class="pr">${nt(dep2)}</td><td>車測完成日</td></tr>`:""}
+        <tr><td>訂金（總價 20%）</td><td class="pr">${nt(dep1)}</td><td>合約簽訂日</td></tr>
+        ${dep2>0?`<tr><td>二次款項（付至總價 90%）</td><td class="pr">${nt(dep2)}</td><td>車測完成日</td></tr>`:""}
         <tr><td>尾款</td><td class="pr">${nt(bal)}</td><td>交車</td></tr>
       </tbody>
     </table>
@@ -5077,9 +5112,11 @@ function printQuote(){
   const total = sales
     ? roundTotal(allItems.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0)+roundRetail(WEIGHT))
     : allItems.reduce((a,o)=>a+o.price,0);
+  const luxTaxQ = (sales && luxTaxOn() && total>=LUX_TAX_MIN) ? Math.round(total*LUX_TAX_RATE) : 0;   // 報價預估奢侈稅（達 300 萬）
+  const grandQ = total + luxTaxQ;
   const totalStr = sales?ntfmtRaw(total):(CURSYM+Math.round(total).toLocaleString("en-GB"));
   const _money = v => sales?ntfmtRaw(v):(CURSYM+Math.round(v).toLocaleString("en-GB"));
-  const depAmt = Math.round(total*(DEPOSIT_PCT/100)), balAmt = Math.max(0,total-depAmt);
+  const depAmt = Math.round(grandQ*(DEPOSIT_PCT/100)), balAmt = Math.max(0,grandQ-depAmt);
   const depStr=_money(depAmt), balStr=_money(balAmt);
   const p2=n=>String(n).padStart(2,"0");
   const now=new Date();
@@ -5117,11 +5154,14 @@ function printQuote(){
       <div><span>車型</span>${cur.brand} ${cur.name}</div><div><span>Line</span>${spLine}</div>
       <div><span>車身碼</span>${c.vin||"—"}</div><div></div>
     </div>
+    ${includedPrintHTML()}
     <table class="p-items">
       <thead><tr><th class="no">序號</th><th>品項</th><th class="qty">數量</th><th class="pr">單價</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <div class="p-sum"><span>合計金額</span><span class="a">${totalStr}</span></div>
+    ${luxTaxQ>0?`<div class="p-sub"><span>合計金額</span><span class="a">${totalStr}</span></div>
+    <div class="p-sub"><span>奢侈稅（達 300 萬・預估 10%）</span><span class="a">＋${_money(luxTaxQ)}</span></div>`:""}
+    <div class="p-sum"><span>${luxTaxQ>0?"合計（預估含奢侈稅）":"合計金額"}</span><span class="a">${_money(grandQ)}</span></div>
     <div class="p-dep">
       <div><span class="k">訂金 Deposit（${DEPOSIT_PCT}%）</span><span class="a">${depStr}</span></div>
       <div class="bal"><span class="k">交車前餘款 Balance</span><span class="a">${balStr}</span></div>
