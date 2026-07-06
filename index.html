@@ -452,6 +452,8 @@
   #print-root .p-items .pr{width:120px;text-align:right;font-family:ui-monospace,monospace;white-space:nowrap}
   #print-root .p-sum{display:flex;justify-content:flex-end;gap:44px;margin-top:14px;font-size:16px;font-weight:800}
   #print-root .p-sum .a{font-family:ui-monospace,monospace}
+  #print-root .p-sub{display:flex;justify-content:flex-end;gap:44px;margin-top:6px;font-size:12px;color:#444}
+  #print-root .p-sub .a{font-family:ui-monospace,monospace}
   #print-root .p-dep{margin-top:8px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:13px}
   #print-root .p-dep div{display:flex;justify-content:space-between;gap:40px;min-width:320px}
   #print-root .p-dep .k{color:#333;font-weight:600}
@@ -463,6 +465,8 @@
   #print-root .p-pay .pr{text-align:right;font-family:ui-monospace,monospace;white-space:nowrap;width:130px}
   #print-root .p-payinfo{font-size:10.5px;line-height:1.65;border:1px solid #999;padding:8px 10px;margin:10px 0 2px}
   #print-root .p-payinfo .p-payinfo-h{font-weight:800;margin-bottom:3px;font-size:11.5px}
+  #print-root .p-payinfo .pm-opt{padding:4px 0}
+  #print-root .p-payinfo .ckbox{display:inline-block;width:11px;height:11px;border:1.3px solid #000;margin-right:7px;vertical-align:-1px}
   #print-root .p-seller-sub{display:block;font-weight:400;font-size:10px;color:#555;margin-top:3px}
   #print-root .p-cnote{margin-top:16px;font-size:11px}
   #print-root .p-cnote b{display:block;margin-bottom:3px}
@@ -600,7 +604,7 @@
           </div>
           <div class="btns">
             <button class="btn red" id="btnPrint" onclick="printQuote()">列印 / 存成 PDF</button>
-            <button class="btn" id="btnContract" onclick="openContract()" style="border-color:#111">📄 列印合約書</button>
+            <button class="btn" id="btnContract" onclick="printContractDirect()" style="border-color:#111">📄 列印合約書</button>
             <div class="row2" id="btnSaveRow">
               <button class="btn primary" onclick="saveQuote()">儲存報價</button>
               <button class="btn" onclick="resetQuote()">新報價</button>
@@ -4926,21 +4930,35 @@ function openContract(){
   document.getElementById("contractBg").style.display="flex";
 }
 function closeContract(){ document.getElementById("contractBg").style.display="none"; }
+/* 直接列印合約：跳過資料視窗，只詢問「成交價」（預設帶入目前報價金額，有議價才改）。買方欄位由客戶手寫。 */
+let CONTRACT_PRICE_OVERRIDE=null;
+function printContractDirect(){
+  if(!cur||!variant){ toast("請先選好車型與配備"); return; }
+  let listTotal=0; try{ listTotal=contractItemsTotal().total; }catch(e){}
+  const inp=prompt("成交價（合約總價 NT$）\n直接按「確定」＝用目前報價金額；有議價請改成實際成交價。", String(listTotal));
+  if(inp===null) return;   // 取消 → 不列印
+  const dp=Math.round(+String(inp).replace(/[,\s]/g,""));
+  CONTRACT_PRICE_OVERRIDE=(isFinite(dp)&&dp>0)?dp:listTotal;
+  printContract();
+}
 function printContract(){
   if(!cur||!variant){ toast("請先選好車型與配備"); return; }
   const s=getSettings();
-  const {allItems, total, baseKey}=contractItemsTotal();
+  const {allItems, total:listTotal, baseKey}=contractItemsTotal();
+  const total=(CONTRACT_PRICE_OVERRIDE!=null && CONTRACT_PRICE_OVERRIDE>0)?CONTRACT_PRICE_OVERRIDE:listTotal;  // 成交價優先
+  const dealDiscount=Math.max(0, listTotal-total);   // 議價折讓 = 配備小計 − 成交價
+  CONTRACT_PRICE_OVERRIDE=null;
   const nt=n=>"NT$"+Math.round(+n||0).toLocaleString("en-US");
   const g=id=>{const e=document.getElementById(id);return e?e.value.trim():"";};
   const gn=id=>{const n=Math.round(+g(id).replace(/[,\s]/g,"")); return isFinite(n)&&n>0?n:0;};
   // \u4e09\u6bb5\u4ed8\u6b3e\uff1a\u8a02\u91d1\uff08\u5408\u7d04\u7c3d\u8a02\u65e5\uff09\uff0f\u4e8c\u6b21\u6b3e\u9805\uff08\u8eca\u6e2c\u5b8c\u6210\u65e5\uff09\uff0f\u5c3e\u6b3e\uff08\u4ea4\u8eca\uff09\u3002\u91d1\u984d\u53d6\u81ea\u8868\u55ae\uff0c\u672a\u586b\u5247\u81ea\u52d5\u4f30\u7b97\u3002
-  let dep1=gn("k_dep1"); if(!dep1) dep1=Math.round(total*0.20);
-  let dep2=gn("k_dep2");
+  let dep1=gn("k_dep1"), dep2=gn("k_dep2");
+  if(!dep1){ dep1=Math.round(total*0.20); if(!dep2) dep2=Math.round(total*0.90)-dep1; }  // 未填→成交價 20% / 累計付至 90%
   let bal=total-dep1-dep2; if(bal<0) bal=0;
   const U="＿＿＿＿＿＿";
   const kName=g("k_name")||U, kId=g("k_id")||U, kPhone=g("k_phone")||U, kEmail=g("k_email")||U, kBirth=g("k_birth")||U,
         kAddr=g("k_addr")||"＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿", kReg=g("k_regname")||"同買方", kRegId=g("k_regid")||"—",
-        kColor=g("k_color")||U, kVin=g("k_vin")||"客製化新車（待生產）", kEngine=g("k_engine")||U, kFuel=g("k_fuel")||U, kOrigin=g("k_origin")||U,
+        kColor=g("k_color")||U, kVin=g("k_vin")||"客製化新車（待生產）", kEngine=g("k_engine")||U, kFuel=g("k_fuel")||U, kOrigin=g("k_origin")||(cur.brandId==="caterham"?"英國 United Kingdom":(cur.brandId==="sunlight"?"德國 Germany":U)),
         kPay=g("k_pay")||U, kDeliver=g("k_deliver")||U, kReview=g("k_review")||"＿＿年＿＿月＿＿日", kCourt=g("k_court")||"臺灣臺中地方法院", kNote=g("k_note");
   const p2=n=>String(n).padStart(2,"0"); const now=new Date();
   const cno="C"+now.getFullYear()+p2(now.getMonth()+1)+p2(now.getDate())+p2(now.getHours())+p2(now.getMinutes());
@@ -4993,7 +5011,8 @@ function printContract(){
       <thead><tr><th class="no">\u5e8f\u865f</th><th>\u8a02\u8cfc\u6a19\u7684\uff08\u8eca\u578b / \u914d\u5099\uff09</th><th class="qty">\u6578\u91cf</th><th class="pr">\u91d1\u984d</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <div class="p-sum"><span>\u50f9\u91d1\u7e3d\u984d\uff08\u542b\u7a05\uff09</span><span class="a">${nt(total)}</span></div>
+    ${dealDiscount>0?`<div class="p-sub"><span>配備小計</span><span class="a">${nt(listTotal)}</span></div><div class="p-sub"><span>議價折讓</span><span class="a">−${nt(dealDiscount)}</span></div>`:""}
+    <div class="p-sum"><span>${dealDiscount>0?"成交總價（含稅）":"價金總額（含稅）"}</span><span class="a">${nt(total)}</span></div>
     <table class="p-pay">
       <thead><tr><th>付款條件</th><th class="pr">費用</th><th>支付時間</th></tr></thead>
       <tbody>
@@ -5003,15 +5022,18 @@ function printContract(){
       </tbody>
     </table>
     <div class="p-payinfo">
-      <div class="p-payinfo-h">付款方式</div>
-      <div>買受人交付之款項，可任選以下方式，收據由本公司另行製發：</div>
-      <div>（一）現金。</div>
-      <div>（二）銀行電匯：${bankName}／戶名：${bankAcctName}／帳號：${bankAcctNo}。</div>
-      <div>（三）即期支票：開立以「${bankAcctName}」為抬頭，並劃平行線且註明禁止背書轉讓之即期支票給付。</div>
-      <div style="margin-top:4px">本次約定付款方式：${kPay}　　預計交車：${kDeliver}</div>
+      <div class="p-payinfo-h">付款方式（請勾選一種）</div>
+      <div>買受人交付之款項可任選以下方式，收據由本公司另行製發：</div>
+      <div class="pm-opt"><span class="ckbox"></span>現金</div>
+      <div class="pm-opt"><span class="ckbox"></span>銀行電匯：${bankName}／戶名：${bankAcctName}／帳號：${bankAcctNo}</div>
+      <div class="pm-opt"><span class="ckbox"></span>即期支票：開立以「${bankAcctName}」為抬頭，並劃平行線且註明禁止背書轉讓之即期支票給付</div>
     </div>
     <div class="p-firstnote">訂金（國外訂購確認款）：買受人於簽約時支付本款，作為出賣人向國外原廠、供應商或合作單位確認庫存、配額、排產、價格、交期及可訂購性之款項（非單純違約定金）。出賣人應於收受訂金後十四個工作日內向國外確認是否可供應並通知買受人；如國外無法供應且買受人不接受其他方案者，訂金全額無息退還。確認可供應後，該款項即轉為車輛訂購、客製化配備、原廠排產及履約準備款之一部。二次款項於車輛完成車測、領牌前繳付；尾款於交車時付清，出賣人始負交車義務。</div>
     ${kNote?`<div class="p-cnote"><b>\u5099\u8a3b</b><div>${kNote}</div></div>`:""}
+    <div class="p-break"></div>
+    <div class="p-terms-t">\u5951\u7d04\u689d\u6b3e</div>
+    <ol class="p-notes-ol">${terms.map(t=>`<li>${t}</li>`).join("")}</ol>
+    <div class="p-declare2">\u8cb7\u53d7\u4eba\u78ba\u8a8d\u5df2\u8a73\u95b1\u4e26\u540c\u610f\u4e0a\u5217\u5168\u90e8\u689d\u6b3e\uff0c\u7279\u5225\u662f\u300c\u5ba2\u88fd\u5316\u5546\u54c1\u6392\u9664\u4e03\u65e5\u7121\u689d\u4ef6\u89e3\u7d04\u3001\u7b2c\u4e00\u671f\u6b3e\uff0f\u5ba2\u88fd\u5316\u8a02\u88fd\u6b3e\u4e4b\u53d6\u6d88\u8cbb\u7528\u8ca0\u64d4\u300d\u4e4b\u7d04\u5b9a\uff0c\u4e26\u4fdd\u7559\u4f9d\u6cd5\u4e4b\u7455\u75b5\u64d4\u4fdd\u8207\u91cd\u5927\u7455\u75b5\u6a5f\u5236\u3002</div>
     <div class="p-parties-t">立合約人</div>
     <div class="p-parties">
       <div class="p-party">
@@ -5033,13 +5055,9 @@ function printContract(){
         <div class="pp-r"><span>E-MAIL</span><i>${g("k_email")||""}</i></div>
       </div>
     </div>
+    <div class="p-sign" style="margin-top:26px"><div>\u8cb7\u65b9\u7c3d\u540d / \u84cb\u7ae0\u3000\u65e5\u671f\uff1a__________</div><div>\u8ce3\u65b9\uff08\u84cb\u7ae0\uff09\u3000\u65e5\u671f\uff1a__________</div></div>
     <div class="p-orderdate">簽約／訂購日期：______ 年 ____ 月 ____ 日</div>
     <div class="p-cno-foot">合約編號：${cno}</div>
-    <div class="p-break"></div>
-    <div class="p-terms-t">\u5951\u7d04\u689d\u6b3e</div>
-    <ol class="p-notes-ol">${terms.map(t=>`<li>${t}</li>`).join("")}</ol>
-    <div class="p-declare2">\u8cb7\u53d7\u4eba\u78ba\u8a8d\u5df2\u8a73\u95b1\u4e26\u540c\u610f\u4e0a\u5217\u5168\u90e8\u689d\u6b3e\uff0c\u7279\u5225\u662f\u300c\u5ba2\u88fd\u5316\u5546\u54c1\u6392\u9664\u4e03\u65e5\u7121\u689d\u4ef6\u89e3\u7d04\u3001\u7b2c\u4e00\u671f\u6b3e\uff0f\u5ba2\u88fd\u5316\u8a02\u88fd\u6b3e\u4e4b\u53d6\u6d88\u8cbb\u7528\u8ca0\u64d4\u300d\u4e4b\u7d04\u5b9a\uff0c\u4e26\u4fdd\u7559\u4f9d\u6cd5\u4e4b\u7455\u75b5\u64d4\u4fdd\u8207\u91cd\u5927\u7455\u75b5\u6a5f\u5236\u3002</div>
-    <div class="p-sign" style="margin-top:26px"><div>\u8cb7\u65b9\u7c3d\u540d / \u84cb\u7ae0\u3000\u65e5\u671f\uff1a__________</div><div>\u8ce3\u65b9\uff08\u84cb\u7ae0\uff09\u3000\u65e5\u671f\uff1a__________</div></div>
   `;
   closeContract();
   setTimeout(function(){ window.print(); }, 50);
