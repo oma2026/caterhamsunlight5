@@ -477,6 +477,15 @@
   #print-root .p-fn li{padding:1.5px 0}
   #print-root .p-sign{display:flex;gap:44px;margin-top:38px}
   #print-root .p-sign div{flex:1;border-top:1px solid #000;padding-top:6px;font-size:11px;color:#555}
+  #print-root .p-parties-t{font-weight:800;font-size:14px;border-bottom:2px solid #000;padding-bottom:5px;margin:8px 0 12px}
+  #print-root .p-parties{display:grid;grid-template-columns:1fr 1fr;gap:0 44px;font-size:12px}
+  #print-root .p-party .pp-h{font-weight:800;margin-bottom:4px}
+  #print-root .p-party .pp-r{display:flex;align-items:flex-end;gap:8px;padding-top:11px}
+  #print-root .p-party .pp-r span{color:#333;min-width:84px;flex:none;padding-bottom:2px}
+  #print-root .p-party .pp-r i{flex:1;border-bottom:1px solid #888;font-style:normal;min-height:19px;padding:0 4px 2px}
+  #print-root .p-party .pp-sign i{min-height:40px}
+  #print-root .p-orderdate{text-align:center;font-size:13px;font-weight:700;margin-top:30px;letter-spacing:.05em}
+  #print-root .p-cno-foot{text-align:right;font-size:9px;color:#999;margin-top:14px}
   #print-root .p-bottom{margin-top:auto;padding-top:28px}
 .so.wgt{border-top:1px dashed var(--line);margin-top:6px;padding-top:6px;font-weight:700;color:var(--ink)}.so.wgt .wq{font-weight:600;color:var(--red);font-size:11px}
 </style>
@@ -812,14 +821,9 @@
     </div>
     <div class="tech-h" style="margin-top:14px">車輛（未填會留底線）</div>
     <div class="row2">
-      <div class="field"><label class="f">車身顏色</label><input class="t" id="k_color"></div>
-      <div class="field"><label class="f">VIN 車身號碼</label><input class="t" id="k_vin" placeholder="未定可留空，交車前補列"></div>
+      <div class="field"><label class="f">車身號碼</label><input class="t" id="k_vin" placeholder="留空印「客製化新車（待生產）」"></div>
+      <div class="field"><label class="f">產地</label><input class="t" id="k_origin"></div>
     </div>
-    <div class="row2" style="margin-top:8px">
-      <div class="field"><label class="f">排氣量 / 馬力</label><input class="t" id="k_engine"></div>
-      <div class="field"><label class="f">能源種類</label><input class="t" id="k_fuel" placeholder="汽油 / 柴油 / 油電…"></div>
-    </div>
-    <div class="field" style="margin-top:8px"><label class="f">產地</label><input class="t" id="k_origin"></div>
     <div class="tech-h" style="margin-top:14px">付款與其他</div>
     <div class="row2">
       <div class="field"><label class="f">付款方式</label><input class="t" id="k_pay" placeholder="現金 / 匯款 / 刷卡 / 分期"></div>
@@ -4936,7 +4940,7 @@ function printContract(){
   const U="＿＿＿＿＿＿";
   const kName=g("k_name")||U, kId=g("k_id")||U, kPhone=g("k_phone")||U, kEmail=g("k_email")||U, kBirth=g("k_birth")||U,
         kAddr=g("k_addr")||"＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿", kReg=g("k_regname")||"同買方", kRegId=g("k_regid")||"—",
-        kColor=g("k_color")||U, kVin=g("k_vin")||"（交車前補列）", kEngine=g("k_engine")||U, kFuel=g("k_fuel")||U, kOrigin=g("k_origin")||U,
+        kColor=g("k_color")||U, kVin=g("k_vin")||"客製化新車（待生產）", kEngine=g("k_engine")||U, kFuel=g("k_fuel")||U, kOrigin=g("k_origin")||U,
         kPay=g("k_pay")||U, kDeliver=g("k_deliver")||U, kReview=g("k_review")||"＿＿年＿＿月＿＿日", kCourt=g("k_court")||"臺灣臺中地方法院", kNote=g("k_note");
   const p2=n=>String(n).padStart(2,"0"); const now=new Date();
   const cno="C"+now.getFullYear()+p2(now.getMonth()+1)+p2(now.getDate())+p2(now.getHours())+p2(now.getMinutes());
@@ -4981,11 +4985,9 @@ function printContract(){
     <div class="p-review">\u3010\u5951\u7d04\u5be9\u95b1\u6b0a\u3011\u672c\u5951\u7d04\u65bc\u4e2d\u83ef\u6c11\u570b <b>${kReview}</b> \u63d0\u4f9b\u8cb7\u53d7\u4eba\u651c\u56de\u5be9\u95b1\uff08\u5951\u7d04\u5be9\u95b1\u671f\u9593\u81f3\u5c11\u4e09\u65e5\uff09\u3002\u8cb7\u53d7\u4eba\u78ba\u8a8d\u5df2\u5145\u5206\u95b1\u8b80\u4e26\u4e86\u89e3\u672c\u5951\u7d04\u53ca\u9644\u4ef6\u5167\u5bb9\u3002\u3000\u25a1 \u5df2\u5be9\u95b1\u4e09\u65e5\u4ee5\u4e0a\u3000\u25a1 \u8cb7\u53d7\u4eba\u81ea\u9858\u65bc\u5be9\u95b1\u671f\u9593\u5167\u7c3d\u7f72\uff0c\u4e26\u78ba\u8a8d\u5df2\u5145\u5206\u7406\u89e3\u5951\u7d04\u5167\u5bb9\u3002</div>
     <div class="p-veh-h">\u8cb7\u8ce3\u6a19\u7684\u8eca\u8f1b</div>
     <div class="p-veh">
-      <div><span>\u5ee0\u724c</span>${cur.brand}</div><div><span>\u8eca\u578b</span>${cur.name}</div>
-      <div><span>\u5f0f\u6a23/\u7248\u672c</span>${cur.variants[variant].label}</div><div><span>\u51fa\u5ee0\u5e74</span>${cur.year||U}</div>
-      <div><span>\u8eca\u8eab\u984f\u8272</span>${kColor}</div><div><span>\u80fd\u6e90\u7a2e\u985e</span>${kFuel}</div>
-      <div><span>\u6392\u6c23\u91cf/\u99ac\u529b</span>${kEngine}</div><div><span>\u7522\u5730</span>${kOrigin}</div>
-      <div><span>VIN \u8eca\u8eab\u865f</span>${kVin}</div><div><span>\u6578\u91cf</span>1</div>
+      <div><span>廠牌</span>${cur.brand}</div><div><span>車型</span>${cur.name}</div>
+      <div><span>式樣/版本</span>${cur.variants[variant].label}</div><div><span>產地</span>${kOrigin}</div>
+      <div><span>車身號碼</span>${kVin}</div><div><span>數量</span>1</div>
     </div>
     <table class="p-items">
       <thead><tr><th class="no">\u5e8f\u865f</th><th>\u8a02\u8cfc\u6a19\u7684\uff08\u8eca\u578b / \u914d\u5099\uff09</th><th class="qty">\u6578\u91cf</th><th class="pr">\u91d1\u984d</th></tr></thead>
@@ -5010,16 +5012,29 @@ function printContract(){
     </div>
     <div class="p-firstnote">訂金（國外訂購確認款）：買受人於簽約時支付本款，作為出賣人向國外原廠、供應商或合作單位確認庫存、配額、排產、價格、交期及可訂購性之款項（非單純違約定金）。出賣人應於收受訂金後十四個工作日內向國外確認是否可供應並通知買受人；如國外無法供應且買受人不接受其他方案者，訂金全額無息退還。確認可供應後，該款項即轉為車輛訂購、客製化配備、原廠排產及履約準備款之一部。二次款項於車輛完成車測、領牌前繳付；尾款於交車時付清，出賣人始負交車義務。</div>
     ${kNote?`<div class="p-cnote"><b>\u5099\u8a3b</b><div>${kNote}</div></div>`:""}
-    <div class="p-veh-h">立約人資料（買方請親自填寫並簽名）</div>
-    <div class="p-info" style="margin-bottom:10px">
-      <div><span>合約編號</span>${cno}</div><div><span>業務</span>${spName}</div>
-      <div><span>立約日期</span>${today}</div><div><span>買方電話</span>${kPhone}</div>
-      <div><span>買方</span>${kName}</div><div><span>買方證號</span>${kId}</div>
-      <div><span>出生年月日</span>${kBirth}</div><div><span>Email</span>${kEmail}</div>
-      <div><span>領牌名義人</span>${kReg}</div><div><span>領牌證號</span>${kRegId}</div>
-      <div style="grid-column:1/3"><span>買方地址</span>${kAddr}</div>
+    <div class="p-parties-t">立合約人</div>
+    <div class="p-parties">
+      <div class="p-party">
+        <div class="pp-h">甲方（賣方）</div>
+        <div class="pp-r"><span>公司名</span><i>${name}</i></div>
+        <div class="pp-r"><span>統一編號</span><i>${sellerTax}</i></div>
+        <div class="pp-r"><span>負責人</span><i>${sellerOwner}</i></div>
+        <div class="pp-r"><span>電話</span><i>${phone||""}</i></div>
+        <div class="pp-r"><span>地址</span><i>${addr||""}</i></div>
+        <div class="pp-r pp-sign"><span>業務代表</span><i>${currentSales?[currentSales.title,currentSales.name].filter(Boolean).join(" "):""}</i></div>
+      </div>
+      <div class="p-party">
+        <div class="pp-h">乙方（買方）</div>
+        <div class="pp-r pp-sign"><span>公司／個人姓名</span><i>${g("k_name")||""}</i></div>
+        <div class="pp-r"><span>身分證字號</span><i>${g("k_id")||""}</i></div>
+        <div class="pp-r"><span>出生年月日</span><i>${g("k_birth")||""}</i></div>
+        <div class="pp-r"><span>電話</span><i>${g("k_phone")||""}</i></div>
+        <div class="pp-r"><span>地址</span><i>${g("k_addr")||""}</i></div>
+        <div class="pp-r"><span>E-MAIL</span><i>${g("k_email")||""}</i></div>
+      </div>
     </div>
-    <div class="p-sign"><div>\u8cb7\u65b9\u7c3d\u540d / \u84cb\u7ae0\u3000Buyer</div><div>\u8ce3\u65b9\uff08\u84cb\u7ae0\uff09\u3000${name}<br><span class="p-seller-sub">統一編號：${sellerTax}　負責人：${sellerOwner}</span></div></div>
+    <div class="p-orderdate">簽約／訂購日期：______ 年 ____ 月 ____ 日</div>
+    <div class="p-cno-foot">合約編號：${cno}</div>
     <div class="p-break"></div>
     <div class="p-terms-t">\u5951\u7d04\u689d\u6b3e</div>
     <ol class="p-notes-ol">${terms.map(t=>`<li>${t}</li>`).join("")}</ol>
