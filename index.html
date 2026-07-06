@@ -5216,7 +5216,7 @@ function printContract(){
   const cno="C"+now.getFullYear()+p2(now.getMonth()+1)+p2(now.getDate())+p2(now.getHours())+p2(now.getMinutes());
   const today=`${now.getFullYear()} \u5e74 ${p2(now.getMonth()+1)} \u6708 ${p2(now.getDate())} \u65e5`;
   const name=s.name||"\u516c\u53f8\u540d\u7a31", nameEn=s.nameEn||"", phone=s.phone||s.contact||"", fax=s.fax||"", email=s.email||"", addr=s.addr||"", addrEn=s.addrEn||"", logo=s.logo||DEFAULT_LOGO;
-  const sellerTax=SELLER_INFO.taxId, sellerOwner=SELLER_INFO.owner, bankName=SELLER_INFO.bankName, bankAcctName=(name&&name!=="\u516c\u53f8\u540d\u7a31"?name:SELLER_INFO.bankAcctName), bankAcctNo=SELLER_INFO.bankAcctNo;
+  const sellerTax=SELLER_INFO.taxId, sellerOwner=SELLER_INFO.owner, bankName=SELLER_INFO.bankName, bankAcctName=SELLER_INFO.bankAcctName, bankAcctNo=SELLER_INFO.bankAcctNo;
   const sp=currentSales; const spName= sp?([sp.title,sp.name].filter(Boolean).join(" ")+`\uff08${sp.u}\uff09`):"\u2014";
   let idx=0;
   const rows=allItems.map(o=>`<tr><td class="no">${++idx}</td><td>${o.name}</td><td class="qty">1</td><td class="pr">${o.price===0?"NCO":(o.key===baseKey?nt(baseNTWithWeight(o.price,o.key)):nt(retailOf(o.price,o.key)))}</td></tr>`).join("");
