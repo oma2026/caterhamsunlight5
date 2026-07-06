@@ -3011,13 +3011,13 @@ function toggleStaffHidden(){
 function renderCars(){
   const _hid=new Set(getHiddenCars());
   const isVip=(role==="vip");
-  const showHidden=(!isVip && STAFF_SHOW_HIDDEN);                  // 客戶端一律不顯示隱藏車；業務端看開關
+  // 客戶看不到的車＝手動隱藏的，或 Sunlight 非白名單那 11 台以外的
+  const custHidden=(c)=> _hid.has(c.id) || (c.brandId==="sunlight" && !CUST_SUNLIGHT_WL.has(c.id));
   let list=CARS.filter(c=>c.brandId===curBrand);
-  list=list.filter(c=> showHidden || !_hid.has(c.id));
-  if(curBrand==="sunlight"){
-    list=list.filter(c=>c.line===curLine && (c.my==="both"||c.my===curYear));
-    if(isVip) list=list.filter(c=> CUST_SUNLIGHT_WL.has(c.id));    // 客戶端 Sunlight 只給白名單 11 台
-  }
+  if(curBrand==="sunlight") list=list.filter(c=>c.line===curLine && (c.my==="both"||c.my===curYear));
+  // 客戶端＋業務端預設：只看「客戶可見」；業務端按「顯示隱藏車款」才連隱藏車一起看
+  const showAll=(!isVip && STAFF_SHOW_HIDDEN);
+  if(!showAll) list=list.filter(c=> !custHidden(c));
   cliffNotes.innerHTML = "";   // 注意事項改放列印報價單底部
   renderHidToggleBtn();
   if(!list.length){
@@ -3026,7 +3026,7 @@ function renderCars(){
   }
   carList.innerHTML=list.map(c=>{
     const base=Math.min(...Object.values(c.variants).map(v=>v.base));
-    const hidden=_hid.has(c.id);
+    const hidden=custHidden(c);
     return `<button class="car${hidden?' car-hidden':''}" data-id="${c.id}" onclick="pickCar('${c.id}')">
       <div class="cname">${c.name}${hidden?' <span class="hid-badge">隱藏</span>':''}</div>
       <div class="cyear">${c.year}</div>
