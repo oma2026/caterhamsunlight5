@@ -4910,12 +4910,12 @@ function openContract(){
   setIfEmpty("k_fuel","汽油 Petrol");
   setIfEmpty("k_origin", cur.brandId==="caterham"?"英國 United Kingdom":(cur.brandId==="sunlight"?"德國 Germany":""));
   setIfEmpty("k_court","臺灣臺中地方法院");
-  // 三段付款建議金額（訂金／二次款項／尾款），留白時帶入，業務可自行改成實際數字
+  // 三段付款建議金額：訂金＝車價 20%；二次款項累計付至車價 90%；尾款＝其餘（約 10%，交車付清）。業務可自行改成實際數字
   try{
     const {total}=contractItemsTotal();
-    const tail=Math.round(total*0.10);            // 尾款約 10%（交車款）
-    const d1=Math.round(total*(DEPOSIT_PCT/100)); // 訂金 = 總價 × 訂金比例
-    let d2=total-d1-tail; if(d2<0) d2=0;           // 二次款項 = 總價 − 訂金 − 尾款
+    const d1=Math.round(total*0.20);              // 訂金 = 車價 20%
+    const cum2=Math.round(total*0.90);            // 累計付至車價 90%
+    let d2=cum2-d1; if(d2<0) d2=0;                 // 二次款項本身金額 = 90% − 20%
     setIfEmpty("k_dep1", d1?String(d1):"");
     setIfEmpty("k_dep2", d2>0?String(d2):"");
   }catch(e){}
@@ -4930,8 +4930,7 @@ function printContract(){
   const g=id=>{const e=document.getElementById(id);return e?e.value.trim():"";};
   const gn=id=>{const n=Math.round(+g(id).replace(/[,\s]/g,"")); return isFinite(n)&&n>0?n:0;};
   // \u4e09\u6bb5\u4ed8\u6b3e\uff1a\u8a02\u91d1\uff08\u5408\u7d04\u7c3d\u8a02\u65e5\uff09\uff0f\u4e8c\u6b21\u6b3e\u9805\uff08\u8eca\u6e2c\u5b8c\u6210\u65e5\uff09\uff0f\u5c3e\u6b3e\uff08\u4ea4\u8eca\uff09\u3002\u91d1\u984d\u53d6\u81ea\u8868\u55ae\uff0c\u672a\u586b\u5247\u81ea\u52d5\u4f30\u7b97\u3002
-  const pct=DEPOSIT_PCT;
-  let dep1=gn("k_dep1"); if(!dep1) dep1=Math.round(total*(pct/100));
+  let dep1=gn("k_dep1"); if(!dep1) dep1=Math.round(total*0.20);
   let dep2=gn("k_dep2");
   let bal=total-dep1-dep2; if(bal<0) bal=0;
   const U="＿＿＿＿＿＿";
@@ -4980,14 +4979,6 @@ function printContract(){
     </div>
     <div class="p-title">\u8a02\u3000\u8cfc\u3000\u5408\u3000\u7d04\u3000\u66f8</div>
     <div class="p-review">\u3010\u5951\u7d04\u5be9\u95b1\u6b0a\u3011\u672c\u5951\u7d04\u65bc\u4e2d\u83ef\u6c11\u570b <b>${kReview}</b> \u63d0\u4f9b\u8cb7\u53d7\u4eba\u651c\u56de\u5be9\u95b1\uff08\u5951\u7d04\u5be9\u95b1\u671f\u9593\u81f3\u5c11\u4e09\u65e5\uff09\u3002\u8cb7\u53d7\u4eba\u78ba\u8a8d\u5df2\u5145\u5206\u95b1\u8b80\u4e26\u4e86\u89e3\u672c\u5951\u7d04\u53ca\u9644\u4ef6\u5167\u5bb9\u3002\u3000\u25a1 \u5df2\u5be9\u95b1\u4e09\u65e5\u4ee5\u4e0a\u3000\u25a1 \u8cb7\u53d7\u4eba\u81ea\u9858\u65bc\u5be9\u95b1\u671f\u9593\u5167\u7c3d\u7f72\uff0c\u4e26\u78ba\u8a8d\u5df2\u5145\u5206\u7406\u89e3\u5951\u7d04\u5167\u5bb9\u3002</div>
-    <div class="p-info">
-      <div><span>\u5408\u7d04\u7de8\u865f</span>${cno}</div><div><span>\u696d\u52d9</span>${spName}</div>
-      <div><span>\u7acb\u7d04\u65e5\u671f</span>${today}</div><div><span>\u8cb7\u65b9\u96fb\u8a71</span>${kPhone}</div>
-      <div><span>\u8cb7\u65b9</span>${kName}</div><div><span>\u8cb7\u65b9\u8b49\u865f</span>${kId}</div>
-      <div><span>\u51fa\u751f\u5e74\u6708\u65e5</span>${kBirth}</div><div><span>Email</span>${kEmail}</div>
-      <div><span>\u9818\u724c\u540d\u7fa9\u4eba</span>${kReg}</div><div><span>\u9818\u724c\u8b49\u865f</span>${kRegId}</div>
-      <div style="grid-column:1/3"><span>\u8cb7\u65b9\u5730\u5740</span>${kAddr}</div>
-    </div>
     <div class="p-veh-h">\u8cb7\u8ce3\u6a19\u7684\u8eca\u8f1b</div>
     <div class="p-veh">
       <div><span>\u5ee0\u724c</span>${cur.brand}</div><div><span>\u8eca\u578b</span>${cur.name}</div>
@@ -5004,8 +4995,8 @@ function printContract(){
     <table class="p-pay">
       <thead><tr><th>付款條件</th><th class="pr">費用</th><th>支付時間</th></tr></thead>
       <tbody>
-        <tr><td>訂金</td><td class="pr">${nt(dep1)}</td><td>合約簽訂日</td></tr>
-        ${dep2>0?`<tr><td>二次款項</td><td class="pr">${nt(dep2)}</td><td>車測完成日</td></tr>`:""}
+        <tr><td>訂金（車價 20%）</td><td class="pr">${nt(dep1)}</td><td>合約簽訂日</td></tr>
+        ${dep2>0?`<tr><td>二次款項（付至車價 90%）</td><td class="pr">${nt(dep2)}</td><td>車測完成日</td></tr>`:""}
         <tr><td>尾款</td><td class="pr">${nt(bal)}</td><td>交車</td></tr>
       </tbody>
     </table>
@@ -5019,6 +5010,15 @@ function printContract(){
     </div>
     <div class="p-firstnote">訂金（國外訂購確認款）：買受人於簽約時支付本款，作為出賣人向國外原廠、供應商或合作單位確認庫存、配額、排產、價格、交期及可訂購性之款項（非單純違約定金）。出賣人應於收受訂金後十四個工作日內向國外確認是否可供應並通知買受人；如國外無法供應且買受人不接受其他方案者，訂金全額無息退還。確認可供應後，該款項即轉為車輛訂購、客製化配備、原廠排產及履約準備款之一部。二次款項於車輛完成車測、領牌前繳付；尾款於交車時付清，出賣人始負交車義務。</div>
     ${kNote?`<div class="p-cnote"><b>\u5099\u8a3b</b><div>${kNote}</div></div>`:""}
+    <div class="p-veh-h">立約人資料（買方請親自填寫並簽名）</div>
+    <div class="p-info" style="margin-bottom:10px">
+      <div><span>合約編號</span>${cno}</div><div><span>業務</span>${spName}</div>
+      <div><span>立約日期</span>${today}</div><div><span>買方電話</span>${kPhone}</div>
+      <div><span>買方</span>${kName}</div><div><span>買方證號</span>${kId}</div>
+      <div><span>出生年月日</span>${kBirth}</div><div><span>Email</span>${kEmail}</div>
+      <div><span>領牌名義人</span>${kReg}</div><div><span>領牌證號</span>${kRegId}</div>
+      <div style="grid-column:1/3"><span>買方地址</span>${kAddr}</div>
+    </div>
     <div class="p-sign"><div>\u8cb7\u65b9\u7c3d\u540d / \u84cb\u7ae0\u3000Buyer</div><div>\u8ce3\u65b9\uff08\u84cb\u7ae0\uff09\u3000${name}<br><span class="p-seller-sub">統一編號：${sellerTax}　負責人：${sellerOwner}</span></div></div>
     <div class="p-break"></div>
     <div class="p-terms-t">\u5951\u7d04\u689d\u6b3e</div>
