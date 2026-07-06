@@ -2993,7 +2993,7 @@ function pickYear(y){
   updateSummary();
 }
 /* 客戶端(VIP) Sunlight 只顯示這 11 台（T 系列 7 + CLIFF 4）；業務/管理端不受限、看全部 */
-const CUST_SUNLIGHT_WL = new Set(["t58c26","t66sc26","t67sc26","t58a26","t66sa26","t67sa26","t67a26","540","600","601","602"]);
+const CUST_SUNLIGHT_WL = new Set(["t58c26","t66sc26","t67sc26","t58a26","t66sa26","t67sa26","t67a26","cliff540","cliff600","cliff601","cliff602"]);
 /* 業務端「顯示隱藏車款」開關：只存這台電腦(不上雲端)、客戶端永遠看不到隱藏車 */
 let STAFF_SHOW_HIDDEN = (function(){ try{ return localStorage.getItem("staff_show_hidden")==="1"; }catch(e){ return false; } })();
 function renderHidToggleBtn(){
