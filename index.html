@@ -3863,7 +3863,10 @@ function goSales(){
   else if(role) applyView("sales");
   else openLogin();
 }
-function closeLogin(){ document.getElementById("loginBg").style.display="none"; }
+function closeLogin(){
+  document.getElementById("loginBg").style.display="none";
+  if(!role) openRoleGate();   // 尚未登入就按 X／取消 → 退回身分選擇關卡，不讓未輸入密碼就進到 App
+}
 function logout(){
   role=null; currentSales=null; vipSales=null; customerName=""; VIEW="sales";
   resetSelectionUI();
