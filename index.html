@@ -45,6 +45,17 @@
   .vt.sel{background:#fff;color:#111}
   .user-badge{font-size:12px;color:#eee;display:flex;align-items:center;gap:2px;background:#2a2a2a;border:1px solid #444;border-radius:8px;padding:5px 10px}
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;align-items:center;justify-content:center}
+  .rolefull{position:fixed;inset:0;background:#f4f5f7;z-index:70;overflow:auto;flex-direction:column}
+  .rolefull-head{display:flex;align-items:center;gap:10px;padding:14px 20px;background:#111;color:#fff;font-size:17px;position:sticky;top:0;z-index:1}
+  .rolefull-body{padding:18px 20px 60px;max-width:1120px;margin:0 auto;width:100%;box-sizing:border-box}
+  .rf-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+  .rf-card{background:#fff;border:1px solid #e2e4e8;border-radius:12px;padding:14px 16px}
+  .rf-card .l{font-size:12px;color:#8a8f98}
+  .rf-card .v{font-size:21px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+  .rf-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+  .rf-table th{background:#ececee;border:1px solid #d3d5da;padding:8px 9px;text-align:left;white-space:nowrap}
+  .rf-table td{border:1px solid #e6e7ea;padding:8px 9px;vertical-align:top}
+  .rf-table .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .modal-bg.gate{background:#0f0f0f}
   .inbox-row{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
   .deal-row{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
@@ -605,6 +616,9 @@
           <div id="sumBreakdown"></div>
           <div class="sum-opts" id="sumOpts"></div>
           <div class="total"><span class="lbl">總價 Total</span><span class="amt" id="sumTotal">£0</span></div>
+          <div class="deposit" id="carWeightBox" style="display:none">
+            <div><span>本車加權 NT$<small style="color:#999">（空白＝用全域 <b id="globalWeightHint">0</b>）</small></span><input class="t" id="carWeightInput" type="number" step="100" style="max-width:120px;text-align:right" placeholder="全域" onchange="setCarWeight((typeof cur!=='undefined'&&cur)?cur.id:null,this.value)"></div>
+          </div>
           <div class="deposit" id="sumLuxBox" style="display:none">
             <div><span>奢侈稅（達 300 萬・預估 10%）</span><b id="sumLux">—</b></div>
             <div class="bal"><span>預估含奢侈稅總價</span><b id="sumGrand">—</b></div>
@@ -660,7 +674,7 @@
       <div class="field"><label class="f">匯率 EUR → NT$</label><input class="t" id="s_fxEUR" type="number" step="0.1"></div>
     </div>
     <div class="field" style="margin-top:10px"><label class="f">係數 Coefficient（預設加成倍率）</label><input class="t" id="s_coef" type="number" step="0.05"></div>
-    <div class="field" style="margin-top:10px"><label class="f">加權 Weighting（係數後加值 · NT$）</label><input class="t" id="s_weight" type="number" step="100"></div>
+    <div class="field" style="margin-top:10px"><label class="f">預設加權 Weighting（係數後加值 · NT$，未單獨設定的車用這個）</label><input class="t" id="s_weight" type="number" step="100"></div>
     <div class="field" style="margin-top:10px"><label class="f">訂金比例 Deposit %（訂金 = 總價 × 此比例，交一次）</label><input class="t" id="s_deposit" type="number" step="1" min="0" max="100" placeholder="例如 30"></div>
     <label class="f" style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-weight:400"><input type="checkbox" id="s_luxTax" style="width:auto;margin:0"> 奢侈稅：合約成交價達 300 萬時，自動加收 10%（特種貨物稅）</label>
     <div class="row2" style="margin-top:10px">
@@ -738,6 +752,20 @@
       <button class="btn ghost" id="loginCancel" onclick="closeLogin()">取消</button>
     </div>
   </div>
+</div>
+
+<!-- 會計 / 出納 全畫面 -->
+<div id="acctBg" class="rolefull" style="display:none">
+  <div class="rolefull-head"><b>會計總覽</b><span style="opacity:.7;font-size:13px">已成交訂單</span><div style="margin-left:auto;display:flex;gap:8px">
+    <button class="mini" style="border-color:#555;background:#222;color:#fff" onclick="changeRolePass('acct')">變更密碼</button>
+    <button class="mini" style="border-color:#8a2b2b;background:transparent;color:#fff" onclick="logout()">登出</button></div></div>
+  <div class="rolefull-body" id="acctBody"></div>
+</div>
+<div id="cashierBg" class="rolefull" style="display:none">
+  <div class="rolefull-head"><b>出納總覽</b><span style="opacity:.7;font-size:13px">已成交訂單 · 收款</span><div style="margin-left:auto;display:flex;gap:8px">
+    <button class="mini" style="border-color:#555;background:#222;color:#fff" onclick="changeRolePass('cashier')">變更密碼</button>
+    <button class="mini" style="border-color:#8a2b2b;background:transparent;color:#fff" onclick="logout()">登出</button></div></div>
+  <div class="rolefull-body" id="cashierBody"></div>
 </div>
 
 <!-- change password modal -->
@@ -1122,7 +1150,8 @@ let CURSYM="£";
 let VIEW="sales";           // admin=管理後台（顯示成本 £/€）; sales=業務端（顯示 NT$ 零售價）
 let FX={GBP:41,EUR:36};     // 匯率 → NT$
 let COEF=1.4;               // 係數（預設加成倍率）
-let WEIGHT=0;               // 加權（係數/匯率換算後加值，NT$）
+let WEIGHT=0;               // 加權（係數/匯率換算後加值，NT$）— 預設值
+let WEIGHT_MAP={};          // 各車款加權覆寫：carId -> 加權（沒設的車用全域 WEIGHT）
 let DEPOSIT_PCT=30;         // 訂金比例 %（訂金 = 總價 × 此比例）
 let COEF_MAP={};            // 各品項係數覆寫：key -> coef
 let ROUND_MODE="none", ROUND_UNIT=1;        // 品項取整
@@ -1135,6 +1164,8 @@ function _roundBy(n,mode,u){ n=+n||0; u=u||1;
 function roundRetail(n){ return _roundBy(n,ROUND_MODE,ROUND_UNIT); }   // 品項
 function roundTotal(n){ return _roundBy(n,ROUND_TMODE,ROUND_TUNIT); }  // 總計
 function coefFor(key){ return (key&&COEF_MAP[key]!=null)?COEF_MAP[key]:COEF; }
+function weightForCar(id){ return (id&&WEIGHT_MAP[id]!=null)?+WEIGHT_MAP[id]:WEIGHT; }   // 該車加權（沒設就用全域）
+function curWeight(){ return weightForCar(typeof cur!=="undefined"&&cur?cur.id:null); }
 function retailOf(cost,key){ const fx=(CURSYM==="€")?FX.EUR:FX.GBP; return cost*fx*coefFor(key); }
 function retailNT(n){ const fx=(CURSYM==="€")?FX.EUR:FX.GBP; return n*fx*COEF; }
 const fmt=n=>{
@@ -1142,11 +1173,11 @@ const fmt=n=>{
   return CURSYM+Math.round(n).toLocaleString("en-GB");
 };
 // 起始價/變體價：業務&客戶端把「加權」折進去顯示（管理後台顯示 £/€ 成本，不加）
-const fmtBase=n=>{
-  if(VIEW==="sales") return "NT$"+(roundRetail(retailNT(n))+roundRetail(WEIGHT)).toLocaleString("en-US");
+const fmtBase=(n,carId)=>{
+  if(VIEW==="sales") return "NT$"+(roundRetail(retailNT(n))+roundRetail(weightForCar(carId!=null?carId:(typeof cur!=="undefined"&&cur?cur.id:null)))).toLocaleString("en-US");
   return CURSYM+Math.round(n).toLocaleString("en-GB");
 };
-function baseNTWithWeight(base,key){ return roundRetail(retailOf(base,key))+roundRetail(WEIGHT); }
+function baseNTWithWeight(base,key){ return roundRetail(retailOf(base,key))+roundRetail(weightForCar((key||"").split("|")[0])); }
 const ntfmt=n=>"NT$"+roundRetail(n).toLocaleString("en-US");
 const ntfmtRaw=n=>"NT$"+Math.round(+n||0).toLocaleString("en-US");
 function itemPrice(cost,key){
@@ -1163,6 +1194,16 @@ function setCoef(key,v){
   COEF_MAP=s.coefMap;
   localStorage.setItem(LS_SETTINGS,JSON.stringify(s));
   updateSummary();
+}
+/* 各車款加權（覆寫全域「加權」）：空白＝清除、用回全域值 */
+function setCarWeight(id,v){
+  if(!id) return;
+  const s=getSettings(); s.weightMap=s.weightMap||{};
+  const t=String(v).trim();
+  if(t==="") delete s.weightMap[id]; else s.weightMap[id]=Math.round(+t)||0;
+  WEIGHT_MAP=s.weightMap;
+  localStorage.setItem(LS_SETTINGS,JSON.stringify(s));
+  rerenderPrices();   // 更新車卡起價、變體價、報價總覽
 }
 
 /* ---- paint palettes (with real swatch colours) ---- */
@@ -2815,6 +2856,67 @@ function getDeals(){ try{return JSON.parse(localStorage.getItem(LS_DEALS))||[];}
 function fillYearSel(sel, tsArr){ if(!sel) return; const ys=[...new Set(tsArr.map(t=>new Date(t).getFullYear()))].sort((a,b)=>b-a); sel.innerHTML='<option value="all">全部年份</option>'+ys.map(y=>`<option value="${y}">${y}</option>`).join(""); }
 function fval(id){ const e=document.getElementById(id); return e?e.value:""; }
 function saveDeals(a){ localStorage.setItem(LS_DEALS,JSON.stringify(a)); }
+/* ====== 會計 / 出納（唯讀財務畫面；只看已成交）====== */
+function _rfEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function _rfDate(ts){ const d=new Date(+ts||Date.now()); const p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"/"+p(d.getMonth()+1)+"/"+p(d.getDate()); }
+function acctDoneDeals(){ return getDeals().filter(d=>d.status==="done"); }
+function dealRev(d){ return (d.dealPrice&&+d.dealPrice>0)?+d.dealPrice:(+d.quote||0); }                 // 應收/營收：成交價優先，沒填用報價
+function dealGrand(d){ const r=dealRev(d); const lux=(luxTaxOn()&&r>=LUX_TAX_MIN)?Math.round(r*LUX_TAX_RATE):0; return r+lux; }  // 含奢侈稅
+function dealCostNT(d){ if(d&&d.quoteId){ const q=getQuotes().find(x=>x.id===d.quoteId); if(q&&typeof quoteCostNT==="function") return quoteCostNT(q); } return null; }
+function dealStages(d){ const g=dealGrand(d); const d1=Math.round(g*0.20); const d2=Math.round(g*0.90)-d1; const bal=g-d1-d2; return {d1,d2,bal,g}; }
+function dealPaidTotal(d){ const s=dealStages(d), p=d.pay||{}; return (p.d1?s.d1:0)+(p.d2?s.d2:0)+(p.bal?s.bal:0); }
+function cashierTogglePay(id,stage){ const a=getDeals(); const d=a.find(x=>x.id===id); if(!d)return; d.pay=d.pay||{}; d.pay[stage]=!d.pay[stage]; saveDeals(a); renderCashierPanel(); }
+function openAcctView(){ const b=document.getElementById("acctBg"); if(b){ b.style.display="flex"; renderAcctPanel(); } }
+function openCashierView(){ const b=document.getElementById("cashierBg"); if(b){ b.style.display="flex"; renderCashierPanel(); } }
+function renderAcctPanel(){
+  const b=document.getElementById("acctBody"); if(!b) return;
+  const deals=acctDoneDeals(); let rev=0,cost=0;
+  const rows=deals.map(d=>{
+    const r=dealRev(d), c=dealCostNT(d); rev+=r; if(c!=null) cost+=c;
+    const pf=(c!=null)?(r-c):null, m=(c!=null&&r>0)?Math.round(pf/r*100):null;
+    return `<tr><td>${_rfDate(d.ts)}</td><td>${_rfEsc(d.sales||"—")}</td><td>${_rfEsc(d.cust||"—")}${d.car?"・"+_rfEsc(d.car):""}</td>`
+      +`<td class="n">${ntfmtRaw(d.quote||0)}</td><td class="n">${(d.dealPrice&&+d.dealPrice>0)?ntfmtRaw(d.dealPrice):'<span style="color:#aaa">未填</span>'}</td>`
+      +`<td class="n">${c!=null?ntfmtRaw(c):'<span style="color:#aaa">—</span>'}</td>`
+      +`<td class="n" style="color:#1b6e3a">${pf!=null?ntfmtRaw(pf):'—'}</td><td class="n">${m!=null?m+"%":"—"}</td></tr>`;
+  }).join("") || `<tr><td colspan="8" style="color:#999;padding:16px">還沒有已成交的訂單。到「成交管理」把訂單標成交、填成交價後就會出現在這裡。</td></tr>`;
+  const profit=rev-cost, mp=rev>0?Math.round(profit/rev*100):0;
+  b.innerHTML=`<div class="rf-cards">
+      <div class="rf-card"><div class="l">已成交筆數</div><div class="v">${deals.length}</div></div>
+      <div class="rf-card"><div class="l">營收合計</div><div class="v">${ntfmtRaw(rev)}</div></div>
+      <div class="rf-card"><div class="l">成本合計</div><div class="v">${ntfmtRaw(cost)}</div></div>
+      <div class="rf-card"><div class="l">毛利合計</div><div class="v" style="color:#1b6e3a">${ntfmtRaw(profit)} <small style="color:#999;font-weight:600">(${mp}%)</small></div></div>
+    </div>
+    <p style="font-size:12px;color:#888;margin:0 0 8px">營收以「成交價」為準（未填用報價）；成本自動取自該筆連結的報價單，沒連結報價單的顯示「—」。</p>
+    <div style="overflow-x:auto"><table class="rf-table"><thead><tr><th>日期</th><th>業務</th><th>客戶·車</th><th class="n">報價</th><th class="n">成交價</th><th class="n">成本</th><th class="n">毛利</th><th class="n">毛利率</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function renderCashierPanel(){
+  const b=document.getElementById("cashierBody"); if(!b) return;
+  const deals=acctDoneDeals(); let recvAll=0,recvPaid=0;
+  const rows=deals.map(d=>{
+    const s=dealStages(d), p=d.pay||{}, paid=dealPaidTotal(d); recvAll+=s.g; recvPaid+=paid;
+    const chk=(st,label,amt)=>`<label style="display:inline-flex;align-items:center;gap:4px;margin:2px 10px 2px 0;white-space:nowrap"><input type="checkbox" ${p[st]?"checked":""} onchange="cashierTogglePay('${d.id}','${st}')"> ${label} ${ntfmtRaw(amt)}</label>`;
+    return `<tr><td>${_rfDate(d.ts)}</td><td>${_rfEsc(d.sales||"—")}</td><td>${_rfEsc(d.cust||"—")}${d.car?"・"+_rfEsc(d.car):""}</td>`
+      +`<td class="n">${ntfmtRaw(s.g)}</td>`
+      +`<td>${chk("d1","訂金",s.d1)}${chk("d2","二次",s.d2)}${chk("bal","尾款",s.bal)}</td>`
+      +`<td class="n" style="color:${paid>=s.g?'#1b6e3a':'#b23b2e'}">${ntfmtRaw(paid)}</td><td class="n" style="color:#b23b2e">${ntfmtRaw(s.g-paid)}</td></tr>`;
+  }).join("") || `<tr><td colspan="7" style="color:#999;padding:16px">還沒有已成交的訂單。</td></tr>`;
+  b.innerHTML=`<div class="rf-cards">
+      <div class="rf-card"><div class="l">應收總額</div><div class="v">${ntfmtRaw(recvAll)}</div></div>
+      <div class="rf-card"><div class="l">已收</div><div class="v" style="color:#1b6e3a">${ntfmtRaw(recvPaid)}</div></div>
+      <div class="rf-card"><div class="l">未收</div><div class="v" style="color:#b23b2e">${ntfmtRaw(recvAll-recvPaid)}</div></div>
+    </div>
+    <p style="font-size:12px;color:#888;margin:0 0 8px">應收＝含奢侈稅總價（成交價未填用報價）。訂金 20% / 二次至 90% / 尾款其餘，各自勾選收款。</p>
+    <div style="overflow-x:auto"><table class="rf-table"><thead><tr><th>日期</th><th>業務</th><th>客戶·車</th><th class="n">應收</th><th>收款（訂金/二次/尾款）</th><th class="n">已收</th><th class="n">未收</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function changeRolePass(kind){
+  const field=kind==="acct"?"acctPass":"cashierPass", name=kind==="acct"?"會計":"出納";
+  const a=getAccounts(); const cur_pw=a[field]||"123";
+  const c=prompt("請輸入目前的"+name+"密碼"); if(c===null) return;
+  if(c!==cur_pw){ toast("目前密碼錯誤"); return; }
+  const np=prompt("請輸入新的"+name+"密碼"); if(np===null) return;
+  if(!String(np).trim()){ toast("密碼不能空白"); return; }
+  a[field]=String(np).trim(); setAccounts(a); toast(name+"密碼已更新");
+}
 function openDeal(){
   document.getElementById("dealTitle").textContent="我的成交管理"+(currentSales?`（${currentSales.u}）`:"");
   fillYearSel(document.getElementById("dealYear"), getDeals().filter(d=>!currentSales||d.sales===currentSales.u).map(d=>d.ts));
@@ -2865,7 +2967,7 @@ function addCurrentDeal(){
   if(!cur||!variant){ toast("請先選一部車與配備"); return; }
   const base=cur.variants[variant].base, baseKey=cur.id+"|base";
   const opts=(paintLine()?[paintLine()]:[]).concat(sigLine()?[sigLine()]:[]).concat(currentOptions()).concat(decalLines()).concat(sigOptLines()).concat(nurLines());
-  const quote=roundTotal(roundRetail(retailOf(base,baseKey))+opts.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0)+roundRetail(WEIGHT));
+  const quote=roundTotal(roundRetail(retailOf(base,baseKey))+opts.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0)+roundRetail(weightForCar((baseKey||"").split("|")[0])));
   const vin=(document.getElementById("c_vin")&&c_vin.value)||"";
   const cust=(document.getElementById("c_name")&&c_name.value)||"";
   const deals=getDeals();
@@ -3030,7 +3132,7 @@ function renderCars(){
     return `<button class="car${hidden?' car-hidden':''}" data-id="${c.id}" onclick="pickCar('${c.id}')">
       <div class="cname">${c.name}${hidden?' <span class="hid-badge">隱藏</span>':''}</div>
       <div class="cyear">${c.year}</div>
-      <div class="cfrom">起 from <b>${fmtBase(base)}</b></div>
+      <div class="cfrom">起 from <b>${fmtBase(base,c.id)}</b></div>
     </button>`;
   }).join("");
 }
@@ -3046,7 +3148,7 @@ function renderVariants(){
   const vs=Object.entries(cur.variants);
   variantRow.className="variants";
   variantRow.innerHTML=vs.map(([k,v])=>`<button class="vbtn" data-v="${k}" onclick="pickVariant('${k}')">
-     <span class="vtag">${v.label}</span><span class="vprice">${fmtBase(v.base)}</span></button>`).join("");
+     <span class="vtag">${v.label}</span><span class="vprice">${fmtBase(v.base,cur.id)}</span></button>`).join("");
   if(vs.length===1) pickVariant(vs[0][0]);   // auto-select single variant
 }
 function pickVariant(k){
@@ -3710,7 +3812,7 @@ function updateSummary(){
   const sales = VIEW==="sales";
   let total;
   if(sales){
-    total = roundTotal( roundRetail(retailOf(base,baseKey)) + opts.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0) + roundRetail(WEIGHT) );
+    total = roundTotal( roundRetail(retailOf(base,baseKey)) + opts.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0) + roundRetail(weightForCar((baseKey||"").split("|")[0])) );
   }else{
     total = base + opts.reduce((a,o)=>a+o.price,0);
   }
@@ -3729,6 +3831,12 @@ function updateSummary(){
   if(_w.has) optHtml += `<div class="so wgt"><span>選配附加重量 Added weight</span><span>${_w.sum>=0?"+":""}${_w.sum.toFixed(1)} kg${_w.unknown?' <small class="wq">＋待定項</small>':""}</span></div>`;
   sumOpts.innerHTML = optHtml;
   sumTotal.textContent = sales ? ntfmtRaw(total) : (CURSYM+Math.round(total).toLocaleString("en-GB"));
+  { const wb=document.getElementById("carWeightBox");   // 本車加權：只在「管理後台檢視」顯示，業務端／客戶端一律隱藏
+    if(wb){ if(VIEW==="admin"){ wb.style.display="";
+        const wi=document.getElementById("carWeightInput"), gh=document.getElementById("globalWeightHint");
+        if(gh) gh.textContent=WEIGHT.toLocaleString("en-US");
+        if(wi){ const cw=(cur&&WEIGHT_MAP[cur.id]!=null)?WEIGHT_MAP[cur.id]:""; if(String(wi.value)!==String(cw)) wi.value=cw; }
+      } else wb.style.display="none"; } }
   const isCat = cur.brandId==="caterham";
   const luxSum = (sales && luxTaxOn() && total>=LUX_TAX_MIN) ? Math.round(total*LUX_TAX_RATE) : 0;   // 報價預估奢侈稅（達 300 萬）
   const grandSum = total + luxSum;
@@ -3767,6 +3875,7 @@ function loadSettings(){
   if(s.roundMode) ROUND_MODE=s.roundMode; if(s.roundUnit) ROUND_UNIT=+s.roundUnit;
   if(s.roundTMode) ROUND_TMODE=s.roundTMode; if(s.roundTUnit) ROUND_TUNIT=+s.roundTUnit;
   COEF_MAP = s.coefMap || {};
+  WEIGHT_MAP = s.weightMap || {};
   document.getElementById("vAdmin").classList.toggle("sel",VIEW==="admin");
   document.getElementById("vSales").classList.toggle("sel",VIEW==="sales");
   if(typeof renderAdminMenu==="function") renderAdminMenu();
@@ -3784,7 +3893,7 @@ function defaultAccounts(){ return {sales:[
   {u:"CBC", name:"陳柏丞", title:"銷售經理", phone:"0982-270163", email:"cbc@o-ma.com.tw", line:"0982270163", p:"123", vipPass:""},
   {u:"Allen", name:"賴倚賢", title:"銷售經理", phone:"0902-269858", email:"lai@o-ma.com.tw", line:"0902269858", p:"123", vipPass:""},
   {u:"Gary", name:"蔡春連", title:"銷售經理", phone:"0918-830588", email:"gary.tsai@o-ma.com.tw", line:"chunlien26", p:"123", vipPass:""}
-], adminPass:"123"}; }
+], adminPass:"123", acctPass:"123", cashierPass:"123"}; }
 function migrateAccounts(){
   const a=getAccounts(); let changed=false;
   a.sales.forEach(s=>{
@@ -3800,6 +3909,8 @@ function getAccounts(){
   let a=null; try{ a=JSON.parse(localStorage.getItem(LS_ACCT)); }catch(e){}
   if(!a||!a.sales) a=defaultAccounts();
   if(!a.sales.some(s=>s.u==="共用")) a.sales.unshift({u:"共用", name:"", title:"業務共用", phone:"", email:"", line:"", p:"123", shared:true});
+  if(a.acctPass==null) a.acctPass="123";         // 會計密碼（首次升級預設 123）
+  if(a.cashierPass==null) a.cashierPass="123";   // 出納密碼
   return a;
 }
 function sharedSales(){ const a=getAccounts(); const s=a.sales.find(x=>x.shared)||a.sales.find(x=>x.u==="共用")||{u:"共用",title:"業務共用",name:""}; return {u:s.u,name:s.name||"",title:s.title||"業務共用",phone:s.phone||"",email:s.email||"",line:s.line||""}; }
@@ -3842,7 +3953,7 @@ function openLogin(preselect){
   const a=getAccounts();
   document.getElementById("loginTitle").textContent="登入 Login";
   const sel=document.getElementById("loginUser");
-  sel.innerHTML=`<option value="__admin">管理後台 Admin（老闆）</option>`
+  sel.innerHTML=`<option value="__admin">管理後台 Admin（老闆）</option><option value="__acct">會計 Accountant</option><option value="__cashier">出納 Cashier</option>`
     + a.sales.map(s=>`<option value="${s.u}">${s.shared?"業務共用（多人共用）":s.u+"（"+s.title+"）"}</option>`).join("");
   if(preselect) sel.value=preselect; else if(currentSales) sel.value=currentSales.u;
   document.getElementById("loginPass").value=""; document.getElementById("loginErr").style.display="none";
@@ -3869,6 +3980,7 @@ function closeLogin(){
 }
 function logout(){
   role=null; currentSales=null; vipSales=null; customerName=""; VIEW="sales";
+  { const _a=document.getElementById("acctBg"); if(_a) _a.style.display="none"; const _c=document.getElementById("cashierBg"); if(_c) _c.style.display="none"; }
   resetSelectionUI();
   updateUserBadge();
   renderAdminMenu(); closeAdminMenu();
@@ -3885,6 +3997,16 @@ function doLogin(){
   const pass=document.getElementById("loginPass").value;
   if(u==="__admin"){                       // 管理後台：需密碼（僅老闆）
     if(pass===a.adminPass){ role="admin"; currentSales=null; closeLogin(); applyView("admin"); toast("已登入管理後台"); }
+    else { err.textContent="密碼錯誤"; err.style.display=""; }
+    return;
+  }
+  if(u==="__acct"){                         // 會計：需密碼
+    if(pass===(a.acctPass||"123")){ role="acct"; currentSales=null; closeLogin(); openAcctView(); toast("已登入會計"); }
+    else { err.textContent="密碼錯誤"; err.style.display=""; }
+    return;
+  }
+  if(u==="__cashier"){                      // 出納：需密碼
+    if(pass===(a.cashierPass||"123")){ role="cashier"; currentSales=null; closeLogin(); openCashierView(); toast("已登入出納"); }
     else { err.textContent="密碼錯誤"; err.style.display=""; }
     return;
   }
@@ -4852,7 +4974,7 @@ function saveQuote(){
   const q=getQuotes();
   const baseKey=cur.id+"|base";
   const perfItems=(paintLine()?[paintLine()]:[]).concat(sigLine()?[sigLine()]:[]).concat(currentOptions()).concat(decalLines()).concat(sigOptLines()).concat(nurLines());
-  const totalNT = roundTotal(roundRetail(retailOf(cur.variants[variant].base,baseKey))+perfItems.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0)+roundRetail(WEIGHT));
+  const totalNT = roundTotal(roundRetail(retailOf(cur.variants[variant].base,baseKey))+perfItems.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0)+roundRetail(weightForCar((baseKey||"").split("|")[0])));
   const _fx=(CURSYM==="€")?FX.EUR:FX.GBP;
   const _mkL=(name,cost,key)=>({name,qty:1,costNT:Math.round(cost*_fx),retailNT:roundRetail(retailOf(cost,key))});
   const lines=[_mkL(`${cur.name} · ${cur.variants[variant].label}`, cur.variants[variant].base, baseKey)].concat(perfItems.map(o=>_mkL(o.name,o.price,o.key)));
@@ -4969,7 +5091,7 @@ function contractItemsTotal(){
   const pl=paintLine(), sg=sigLine();
   const items=(pl?[pl]:[]).concat(sg?[sg]:[]).concat(currentOptions()).concat(decalLines()).concat(sigOptLines()).concat(nurLines());
   const allItems=[{name:`${cur.brand} ${cur.name} · ${cur.variants[variant].label}`,price:base,key:baseKey}].concat(items);
-  const total=roundTotal(allItems.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0)+roundRetail(WEIGHT));
+  const total=roundTotal(allItems.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0)+roundRetail(weightForCar((baseKey||"").split("|")[0])));
   return {allItems, total, baseKey};
 }
 /* 標準配備清單（報價單／合約列印用）：回傳 HTML；grouped 或 flat 都支援。 */
@@ -5156,7 +5278,7 @@ function printQuote(){
   const allItems=[{name:`${cur.brand} ${cur.name} · ${cur.variants[variant].label}`,price:base,key:baseKey}].concat(items);
   const sales=VIEW==="sales";
   const total = sales
-    ? roundTotal(allItems.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0)+roundRetail(WEIGHT))
+    ? roundTotal(allItems.reduce((a,o)=>a+roundRetail(retailOf(o.price,o.key)),0)+roundRetail(weightForCar((baseKey||"").split("|")[0])))
     : allItems.reduce((a,o)=>a+o.price,0);
   const luxTaxQ = (sales && luxTaxOn() && total>=LUX_TAX_MIN) ? Math.round(total*LUX_TAX_RATE) : 0;   // 報價預估奢侈稅（達 300 萬）
   const grandQ = total + luxTaxQ;
@@ -5268,6 +5390,8 @@ window.__cloudRefresh = function(){
     if((m=document.getElementById("salesMgrBg"))&&m.style.display!=="none"&&typeof renderSalesMgr==="function") renderSalesMgr();
     // 互斥設定視窗若正開著（例如趕在雲端載入前就打開），雲端資料一到就重建，避免顯示空白
     if((m=document.getElementById("xgBg"))&&m.style.display!=="none"&&typeof openXG==="function"&&typeof cur!=="undefined"&&cur) openXG();
+    if((m=document.getElementById("acctBg"))&&m.style.display!=="none"&&typeof renderAcctPanel==="function") renderAcctPanel();       // 會計畫面：雲端有新成交就更新
+    if((m=document.getElementById("cashierBg"))&&m.style.display!=="none"&&typeof renderCashierPanel==="function") renderCashierPanel(); // 出納畫面同理
   }catch(e){ console.error(e); }
 };
 function cloudPushAll(){
