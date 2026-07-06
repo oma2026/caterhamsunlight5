@@ -140,6 +140,8 @@
   }
   .car:hover{border-color:#9a9a9a}
   .car.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+  .car.car-hidden{border-style:dashed;opacity:.62;background:repeating-linear-gradient(45deg,transparent,transparent 7px,rgba(0,0,0,.03) 7px,rgba(0,0,0,.03) 14px)}
+  .car .hid-badge{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:#b06a1e;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:2px}
   .car .cname{font-weight:700;font-size:15px}
   .car .cyear{font-size:11px;color:var(--ink-2);letter-spacing:.1em;margin-top:2px}
   .car .cfrom{margin-top:10px;font-size:12px;color:var(--ink-2)}
@@ -527,7 +529,7 @@
   <div class="col-main">
 
     <div class="panel">
-      <h2><span class="n">1</span> 選擇品牌 & 車型</h2>
+      <h2><span class="n">1</span> 選擇品牌 & 車型 <button class="mini" id="hidToggleBtn" style="border-color:#555;background:#222;color:#fff;display:none;float:right" onclick="toggleStaffHidden()">顯示隱藏車款</button></h2>
       <div class="body">
         <div class="brandtabs" id="brandTabs"></div>
         <div class="yeartabs" id="lineTabs" style="display:none"></div>
@@ -1063,7 +1065,11 @@
     if(window.__cloudStatus) window.__cloudStatus("connecting");
     (async()=>{
       try{
-        const snap=await getDocs(collection(db,COL));
+        let snap=null;
+        for(let _try=0; _try<3; _try++){    // 網路不穩時重試 3 次，避免第一次失敗就載不到雲端（互斥設定等）
+          try{ snap=await getDocs(collection(db,COL)); break; }
+          catch(e){ if(_try===2) throw e; await new Promise(r=>setTimeout(r,1500)); }
+        }
         const cloudKeys=new Set();
         snap.forEach(d=>{ const data=d.data(); if(data&&typeof data.v==="string"){ rawSet(d.id,data.v); cloudKeys.add(d.id); } });
         // 本機有、雲端沒有 → 種子上傳（首次設定不遺失既有資料）
@@ -2986,19 +2992,43 @@ function pickYear(y){
   renderYearTabs(); renderCars();
   updateSummary();
 }
+/* 客戶端(VIP) Sunlight 只顯示這 11 台（T 系列 7 + CLIFF 4）；業務/管理端不受限、看全部 */
+const CUST_SUNLIGHT_WL = new Set(["t58c26","t66sc26","t67sc26","t58a26","t66sa26","t67sa26","t67a26","540","600","601","602"]);
+/* 業務端「顯示隱藏車款」開關：只存這台電腦(不上雲端)、客戶端永遠看不到隱藏車 */
+let STAFF_SHOW_HIDDEN = (function(){ try{ return localStorage.getItem("staff_show_hidden")==="1"; }catch(e){ return false; } })();
+function renderHidToggleBtn(){
+  const b=document.getElementById("hidToggleBtn"); if(!b) return;
+  b.style.display = (role==="vip"||!role) ? "none" : "";           // 只有業務/管理看得到
+  b.textContent = STAFF_SHOW_HIDDEN ? "✓ 顯示隱藏車款中" : "顯示隱藏車款";
+  b.style.background = STAFF_SHOW_HIDDEN ? "#1b6e3a" : "#222";
+  b.style.borderColor = STAFF_SHOW_HIDDEN ? "#1b6e3a" : "#555";
+}
+function toggleStaffHidden(){
+  STAFF_SHOW_HIDDEN=!STAFF_SHOW_HIDDEN;
+  try{ localStorage.setItem("staff_show_hidden", STAFF_SHOW_HIDDEN?"1":"0"); }catch(e){}
+  renderHidToggleBtn(); renderCars();
+}
 function renderCars(){
   const _hid=new Set(getHiddenCars());
-  let list=CARS.filter(c=>c.brandId===curBrand && !_hid.has(c.id));
-  if(curBrand==="sunlight") list=list.filter(c=>c.line===curLine && (c.my==="both"||c.my===curYear));
+  const isVip=(role==="vip");
+  const showHidden=(!isVip && STAFF_SHOW_HIDDEN);                  // 客戶端一律不顯示隱藏車；業務端看開關
+  let list=CARS.filter(c=>c.brandId===curBrand);
+  list=list.filter(c=> showHidden || !_hid.has(c.id));
+  if(curBrand==="sunlight"){
+    list=list.filter(c=>c.line===curLine && (c.my==="both"||c.my===curYear));
+    if(isVip) list=list.filter(c=> CUST_SUNLIGHT_WL.has(c.id));    // 客戶端 Sunlight 只給白名單 11 台
+  }
   cliffNotes.innerHTML = "";   // 注意事項改放列印報價單底部
+  renderHidToggleBtn();
   if(!list.length){
     carList.innerHTML=`<div class="empty">此系列/年式尚無車款</div>`;
     return;
   }
   carList.innerHTML=list.map(c=>{
     const base=Math.min(...Object.values(c.variants).map(v=>v.base));
-    return `<button class="car" data-id="${c.id}" onclick="pickCar('${c.id}')">
-      <div class="cname">${c.name}</div>
+    const hidden=_hid.has(c.id);
+    return `<button class="car${hidden?' car-hidden':''}" data-id="${c.id}" onclick="pickCar('${c.id}')">
+      <div class="cname">${c.name}${hidden?' <span class="hid-badge">隱藏</span>':''}</div>
       <div class="cyear">${c.year}</div>
       <div class="cfrom">起 from <b>${fmtBase(base)}</b></div>
     </button>`;
@@ -3076,6 +3106,7 @@ function renderOptions(){
     const rows=opts.map((o,oi)=>{
       const val=priceFor(o);
       if(val===undefined) return "";                     // 未定義才隱藏
+      if(/手排/.test(o[0])) return "";                    // 隱藏所有「手排」選項（不提供手排）
       const id=ci+":"+oi;
       if(val===N){
         return `<label class="opt na">
@@ -3175,7 +3206,16 @@ function openXG(){
     });
     return h+`</div>`;
   };
-  let html="";
+  // 摘要：讓使用者一眼看出「本機／雲端目前到底存了幾組」，避免因為只顯示目前車款分類而誤以為設定不見
+  const savedCats=Object.keys(m).filter(c=> m[c] && Object.values(m[c]).some(Boolean));
+  const curCatNames=new Set(cur.cats.map(c=>c[0]).concat(cur.signature?[SIG_CAT_INT,SIG_CAT_EXT]:[]));
+  const otherCats=savedCats.filter(c=>!curCatNames.has(c));
+  const cloudTxt=(window.CLOUD? (window.CLOUD.ready?"（雲端已同步）":"（雲端載入中…）") : "（離線，僅本機）");
+  const summary=`<div style="background:#f4f6f8;border:1px solid #d7dde3;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;line-height:1.7;color:#333">
+    📋 目前已存 <b>${savedCats.length}</b> 個分類的互斥規則 ${cloudTxt}。下方只列出<b>「目前這台車：${cur.name}」</b>的分類。`
+    +(otherCats.length?`<br><span style="color:#666">其他車型的規則仍保存著：${otherCats.join("、")}（切到該車型即可編輯）。</span>`:"")
+    +`</div>`;
+  let html=summary;
   cur.cats.forEach(cat=> html+=block(cat[0], cat[1].map(o=>o[0])) );
   if(cur.signature){
     html+=block(SIG_CAT_INT, SIG_INT_OPTS.map(o=>o.label));
@@ -3775,6 +3815,7 @@ function applyView(v){
   document.getElementById("vSales").style.display = (role==="vip") ? "none" : "";
   renderAdminMenu();
   { const _xg=document.getElementById("xgBtn"); if(_xg) _xg.style.display = (role==="vip") ? "none" : ""; }  // 互斥設定：員工可用，VIP 客戶隱藏
+  if(typeof renderHidToggleBtn==="function") renderHidToggleBtn();   // 顯示隱藏車款：業務/管理可用，VIP 隱藏
   { const _lo=document.getElementById("logoutBtn"); if(_lo) _lo.style.display = role ? "" : "none"; }
   updateUserBadge();
   updateSummaryActions();
@@ -5220,6 +5261,8 @@ window.__cloudRefresh = function(){
     if((m=document.getElementById("inboxBg"))&&m.style.display!=="none"&&typeof renderInbox==="function") renderInbox();
     if((m=document.getElementById("settingsBg"))&&m.style.display!=="none"&&typeof renderPwList==="function") renderPwList();
     if((m=document.getElementById("salesMgrBg"))&&m.style.display!=="none"&&typeof renderSalesMgr==="function") renderSalesMgr();
+    // 互斥設定視窗若正開著（例如趕在雲端載入前就打開），雲端資料一到就重建，避免顯示空白
+    if((m=document.getElementById("xgBg"))&&m.style.display!=="none"&&typeof openXG==="function"&&typeof cur!=="undefined"&&cur) openXG();
   }catch(e){ console.error(e); }
 };
 function cloudPushAll(){
