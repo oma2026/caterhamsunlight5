@@ -1256,7 +1256,7 @@ const CAR_170={
   variants:{S:{label:"170S",base:26000},R:{label:"170R",base:27000}},
   included:{
     S:["五速手排變速箱","道路懸吊套件","14\" 銀色 Juno 輪圈 · Avon ZT7 輪胎","黑色皮革座椅","完整擋風玻璃、軟篷 & 側窗","MOMO 方向盤","LED 尾燈","暖氣","拋光排氣管","後面板內裝地毯","620 樣式鼻錐","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"],
-    R:["五速手排變速箱","輕量化飛輪","運動懸吊套件","14\" 黑色 Juno 輪圈 · Avon ZT7 輪胎","複合材質賽車座椅","限滑差速器","碳纖維儀表板","四點式賽車安全帶","Black Pack 黑化套件","MOMO 方向盤","LED 尾燈","拋光排氣管","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"]
+    R:["五速手排變速箱","輕量化飛輪","運動懸吊套件","14\" 黑色 Juno 輪圈 · Avon ZT7 輪胎","複合材質賽車座椅","限滑差速器","碳纖維儀表板","四點式賽車安全帶","Black Pack 黑化套件","MOMO 方向盤","LED 尾燈","拋光排氣管","完整擋風玻璃、軟篷 & 側窗","620 樣式鼻錐","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"]
   },
   cats:[
     ["引擎 & 傳動 Engine & Transmission",[
@@ -1337,8 +1337,8 @@ const CAR_340={
   paint:STD_PAINT, decals:{swoosh:false}, signature:true,
   variants:{S:{label:"340S",base:36250},R:{label:"340R",base:37250}},
   included:{
-    S:["五速手排變速箱","輕量化飛輪","道路懸吊套件","14\" Classic 輪圈 · Avon ZT7","黑色皮革座椅","完整擋風玻璃、軟篷 & 側窗","MOMO 方向盤","LED 尾燈 & 方向燈","暖氣","後飾板地毯","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"],
-    R:["五速手排變速箱","輕量化飛輪","運動懸吊套件","15\" Orcus 輪圈 · Avon ZZS","複合材質賽車座椅","限滑差速器","碳纖維儀表板","四點式賽道安全帶","Black Pack 黑化套件","MOMO 方向盤","LED 尾燈 & 方向燈","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"]
+    S:["五速手排變速箱","輕量化飛輪","道路懸吊套件","14\" Classic 輪圈 · Avon ZT7","黑色皮革座椅","完整擋風玻璃、軟篷 & 側窗","MOMO 方向盤","LED 尾燈 & 方向燈","暖氣","後飾板地毯","620 樣式鼻錐","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"],
+    R:["五速手排變速箱","輕量化飛輪","運動懸吊套件","15\" Orcus 輪圈 · Avon ZZS","複合材質賽車座椅","限滑差速器","碳纖維儀表板","四點式賽道安全帶","Black Pack 黑化套件","MOMO 方向盤","LED 尾燈 & 方向燈","完整擋風玻璃、軟篷 & 側窗","620 樣式鼻錐","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"]
   },
   cats:[
     ["原廠選項 Factory Options",[
@@ -1429,7 +1429,7 @@ const CAR_NUR={
   variants:{STD:{label:"Nürburgring Edition",base:37750}},
   included:{ STD:[
     "標準尺寸底盤 + dedion 後懸","限滑差速器","五速手排變速箱","濕式油底殼","前煞 – 實心碟 + 雙活塞卡鉗",
-    "13\" 黑色 Apollo 輪圈","橡膠腳踏墊 & 行李廂地毯","複合材質 aeroscreen 擋風鏡","強化煞車總泵","行李廂蓋 · Vinyl",
+    "13\" 黑色 Apollo 輪圈","橡膠腳踏墊 & 行李廂地毯","完整擋風玻璃、軟篷 & 側窗","強化煞車總泵","行李廂蓋 · Vinyl",
     "四點式道路安全帶","換檔提示燈","零件黑化處理","12V 電源座","LED 尾燈組","碳纖維儀表板",
     "620 鼻錐含碳纖維導流鬚","MOMO 方向盤",
     "底盤色 · 槍金屬灰","碳纖維內裝飾板",
@@ -3102,11 +3102,12 @@ function renderOptions(){
   let html=""; let total=0;
   cur.cats.forEach((cat,ci)=>{
     const [cname,opts]=cat;
+    if(/風雨防護|Weather Protection/i.test(cname)) return;   // 天氣套件一律標配、其餘另購零件 → 整個「風雨防護」分類不列為選項
     // rows available for this variant
     const rows=opts.map((o,oi)=>{
       const val=priceFor(o);
       if(val===undefined) return "";                     // 未定義才隱藏
-      if(/手排/.test(o[0])) return "";                    // 隱藏所有「手排」選項（不提供手排）
+      if(/手排|180hp/i.test(o[0])) return "";             // 隱藏所有「手排」與「180hp」選項（不提供手排、不提供 180hp）
       const id=ci+":"+oi;
       if(val===N){
         return `<label class="opt na">
@@ -3629,6 +3630,7 @@ function sigOptById(id){return ALL_SIG_OPTS.find(x=>x.id===id);}
 function sigOptInputCount(it){return it.fields.reduce((a,f)=>a+f.inputs.length,0);}
 function renderSigOptCard(it){
   if(it.na170 && cur.id==="170") return "";
+  if(it.id==="nose620" && (cur.id==="170"||cur.id==="340")) return "";   // 620 樣式鼻錐：170/340 已列為標準配備，不再作為付費選項
   const on = sigOptSel[it.id]!==undefined;
   let fieldsHtml="";
   if(on && it.fields.length){
