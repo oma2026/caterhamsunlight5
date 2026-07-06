@@ -429,7 +429,7 @@
   @media print{
     body{background:#fff}
     header.app,.wrap{display:none!important}
-    .modal-bg,#settingsBg,#contractBg{display:none!important}
+    .modal-bg,#settingsBg,#contractBg,.rolefull,#acctBg,#cashierBg{display:none!important}
     #print-root{display:flex;flex-direction:column;min-height:96vh}
     @page{size:A4;margin:14mm}
   }
@@ -2860,53 +2860,97 @@ function saveDeals(a){ localStorage.setItem(LS_DEALS,JSON.stringify(a)); }
 function _rfEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function _rfDate(ts){ const d=new Date(+ts||Date.now()); const p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"/"+p(d.getMonth()+1)+"/"+p(d.getDate()); }
 function acctDoneDeals(){ return getDeals().filter(d=>d.status==="done"); }
+let acctFilter={y:"",m:""}, cashierFilter={y:"",m:""};
+function inPeriod(ts,f){ if(!f||(!f.y&&!f.m)) return true; const d=new Date(+ts||0); if(f.y && d.getFullYear()!==+f.y) return false; if(f.m && (d.getMonth()+1)!==+f.m) return false; return true; }
+function setAcctFilter(field,val){ if(field==="clear"){acctFilter={y:"",m:""};} else acctFilter[field]=val; renderAcctPanel(); }
+function setCashierFilter(field,val){ if(field==="clear"){cashierFilter={y:"",m:""};} else cashierFilter[field]=val; renderCashierPanel(); }
+function periodBar(allDeals,f,setFn){
+  const years=[...new Set(allDeals.map(d=>new Date(+d.ts||0).getFullYear()))].sort((a,b)=>b-a);
+  const yOpts=`<option value="">全部年份</option>`+years.map(y=>`<option value="${y}" ${+f.y===y?"selected":""}>${y} 年</option>`).join("");
+  const mOpts=`<option value="">全部月份</option>`+Array.from({length:12},(_,i)=>`<option value="${i+1}" ${+f.m===i+1?"selected":""}>${i+1} 月</option>`).join("");
+  const sel=`padding:7px 10px;border:1px solid #ccc;border-radius:8px;font-size:14px;background:#fff`;
+  return `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+    <span style="font-size:13px;color:#888;font-weight:700">期間</span>
+    <select style="${sel}" onchange="${setFn}('y',this.value)">${yOpts}</select>
+    <select style="${sel}" onchange="${setFn}('m',this.value)">${mOpts}</select>
+    ${(f.y||f.m)?`<button class="mini" style="border-color:#999" onclick="${setFn}('clear')">清除</button>`:""}
+  </div>`;
+}
 function dealRev(d){ return (d.dealPrice&&+d.dealPrice>0)?+d.dealPrice:(+d.quote||0); }                 // 應收/營收：成交價優先，沒填用報價
 function dealGrand(d){ const r=dealRev(d); const lux=(luxTaxOn()&&r>=LUX_TAX_MIN)?Math.round(r*LUX_TAX_RATE):0; return r+lux; }  // 含奢侈稅
 function dealCostNT(d){ if(d&&d.quoteId){ const q=getQuotes().find(x=>x.id===d.quoteId); if(q&&typeof quoteCostNT==="function") return quoteCostNT(q); } return null; }
 function dealStages(d){ const g=dealGrand(d); const d1=Math.round(g*0.20); const d2=Math.round(g*0.90)-d1; const bal=g-d1-d2; return {d1,d2,bal,g}; }
-function dealPaidTotal(d){ const s=dealStages(d), p=d.pay||{}; return (p.d1?s.d1:0)+(p.d2?s.d2:0)+(p.bal?s.bal:0); }
-function cashierTogglePay(id,stage){ const a=getDeals(); const d=a.find(x=>x.id===id); if(!d)return; d.pay=d.pay||{}; d.pay[stage]=!d.pay[stage]; saveDeals(a); renderCashierPanel(); }
+function dealPaidTotal(d){ const s=dealStages(d), p=d.pay||{}; return (d.depositPaid?s.d1:0)+(p.d2?s.d2:0)+(p.bal?s.bal:0); }
+function cashierTogglePay(id,stage){
+  const a=getDeals(); const d=a.find(x=>x.id===id); if(!d)return;
+  if(stage==="d1"){ d.depositPaid=!d.depositPaid; }        // 訂金＝與業務/管理後台「已付訂金」同一個狀態
+  else { d.pay=d.pay||{}; d.pay[stage]=!d.pay[stage]; }
+  saveDeals(a); renderCashierPanel();
+  var m; if((m=document.getElementById("dealBg"))&&m.style.display!=="none"&&typeof renderDeals==="function") renderDeals();
+  if((m=document.getElementById("perfBg"))&&m.style.display!=="none"&&typeof renderPerf==="function") renderPerf();
+}
+/* 會計/出納：重印該筆成交的 報價單 / 合約書（用連結的報價單還原設定；合約用成交價）*/
+function roleDeal(id){ return getDeals().find(d=>d.id===id); }
+function rolePrintQuote(dealId){
+  const d=roleDeal(dealId); if(!d){ toast("找不到訂單"); return; }
+  if(!d.quoteId){ toast("這筆是業務手動登錄、沒有連結報價單，無法重印"); return; }
+  loadQuote(d.quoteId);
+  setTimeout(function(){ try{ VIEW="sales"; printQuote(); }catch(e){ console.error(e); toast("重印失敗"); } }, 220);
+}
+function rolePrintContract(dealId){
+  const d=roleDeal(dealId); if(!d){ toast("找不到訂單"); return; }
+  if(!d.quoteId){ toast("這筆沒有連結報價單，無法印合約"); return; }
+  loadQuote(d.quoteId);
+  setTimeout(function(){ try{
+    const kn=document.getElementById("k_name"); if(kn) kn.value=d.cust||"";
+    const kv=document.getElementById("k_vin"); if(kv) kv.value=d.vin||"";
+    if(d.dealPrice&&+d.dealPrice>0) CONTRACT_PRICE_OVERRIDE=+d.dealPrice;   // 用成交價
+    printContract();
+  }catch(e){ console.error(e); toast("列印合約失敗"); } }, 220);
+}
 function openAcctView(){ const b=document.getElementById("acctBg"); if(b){ b.style.display="flex"; renderAcctPanel(); } }
 function openCashierView(){ const b=document.getElementById("cashierBg"); if(b){ b.style.display="flex"; renderCashierPanel(); } }
 function renderAcctPanel(){
   const b=document.getElementById("acctBody"); if(!b) return;
-  const deals=acctDoneDeals(); let rev=0,cost=0;
+  const all=acctDoneDeals(); const deals=all.filter(d=>inPeriod(d.ts,acctFilter)); let rev=0,cost=0;
   const rows=deals.map(d=>{
     const r=dealRev(d), c=dealCostNT(d); rev+=r; if(c!=null) cost+=c;
     const pf=(c!=null)?(r-c):null, m=(c!=null&&r>0)?Math.round(pf/r*100):null;
     return `<tr><td>${_rfDate(d.ts)}</td><td>${_rfEsc(d.sales||"—")}</td><td>${_rfEsc(d.cust||"—")}${d.car?"・"+_rfEsc(d.car):""}</td>`
       +`<td class="n">${ntfmtRaw(d.quote||0)}</td><td class="n">${(d.dealPrice&&+d.dealPrice>0)?ntfmtRaw(d.dealPrice):'<span style="color:#aaa">未填</span>'}</td>`
       +`<td class="n">${c!=null?ntfmtRaw(c):'<span style="color:#aaa">—</span>'}</td>`
-      +`<td class="n" style="color:#1b6e3a">${pf!=null?ntfmtRaw(pf):'—'}</td><td class="n">${m!=null?m+"%":"—"}</td></tr>`;
-  }).join("") || `<tr><td colspan="8" style="color:#999;padding:16px">還沒有已成交的訂單。到「成交管理」把訂單標成交、填成交價後就會出現在這裡。</td></tr>`;
+      +`<td class="n" style="color:#1b6e3a">${pf!=null?ntfmtRaw(pf):'—'}</td><td class="n">${m!=null?m+"%":"—"}</td>`
+      +`<td style="text-align:center;white-space:nowrap">${d.quoteId?`<button class="mini" onclick="rolePrintQuote('${d.id}')">📄 報價</button> <button class="mini" onclick="rolePrintContract('${d.id}')">📄 合約</button>`:'<span style="color:#aaa;font-size:12px">無報價單</span>'}</td></tr>`;
+  }).join("") || `<tr><td colspan="9" style="color:#999;padding:16px">還沒有已成交的訂單。到「成交管理」把訂單標成交、填成交價後就會出現在這裡。</td></tr>`;
   const profit=rev-cost, mp=rev>0?Math.round(profit/rev*100):0;
-  b.innerHTML=`<div class="rf-cards">
+  b.innerHTML=`${periodBar(all,acctFilter,"setAcctFilter")}<div class="rf-cards">
       <div class="rf-card"><div class="l">已成交筆數</div><div class="v">${deals.length}</div></div>
       <div class="rf-card"><div class="l">營收合計</div><div class="v">${ntfmtRaw(rev)}</div></div>
       <div class="rf-card"><div class="l">成本合計</div><div class="v">${ntfmtRaw(cost)}</div></div>
       <div class="rf-card"><div class="l">毛利合計</div><div class="v" style="color:#1b6e3a">${ntfmtRaw(profit)} <small style="color:#999;font-weight:600">(${mp}%)</small></div></div>
     </div>
     <p style="font-size:12px;color:#888;margin:0 0 8px">營收以「成交價」為準（未填用報價）；成本自動取自該筆連結的報價單，沒連結報價單的顯示「—」。</p>
-    <div style="overflow-x:auto"><table class="rf-table"><thead><tr><th>日期</th><th>業務</th><th>客戶·車</th><th class="n">報價</th><th class="n">成交價</th><th class="n">成本</th><th class="n">毛利</th><th class="n">毛利率</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <div style="overflow-x:auto"><table class="rf-table"><thead><tr><th>日期</th><th>業務</th><th>客戶·車</th><th class="n">報價</th><th class="n">成交價</th><th class="n">成本</th><th class="n">毛利</th><th class="n">毛利率</th><th style="text-align:center">列印</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function renderCashierPanel(){
   const b=document.getElementById("cashierBody"); if(!b) return;
-  const deals=acctDoneDeals(); let recvAll=0,recvPaid=0;
+  const all=acctDoneDeals(); const deals=all.filter(d=>inPeriod(d.ts,cashierFilter)); let recvAll=0,recvPaid=0;
   const rows=deals.map(d=>{
     const s=dealStages(d), p=d.pay||{}, paid=dealPaidTotal(d); recvAll+=s.g; recvPaid+=paid;
-    const chk=(st,label,amt)=>`<label style="display:inline-flex;align-items:center;gap:4px;margin:2px 10px 2px 0;white-space:nowrap"><input type="checkbox" ${p[st]?"checked":""} onchange="cashierTogglePay('${d.id}','${st}')"> ${label} ${ntfmtRaw(amt)}</label>`;
+    const chk=(st,label,amt,on)=>`<label style="display:inline-flex;align-items:center;gap:4px;margin:2px 10px 2px 0;white-space:nowrap"><input type="checkbox" ${on?"checked":""} onchange="cashierTogglePay('${d.id}','${st}')"> ${label} ${ntfmtRaw(amt)}</label>`;
     return `<tr><td>${_rfDate(d.ts)}</td><td>${_rfEsc(d.sales||"—")}</td><td>${_rfEsc(d.cust||"—")}${d.car?"・"+_rfEsc(d.car):""}</td>`
       +`<td class="n">${ntfmtRaw(s.g)}</td>`
-      +`<td>${chk("d1","訂金",s.d1)}${chk("d2","二次",s.d2)}${chk("bal","尾款",s.bal)}</td>`
-      +`<td class="n" style="color:${paid>=s.g?'#1b6e3a':'#b23b2e'}">${ntfmtRaw(paid)}</td><td class="n" style="color:#b23b2e">${ntfmtRaw(s.g-paid)}</td></tr>`;
-  }).join("") || `<tr><td colspan="7" style="color:#999;padding:16px">還沒有已成交的訂單。</td></tr>`;
-  b.innerHTML=`<div class="rf-cards">
+      +`<td>${chk("d1","訂金",s.d1,d.depositPaid)}${chk("d2","二次",s.d2,p.d2)}${chk("bal","尾款",s.bal,p.bal)}</td>`
+      +`<td class="n" style="color:${paid>=s.g?'#1b6e3a':'#b23b2e'}">${ntfmtRaw(paid)}</td><td class="n" style="color:#b23b2e">${ntfmtRaw(s.g-paid)}</td>`
+      +`<td style="text-align:center;white-space:nowrap">${d.quoteId?`<button class="mini" onclick="rolePrintQuote('${d.id}')">📄 報價</button> <button class="mini" onclick="rolePrintContract('${d.id}')">📄 合約</button>`:'<span style="color:#aaa;font-size:12px">無報價單</span>'}</td></tr>`;
+  }).join("") || `<tr><td colspan="8" style="color:#999;padding:16px">還沒有已成交的訂單。</td></tr>`;
+  b.innerHTML=`${periodBar(all,cashierFilter,"setCashierFilter")}<div class="rf-cards">
       <div class="rf-card"><div class="l">應收總額</div><div class="v">${ntfmtRaw(recvAll)}</div></div>
       <div class="rf-card"><div class="l">已收</div><div class="v" style="color:#1b6e3a">${ntfmtRaw(recvPaid)}</div></div>
       <div class="rf-card"><div class="l">未收</div><div class="v" style="color:#b23b2e">${ntfmtRaw(recvAll-recvPaid)}</div></div>
     </div>
-    <p style="font-size:12px;color:#888;margin:0 0 8px">應收＝含奢侈稅總價（成交價未填用報價）。訂金 20% / 二次至 90% / 尾款其餘，各自勾選收款。</p>
-    <div style="overflow-x:auto"><table class="rf-table"><thead><tr><th>日期</th><th>業務</th><th>客戶·車</th><th class="n">應收</th><th>收款（訂金/二次/尾款）</th><th class="n">已收</th><th class="n">未收</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <p style="font-size:12px;color:#888;margin:0 0 8px">應收＝含奢侈稅總價（成交價未填用報價）。訂金 20% / 二次至 90% / 尾款其餘，各自勾選收款。<b>「訂金」＝業務／管理後台的「已付訂金」同一個狀態，會互相同步。</b></p>
+    <div style="overflow-x:auto"><table class="rf-table"><thead><tr><th>日期</th><th>業務</th><th>客戶·車</th><th class="n">應收</th><th>收款（訂金/二次/尾款）</th><th class="n">已收</th><th class="n">未收</th><th style="text-align:center">列印</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function changeRolePass(kind){
   const field=kind==="acct"?"acctPass":"cashierPass", name=kind==="acct"?"會計":"出納";
@@ -4898,7 +4942,14 @@ function renderPwList(){
   const a=getAccounts(); const el=document.getElementById("s_pwList"); if(!el) return;
   const q=s=>(s==null?"":String(s)).replace(/"/g,"&quot;");
   el.innerHTML = `<div class="pw-row"><span class="pw-k">管理後台密碼</span><input class="t pw-in" id="acAdmin" value="${q(a.adminPass)}"><button class="mini" onclick="acctSaveAdmin()">更新</button></div>`
+    + `<div class="pw-row"><span class="pw-k">會計密碼</span><input class="t pw-in" id="acAcct" value="${q(a.acctPass||'123')}"><button class="mini" onclick="acctSaveRole('acct')">更新</button></div>`
+    + `<div class="pw-row"><span class="pw-k">出納密碼</span><input class="t pw-in" id="acCashier" value="${q(a.cashierPass||'123')}"><button class="mini" onclick="acctSaveRole('cashier')">更新</button></div>`
     + `<div style="margin-top:12px"><button class="btn ghost" onclick="closeSettings();openSalesMgr()">開啟「業務團隊管理」（新增/改業務、業務密碼、客戶登入代碼）→</button></div>`;
+}
+function acctSaveRole(kind){
+  const id=kind==="acct"?"acAcct":"acCashier", field=kind==="acct"?"acctPass":"cashierPass", name=kind==="acct"?"會計":"出納";
+  const v=(fval(id)||"").trim(); if(!v){ toast("密碼不可空白"); return; }
+  const a=getAccounts(); a[field]=v; setAccounts(a); toast(name+"密碼已更新（老闆重設）");
 }
 function acctSaveAdmin(){ const v=(fval("acAdmin")||"").trim(); if(!v){ toast("密碼不可空白"); return; } const a=getAccounts(); a.adminPass=v; setAccounts(a); toast("管理後台密碼已更新"); }
 function acctSave(i){
