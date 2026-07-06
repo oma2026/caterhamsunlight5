@@ -1000,9 +1000,8 @@
 <div id="roleGateBg" class="modal-bg gate" style="display:none">
   <div class="modal-card" style="max-width:440px;text-align:center">
     <h3 style="margin:0 0 4px">歐馬企業 · 報價系統</h3>
-    <p class="hint" style="margin:0 0 18px">請問您是？</p>
-    <button class="btn" style="width:100%;margin-bottom:10px" onclick="pickRole('staff')">👤 歐馬企業員工</button>
-    <button class="btn primary" style="width:100%;background:#b8860b;border-color:#b8860b" onclick="pickRole('vip')">⭐ VIP 客戶</button>
+    <p class="hint" style="margin:0 0 18px">員工登入（VIP 客戶請使用專屬入口連結）</p>
+    <button class="btn primary" style="width:100%" onclick="pickRole('staff')">👤 歐馬企業員工登入</button>
   </div>
 </div>
 <!-- VIP 客戶登入 -->
@@ -2653,6 +2652,7 @@ const BRANDS=[
   {id:"sunlight",label:"Sunlight",sub:"露營車 / 房車"}
 ];
 let curBrand="caterham";
+let brandLock=null;   // VIP 從入口頁帶進來時鎖定品牌："caterham"/"sunlight"（隱藏品牌切換鈕）
 let curYear="26"; // Sunlight 年式 MY25 / MY26
 let curLine="cliff"; // Sunlight 系列 cliff / t
 const LINES=[{id:"cliff",label:"CLIFF 露營車"},{id:"t",label:"T 系列 房車"}];
@@ -2731,6 +2731,58 @@ function doVipLogin(){
   if(document.getElementById("c_name")) c_name.value=name;
   toast("歡迎，"+name+"！請開始挑選");
 }
+/* ===== VIP 入口頁帶入：自動登入 + 鎖定品牌（同網域用 sessionStorage 交接，姓名/密碼不經網址）===== */
+const VIP_HANDOFF_KEY="oma_vip_handoff";
+function readVipHandoff(){
+  try{
+    const raw=sessionStorage.getItem(VIP_HANDOFF_KEY); if(!raw) return null;
+    const h=JSON.parse(raw); if(!h || h.sys!=="caterham") return null;
+    if(h.ts && (Date.now()-h.ts>86400000)) return null;   // 逾 24 小時作廢
+    return h;
+  }catch(e){ return null; }
+}
+let _vipHandoffTries=0, _vipHandoffTimer=null;
+function tryVipHandoff(){
+  const h=readVipHandoff(); if(!h) return false;
+  const pass=(h.pass||"").trim().toLowerCase();
+  const a=getAccounts();
+  const acc=(a&&a.sales)?a.sales.find(s=>!s.shared && effectiveVip(s).toLowerCase()===pass):null;
+  if(!acc) return false;   // 帳號尚未由雲端載入 → 交由 __cloudRefresh / 輪詢稍後重試
+  try{ h.ts=Date.now(); sessionStorage.setItem(VIP_HANDOFF_KEY,JSON.stringify(h)); }catch(e){}   // 更新時戳：同分頁重新整理仍保持登入
+  brandLock=(h.brand==="sunlight"||h.brand==="caterham")?h.brand:null;
+  if(brandLock){ curBrand=brandLock; CURSYM=symForBrand(brandLock); }
+  ["roleGateBg","vipBg","loginBg"].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display="none"; });
+  hideVipLoading();
+  const nm=(h.name||"").trim()||"貴賓";
+  customerName=nm;
+  vipSales={u:acc.u,name:acc.name||"",title:acc.title||"",phone:acc.phone||"",email:acc.email||"",line:acc.line||""};
+  try{ if(!sessionStorage.getItem("oma_vip_logged")){ const L=getLogins(); L.unshift({id:"L"+Date.now(),ts:Date.now(),name:nm,salesCode:acc.u,salesName:[acc.title,acc.name].filter(Boolean).join(" ")}); saveLogins(L); sessionStorage.setItem("oma_vip_logged","1"); } }catch(e){}
+  currentSales=vipSales; role="vip";
+  applyView("sales");
+  resetSelectionUI();
+  updateBrandMark(); renderBrands(); renderLineTabs(); renderYearTabs(); renderCars();
+  if(document.getElementById("c_name")) c_name.value=nm;
+  return true;
+}
+function scheduleVipHandoff(){
+  if(_vipHandoffTimer) return;
+  _vipHandoffTimer=setInterval(()=>{
+    _vipHandoffTries++;
+    if(tryVipHandoff() || _vipHandoffTries>60){
+      clearInterval(_vipHandoffTimer); _vipHandoffTimer=null;
+      if(!role){ const el=document.getElementById("vipLoadErr"); if(el) el.style.display=""; }
+    }
+  }, 400);
+}
+function showVipLoading(){
+  let d=document.getElementById("vipLoadingBg");
+  if(d){ d.style.display="flex"; return; }
+  d=document.createElement("div");
+  d.id="vipLoadingBg"; d.className="modal-bg gate"; d.style.display="flex";
+  d.innerHTML='<div class="modal-card" style="max-width:360px;text-align:center"><h3 style="margin:0 0 8px">登入中…</h3><p class="hint" style="margin:0">正在為您準備專屬報價頁，請稍候</p><p id="vipLoadErr" class="hint" style="color:var(--red);display:none;margin-top:10px">連線逾時，請 <a href="javascript:location.reload()" style="color:#b8860b">重新整理</a> 再試一次。</p></div>';
+  document.body.appendChild(d);
+}
+function hideVipLoading(){ const el=document.getElementById("vipLoadingBg"); if(el) el.style.display="none"; }
 function sendSubEmail(sub){
   try{
     if(!sub) return;
@@ -3086,9 +3138,12 @@ function init(){
   loadSettings();
   renderSaved();
   updateUserBadge();
-  openRoleGate();
+  if(readVipHandoff()){ showVipLoading(); if(!tryVipHandoff()) scheduleVipHandoff(); }   // 從 VIP 入口頁帶進來 → 自動登入
+  else openRoleGate();
 }
 function renderBrands(){
+  if(brandLock){ brandTabs.style.display="none"; brandTabs.innerHTML=""; return; }   // VIP 鎖定品牌 → 隱藏切換鈕
+  brandTabs.style.display="";
   brandTabs.innerHTML=BRANDS.map(b=>`<button class="brandtab ${b.id===curBrand?'sel':''}" onclick="pickBrand('${b.id}')">${b.label}<small>${b.sub}</small></button>`).join("");
 }
 function renderLineTabs(){
@@ -3116,6 +3171,7 @@ function updateBrandMark(){
   else if(b){ nm.textContent=(b.label||"").toUpperCase(); tg.textContent=b.sub||""; }
 }
 function pickBrand(id){
+  if(brandLock && id!==brandLock) return;   // VIP 鎖定品牌 → 不可切換
   if(id===curBrand) return;
   curBrand=id;
   CURSYM = symForBrand(id);
@@ -5420,6 +5476,7 @@ window.__cloudStatus = function(st){
 };
 window.__cloudRefresh = function(){
   try{
+    if(typeof tryVipHandoff==="function" && !role) tryVipHandoff();   // 雲端帳號一到 → 補跑 VIP 自動登入
     if(typeof loadCustomCars==="function") loadCustomCars();
     if(typeof applyDecalOverrides==="function") applyDecalOverrides();
     if(typeof applySigOverrides==="function") applySigOverrides();
