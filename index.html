@@ -1216,7 +1216,8 @@ const fmt=n=>{
 };
 // 起始價/變體價：業務&客戶端把「加權」折進去顯示（管理後台顯示 £/€ 成本，不加）
 const fmtBase=(n,carId)=>{
-  if(VIEW==="sales") return "NT$"+(roundRetail(retailNT(n))+roundRetail(weightForCar(carId!=null?carId:(typeof cur!=="undefined"&&cur?cur.id:null)))).toLocaleString("en-US");
+  const id=(carId!=null?carId:(typeof cur!=="undefined"&&cur?cur.id:""));
+  if(VIEW==="sales") return "NT$"+(roundRetail(retailOf(n,id+"|base"))+roundRetail(weightForCar(id))).toLocaleString("en-US");   // 用該車「車身係數」，跟報價總覽一致
   return CURSYM+Math.round(n).toLocaleString("en-GB");
 };
 function baseNTWithWeight(base,key){ return roundRetail(retailOf(base,key))+roundRetail(weightForCar((key||"").split("|")[0])); }
@@ -2878,7 +2879,7 @@ function submitToSales(){
   document.getElementById("sentMsg").textContent="已送出，感謝您！業務 "+who+" 很快會與您聯繫。";
   document.getElementById("sentBg").style.display="flex";
 }
-function sentDone(){ document.getElementById("sentBg").style.display="none"; resetSelectionUI(); updateSummary(); }
+function sentDone(){ document.getElementById("sentBg").style.display="none"; resetSelectionUI(); updateSummary(); if(role==="vip" && typeof autoLogoutNow==="function") autoLogoutNow(); }   // 客戶送出後自動登出
 
 function inboxCount(){ if(!currentSales) return 0; return getSubs().filter(x=>x.salesCode===currentSales.u && x.status!=="done").length; }
 function subItemNames(x){
@@ -4041,6 +4042,7 @@ function loadSettings(){
 }
 function rerenderPrices(){
   renderCars();
+  if(cur){ document.querySelectorAll(".vbtn").forEach(el=>{ const vk=el.dataset.v, vp=el.querySelector(".vprice"); if(vp&&cur.variants&&cur.variants[vk]) vp.innerHTML=fmtBase(cur.variants[vk].base, cur.id); }); }   // 變體按鈕價格也跟著係數更新
   if(cur&&variant){ renderIncluded();renderOptions();renderPaint();renderDecals();renderSignature();renderSigOpts(); }
   updateSummary();
 }
@@ -4095,6 +4097,7 @@ function applyView(v){
     const ht=document.getElementById("custHeadTxt"); if(ht) ht.textContent = (role==="vip") ? "留言 / 備註給業務" : "客戶資料";
     const nl=document.getElementById("custNotesLbl"); if(nl) nl.textContent = (role==="vip") ? "備註 / 需求（會一併送給業務）" : "備註 / Bespoke 需求"; }
   rerenderPrices();
+  if(role && typeof startAutoLogout==="function") startAutoLogout();   // 登入後啟動自動登出計時
 }
 function updateUserBadge(){
   const el=document.getElementById("userBadge");
@@ -4137,7 +4140,24 @@ function closeLogin(){
   document.getElementById("loginBg").style.display="none";
   if(!role) openRoleGate();   // 尚未登入就按 X／取消 → 退回身分選擇關卡，不讓未輸入密碼就進到 App
 }
+/* ===== 自動登出：閒置 10 分鐘 或 登入滿 1 小時 ===== */
+var _idleTimer=null, _absTimer=null, _autoOn=false;
+function autoLogoutNow(){
+  try{
+    if(window.self!==window.top){   // 在 VIP 入口頁 iframe 內（客戶）→ 回入口頁登入
+      try{ sessionStorage.removeItem("oma_vip_handoff"); sessionStorage.removeItem("oma_vip_logged"); }catch(e){}
+      window.top.location.reload(); return;
+    }
+  }catch(e){}
+  if(typeof toast==="function") toast("已自動登出");
+  if(typeof logout==="function") logout();   // 員工 → 回閘門
+}
+function _resetIdle(){ if(!_autoOn) return; clearTimeout(_idleTimer); _idleTimer=setTimeout(autoLogoutNow, 600000); }   // 10 分鐘
+function startAutoLogout(){ if(_autoOn) return; _autoOn=true; clearTimeout(_absTimer); _absTimer=setTimeout(autoLogoutNow, 3600000); _resetIdle(); }   // 絕對 1 小時
+function stopAutoLogout(){ _autoOn=false; clearTimeout(_idleTimer); clearTimeout(_absTimer); }
+["mousemove","mousedown","keydown","touchstart","scroll","click"].forEach(function(ev){ try{ document.addEventListener(ev,_resetIdle,true); }catch(e){} });
 function logout(){
+  stopAutoLogout();
   role=null; currentSales=null; vipSales=null; customerName=""; VIEW="sales";
   { const _a=document.getElementById("acctBg"); if(_a) _a.style.display="none"; const _c=document.getElementById("cashierBg"); if(_c) _c.style.display="none"; }
   resetSelectionUI();
@@ -4580,7 +4600,7 @@ function renderAdminMenu(){
   const admin=role==="admin", sales=role==="sales";
   let items=[], label="管理 ▾";
   if(admin && VIEW==="admin"){
-    items=[["報價明細","openPerf"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["配備管理","openOptMgr"],["塗裝色板","openPaintMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
+    items=[["報價明細","openPerf"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["配備管理","openOptMgr"],["塗裝色板","openPaintMgr"],["設定","openSettings"],["會計","openAcctView"],["出納","openCashierView"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
     label="管理 ▾";
   } else if((admin && VIEW==="sales") || sales){
     const n=(typeof inboxCount==="function")?inboxCount():0;
