@@ -678,12 +678,6 @@
     <div class="field" style="margin-top:10px"><label class="f">訂金比例 Deposit %（訂金 = 總價 × 此比例，交一次）</label><input class="t" id="s_deposit" type="number" step="1" min="0" max="100" placeholder="例如 30"></div>
     <label class="f" style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-weight:400"><input type="checkbox" id="s_luxTax" style="width:auto;margin:0"> 奢侈稅：合約成交價達 300 萬時，自動加收 10%（特種貨物稅）</label>
     <label class="f" style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-weight:400"><input type="checkbox" id="s_showWeather" style="width:auto;margin:0"> 顯示「風雨防護」選項（Caterham；關閉＝只保留天氣套件為標配，其餘另購零件）</label>
-    <div style="margin-top:14px;border-top:1px solid #333;padding-top:12px">
-      <label class="f" style="font-weight:700">VIP 入口路由（客戶密碼「開頭字母」→ 進入哪個系統）</label>
-      <div class="hint" style="margin:2px 0 8px">密碼格式＝<b>字母＋業務VIP密碼</b>（例：<b>c2026cbc</b> → Caterham）。存檔後會同步到 VIP 入口頁。</div>
-      <div id="vipRoutesList"></div>
-      <button class="mini" style="margin-top:6px;border-color:#555;background:#222;color:#fff" onclick="vipRouteAdd()">＋ 新增路由</button>
-    </div>
     <div class="row2" style="margin-top:10px">
       <div class="field"><label class="f">品項取整方式 Item rounding</label>
         <select class="t" id="s_roundMode">
@@ -718,9 +712,6 @@
     </div>
     <p class="hint" style="margin:6px 0 0">品項各自取整後加總，再套用「總計取整」。例：品項到百位、總計到千位。</p>
     <p class="hint" style="margin:8px 0 0">係數可在各車與各選配旁單獨微調（管理後台）。加權會在係數/匯率換算後加到總價。</p>
-    <h3 style="margin:18px 0 4px">帳號與密碼</h3>
-    <p class="hint" style="margin:0 0 8px">管理後台可直接檢視與修改所有密碼（含管理後台密碼、各業務密碼）。改好按該列「更新」即生效。</p>
-    <div id="s_pwList"></div>
     <h3 style="margin:18px 0 4px">資料同步（雲端 Firebase）</h3>
     <p class="hint" style="margin:0 0 8px">系統已連接雲端：管理後台的修改、業務的報價、客戶的登入都會即時同步到所有裝置。若剛從舊的單機版切換過來，可按「把本機資料上傳雲端」把既有資料推上去。</p>
     <div class="row2" style="margin-top:2px">
@@ -901,10 +892,22 @@
 <div id="salesMgrBg" class="modal-bg" style="display:none">
   <div class="modal-card" style="max-width:960px;max-height:90vh;overflow:auto">
     <button class="modal-x" onclick="closeSalesMgr()">✕</button>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-      <h3 style="margin:0">業務團隊管理</h3>
-      </div>
-    <p class="hint" style="margin:8px 0 14px">新增 / 刪除業務、改中文姓名與職稱、改業務登入密碼、改客戶登入代碼。<b>新增業務後，業務端與客戶端會自動出現</b>（透過雲端同步，所有裝置一致）。只有管理後台能改。</p>
+    <h3 style="margin:0 0 2px">帳號 & 密碼管理</h3>
+    <p class="hint" style="margin:0 0 14px">集中管理所有密碼與 VIP 入口。改好按各列「更新」即生效（雲端同步）。</p>
+
+    <h3 style="margin:16px 0 6px;font-size:16px">系統密碼</h3>
+    <div id="s_pwList"></div>
+
+    <h3 style="margin:22px 0 4px;font-size:16px">VIP 入口路由</h3>
+    <div class="hint" style="margin:0 0 8px">客戶密碼＝<b>開頭字母＋業務VIP密碼</b>（例：<b>c2026cbc</b> → Caterham）。改完按「儲存路由」，會同步到 VIP 入口頁。</div>
+    <div id="vipRoutesList"></div>
+    <div style="margin-top:6px;display:flex;gap:8px">
+      <button class="mini" style="border-color:#555;background:#222;color:#fff" onclick="vipRouteAdd()">＋ 新增路由</button>
+      <button class="mini" style="border-color:#1b6e3a;background:#1b6e3a;color:#fff" onclick="vipRouteSave()">儲存路由</button>
+    </div>
+
+    <h3 style="margin:24px 0 6px;font-size:16px">業務團隊 & 客戶登入代碼</h3>
+    <p class="hint" style="margin:0 0 14px">新增 / 刪除業務、改中文姓名與職稱、改業務登入密碼、改客戶登入代碼。<b>新增業務後，業務端與客戶端會自動出現</b>（雲端同步）。</p>
     <div style="border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px">
       <label class="f">客戶登入代碼前綴</label>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:4px">
@@ -4537,7 +4540,7 @@ function renderAdminMenu(){
   const admin=role==="admin", sales=role==="sales";
   let items=[], label="管理 ▾";
   if(admin && VIEW==="admin"){
-    items=[["報價明細","openPerf"],["客戶登入","openLogins"],["業務管理","openSalesMgr"],["車型管理","openCarMgr"],["配備管理","openOptMgr"],["塗裝色板","openPaintMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
+    items=[["報價明細","openPerf"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["配備管理","openOptMgr"],["塗裝色板","openPaintMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
     label="管理 ▾";
   } else if((admin && VIEW==="sales") || sales){
     const n=(typeof inboxCount==="function")?inboxCount():0;
@@ -4793,14 +4796,12 @@ function openSettings(){
   s_deposit.value=(s.depositPct!=null?s.depositPct:DEPOSIT_PCT);
   { const e=document.getElementById("s_luxTax"); if(e) e.checked=(s.luxTax!==false); }
   { const e=document.getElementById("s_showWeather"); if(e) e.checked=(s.showWeather===true); }
-  _vipRoutesEdit=JSON.parse(JSON.stringify(getVipRoutes())); renderVipRoutesEditor();
   s_roundMode.value=s.roundMode||"none"; s_roundUnit.value=s.roundUnit||1;
   s_roundTMode.value=s.roundTMode||"none"; s_roundTUnit.value=s.roundTUnit||1;
   const acc=getAccounts();
   { const c=(s.emailNotify||{}); const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||"";};
     const on=document.getElementById("s_en_on"); if(on) on.checked=!!c.on;
     set("s_en_service",c.service); set("s_en_template",c.template); set("s_en_pubkey",c.pubkey); set("s_en_fallback",c.fallback); set("s_en_always",c.always); }
-  renderPwList();
   settingsBg.style.display="flex";
 }
 let paintMgr={kind:"std",tiers:[]};
@@ -4953,6 +4954,8 @@ function savePaintMgr(){
 function openSalesMgr(){
   if(VIEW!=="admin"){ toast("僅限管理後台"); return; }
   const p=document.getElementById("sm_prefix"); if(p) p.value=getVipPrefix();
+  if(typeof renderPwList==="function") renderPwList();
+  _vipRoutesEdit=JSON.parse(JSON.stringify(getVipRoutes())); if(typeof renderVipRoutesEditor==="function") renderVipRoutesEditor();
   renderSalesMgr();
   document.getElementById("salesMgrBg").style.display="flex";
 }
@@ -5017,8 +5020,7 @@ function renderPwList(){
   const q=s=>(s==null?"":String(s)).replace(/"/g,"&quot;");
   el.innerHTML = `<div class="pw-row"><span class="pw-k">管理後台密碼</span><input class="t pw-in" id="acAdmin" value="${q(a.adminPass)}"><button class="mini" onclick="acctSaveAdmin()">更新</button></div>`
     + `<div class="pw-row"><span class="pw-k">會計密碼</span><input class="t pw-in" id="acAcct" value="${q(a.acctPass||'123')}"><button class="mini" onclick="acctSaveRole('acct')">更新</button></div>`
-    + `<div class="pw-row"><span class="pw-k">出納密碼</span><input class="t pw-in" id="acCashier" value="${q(a.cashierPass||'123')}"><button class="mini" onclick="acctSaveRole('cashier')">更新</button></div>`
-    + `<div style="margin-top:12px"><button class="btn ghost" onclick="closeSettings();openSalesMgr()">開啟「業務團隊管理」（新增/改業務、業務密碼、客戶登入代碼）→</button></div>`;
+    + `<div class="pw-row"><span class="pw-k">出納密碼</span><input class="t pw-in" id="acCashier" value="${q(a.cashierPass||'123')}"><button class="mini" onclick="acctSaveRole('cashier')">更新</button></div>`;
 }
 function acctSaveRole(kind){
   const id=kind==="acct"?"acAcct":"acCashier", field=kind==="acct"?"acctPass":"cashierPass", name=kind==="acct"?"會計":"出納";
@@ -5064,7 +5066,6 @@ function saveSettings(){
   s.depositPct=Math.max(0,Math.min(100,+s_deposit.value||0));
   { const e=document.getElementById("s_luxTax"); s.luxTax = e?e.checked:true; }
   { const e=document.getElementById("s_showWeather"); s.showWeather = !!(e&&e.checked); }
-  s.vipRoutes = _vipRoutesEdit.map(r=>({ltr:String(r.ltr||"").trim().toLowerCase().slice(0,1), dest:r.dest})).filter(r=>r.ltr && r.dest);
   { const g=id=>{const e=document.getElementById(id);return e?e.value.trim():"";}; const on=document.getElementById("s_en_on");
     s.emailNotify={on:!!(on&&on.checked), service:g("s_en_service"), template:g("s_en_template"), pubkey:g("s_en_pubkey"), fallback:g("s_en_fallback"), always:g("s_en_always")}; }
   s.roundMode=s_roundMode.value; s.roundUnit=+s_roundUnit.value||1;
@@ -5231,6 +5232,7 @@ function vipRouteLtr(i,v){ if(_vipRoutesEdit[i]) _vipRoutesEdit[i].ltr=String(v|
 function vipRouteDest(i,v){ if(_vipRoutesEdit[i]) _vipRoutesEdit[i].dest=v; }
 function vipRouteAdd(){ _vipRoutesEdit.push({ltr:"",dest:"caterham"}); renderVipRoutesEditor(); }
 function vipRouteDel(i){ _vipRoutesEdit.splice(i,1); renderVipRoutesEditor(); }
+function vipRouteSave(){ const s=getSettings(); s.vipRoutes=_vipRoutesEdit.map(r=>({ltr:String(r.ltr||"").trim().toLowerCase().slice(0,1),dest:r.dest})).filter(r=>r.ltr&&r.dest); localStorage.setItem(LS_SETTINGS,JSON.stringify(s)); if(typeof toast==="function") toast("VIP 入口路由已儲存（已同步雲端）"); }
 /* 取得目前這張報價的品項與含稅總額（合約書用；與列印邏輯一致） */
 function contractItemsTotal(){
   const base=cur.variants[variant].base, baseKey=cur.id+"|base";
@@ -5533,7 +5535,7 @@ window.__cloudRefresh = function(){
     if((m=document.getElementById("loginsBg"))&&m.style.display!=="none"&&typeof renderLogins==="function") renderLogins();
     if((m=document.getElementById("dealBg"))&&m.style.display!=="none"&&typeof renderDeals==="function") renderDeals();
     if((m=document.getElementById("inboxBg"))&&m.style.display!=="none"&&typeof renderInbox==="function") renderInbox();
-    if((m=document.getElementById("settingsBg"))&&m.style.display!=="none"&&typeof renderPwList==="function") renderPwList();
+    if((m=document.getElementById("salesMgrBg"))&&m.style.display!=="none"&&typeof renderPwList==="function") renderPwList();
     if((m=document.getElementById("salesMgrBg"))&&m.style.display!=="none"&&typeof renderSalesMgr==="function") renderSalesMgr();
     // 互斥設定視窗若正開著（例如趕在雲端載入前就打開），雲端資料一到就重建，避免顯示空白
     if((m=document.getElementById("xgBg"))&&m.style.display!=="none"&&typeof openXG==="function"&&typeof cur!=="undefined"&&cur) openXG();
