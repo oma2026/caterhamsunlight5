@@ -678,6 +678,12 @@
     <div class="field" style="margin-top:10px"><label class="f">訂金比例 Deposit %（訂金 = 總價 × 此比例，交一次）</label><input class="t" id="s_deposit" type="number" step="1" min="0" max="100" placeholder="例如 30"></div>
     <label class="f" style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-weight:400"><input type="checkbox" id="s_luxTax" style="width:auto;margin:0"> 奢侈稅：合約成交價達 300 萬時，自動加收 10%（特種貨物稅）</label>
     <label class="f" style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-weight:400"><input type="checkbox" id="s_showWeather" style="width:auto;margin:0"> 顯示「風雨防護」選項（Caterham；關閉＝只保留天氣套件為標配，其餘另購零件）</label>
+    <div style="margin-top:14px;border-top:1px solid #333;padding-top:12px">
+      <label class="f" style="font-weight:700">VIP 入口路由（客戶密碼「開頭字母」→ 進入哪個系統）</label>
+      <div class="hint" style="margin:2px 0 8px">密碼格式＝<b>字母＋業務VIP密碼</b>（例：<b>c2026cbc</b> → Caterham）。存檔後會同步到 VIP 入口頁。</div>
+      <div id="vipRoutesList"></div>
+      <button class="mini" style="margin-top:6px;border-color:#555;background:#222;color:#fff" onclick="vipRouteAdd()">＋ 新增路由</button>
+    </div>
     <div class="row2" style="margin-top:10px">
       <div class="field"><label class="f">品項取整方式 Item rounding</label>
         <select class="t" id="s_roundMode">
@@ -4795,6 +4801,7 @@ function openSettings(){
   s_deposit.value=(s.depositPct!=null?s.depositPct:DEPOSIT_PCT);
   { const e=document.getElementById("s_luxTax"); if(e) e.checked=(s.luxTax!==false); }
   { const e=document.getElementById("s_showWeather"); if(e) e.checked=(s.showWeather===true); }
+  _vipRoutesEdit=JSON.parse(JSON.stringify(getVipRoutes())); renderVipRoutesEditor();
   s_roundMode.value=s.roundMode||"none"; s_roundUnit.value=s.roundUnit||1;
   s_roundTMode.value=s.roundTMode||"none"; s_roundTUnit.value=s.roundTUnit||1;
   const acc=getAccounts();
@@ -5065,6 +5072,7 @@ function saveSettings(){
   s.depositPct=Math.max(0,Math.min(100,+s_deposit.value||0));
   { const e=document.getElementById("s_luxTax"); s.luxTax = e?e.checked:true; }
   { const e=document.getElementById("s_showWeather"); s.showWeather = !!(e&&e.checked); }
+  s.vipRoutes = _vipRoutesEdit.map(r=>({ltr:String(r.ltr||"").trim().toLowerCase().slice(0,1), dest:r.dest})).filter(r=>r.ltr && r.dest);
   { const g=id=>{const e=document.getElementById(id);return e?e.value.trim():"";}; const on=document.getElementById("s_en_on");
     s.emailNotify={on:!!(on&&on.checked), service:g("s_en_service"), template:g("s_en_template"), pubkey:g("s_en_pubkey"), fallback:g("s_en_fallback"), always:g("s_en_always")}; }
   s.roundMode=s_roundMode.value; s.roundUnit=+s_roundUnit.value||1;
@@ -5214,6 +5222,23 @@ const SELLER_INFO={
 const LUX_TAX_RATE=0.10, LUX_TAX_MIN=3000000;   // 10%；成交價達 300 萬（含）加收
 function luxTaxOn(){ return getSettings().luxTax!==false; }   // 預設開啟
 function weatherShown(){ return getSettings().showWeather===true; }   // 風雨防護選項：預設隱藏，管理後台可開啟
+/* ===== VIP 入口路由（開頭字母 → 目的地系統）：後台可設定，同步雲端供入口頁讀取 ===== */
+const VIP_DESTS=[["caterham","Caterham"],["sunlight","Sunlight"],["camper","改裝"]];
+function getVipRoutes(){ const r=getSettings().vipRoutes; return (Array.isArray(r)&&r.length)?r:[{ltr:"c",dest:"caterham"},{ltr:"s",dest:"sunlight"},{ltr:"m",dest:"camper"}]; }
+let _vipRoutesEdit=[];
+function renderVipRoutesEditor(){
+  const box=document.getElementById("vipRoutesList"); if(!box) return;
+  box.innerHTML=_vipRoutesEdit.map((r,i)=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+    <input class="t" style="width:64px;text-align:center" maxlength="1" value="${String(r.ltr||"").replace(/[<>"]/g,"")}" oninput="vipRouteLtr(${i},this.value)" placeholder="c">
+    <span style="color:#888">→</span>
+    <select class="t" style="flex:1" onchange="vipRouteDest(${i},this.value)">${VIP_DESTS.map(d=>`<option value="${d[0]}" ${r.dest===d[0]?"selected":""}>${d[1]}</option>`).join("")}</select>
+    <button class="mini" style="border-color:#8a2b2b;background:transparent;color:#fff" onclick="vipRouteDel(${i})">刪</button>
+  </div>`).join("") || '<div class="hint">尚無路由，請點下方「新增路由」。</div>';
+}
+function vipRouteLtr(i,v){ if(_vipRoutesEdit[i]) _vipRoutesEdit[i].ltr=String(v||"").trim().toLowerCase().slice(0,1); }
+function vipRouteDest(i,v){ if(_vipRoutesEdit[i]) _vipRoutesEdit[i].dest=v; }
+function vipRouteAdd(){ _vipRoutesEdit.push({ltr:"",dest:"caterham"}); renderVipRoutesEditor(); }
+function vipRouteDel(i){ _vipRoutesEdit.splice(i,1); renderVipRoutesEditor(); }
 /* 取得目前這張報價的品項與含稅總額（合約書用；與列印邏輯一致） */
 function contractItemsTotal(){
   const base=cur.variants[variant].base, baseKey=cur.id+"|base";
