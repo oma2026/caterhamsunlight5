@@ -617,7 +617,13 @@
           <div class="sum-opts" id="sumOpts"></div>
           <div class="total"><span class="lbl">總價 Total</span><span class="amt" id="sumTotal">£0</span></div>
           <div class="deposit" id="carWeightBox" style="display:none">
-            <div><span>本車加權 NT$<small style="color:#999">（空白＝用全域 <b id="globalWeightHint">0</b>）</small></span><input class="t" id="carWeightInput" type="number" step="100" style="max-width:120px;text-align:right" placeholder="全域" onchange="setCarWeight((typeof cur!=='undefined'&&cur)?cur.id:null,this.value)"></div>
+            <div style="font-weight:700;margin-bottom:8px">本車定價（只影響這台車；空白＝用各欄顯示的預設值）</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px">
+              <label style="display:flex;flex-direction:column;font-size:12px;color:#888;gap:3px">車身係數<input class="t" id="pc_bc" type="number" step="0.05" min="0" style="text-align:right" placeholder="1.4" onchange="setPriceCfg(curId(),'bc',this.value)"></label>
+              <label style="display:flex;flex-direction:column;font-size:12px;color:#888;gap:3px">配備係數<input class="t" id="pc_oc" type="number" step="0.05" min="0" style="text-align:right" placeholder="1.4" onchange="setPriceCfg(curId(),'oc',this.value)"></label>
+              <label style="display:flex;flex-direction:column;font-size:12px;color:#888;gap:3px">車身加權 NT$<input class="t" id="pc_bw" type="number" step="100" style="text-align:right" placeholder="0" onchange="setPriceCfg(curId(),'bw',this.value)"></label>
+              <label style="display:flex;flex-direction:column;font-size:12px;color:#888;gap:3px">總價加權 NT$<input class="t" id="pc_tw" type="number" step="100" style="text-align:right" placeholder="0" onchange="setPriceCfg(curId(),'tw',this.value)"></label>
+            </div>
           </div>
           <div class="deposit" id="sumLuxBox" style="display:none">
             <div><span>奢侈稅（達 300 萬・預估 10%）</span><b id="sumLux">—</b></div>
@@ -1162,7 +1168,8 @@ let COEF=1.4;               // 係數（預設加成倍率）
 let WEIGHT=0;               // 加權（係數/匯率換算後加值，NT$）— 預設值
 let WEIGHT_MAP={};          // 各車款加權覆寫：carId -> 加權（沒設的車用全域 WEIGHT）
 let DEPOSIT_PCT=30;         // 訂金比例 %（訂金 = 總價 × 此比例）
-let COEF_MAP={};            // 各品項係數覆寫：key -> coef
+let COEF_MAP={};            // 各品項係數覆寫：key -> coef（舊機制，已停用）
+let PRICE_CFG={};           // 各車定價：carId -> {bc:車身係數, oc:配備係數, bw:車身加權, tw:總價加權}
 let ROUND_MODE="none", ROUND_UNIT=1;        // 品項取整
 let ROUND_TMODE="none", ROUND_TUNIT=1;      // 總計取整
 function _roundBy(n,mode,u){ n=+n||0; u=u||1;
@@ -1172,9 +1179,35 @@ function _roundBy(n,mode,u){ n=+n||0; u=u||1;
   return Math.round(n); }
 function roundRetail(n){ return _roundBy(n,ROUND_MODE,ROUND_UNIT); }   // 品項
 function roundTotal(n){ return _roundBy(n,ROUND_TMODE,ROUND_TUNIT); }  // 總計
-function coefFor(key){ return (key&&COEF_MAP[key]!=null)?COEF_MAP[key]:COEF; }
-function weightForCar(id){ return (id&&WEIGHT_MAP[id]!=null)?+WEIGHT_MAP[id]:WEIGHT; }   // 該車加權（沒設就用全域）
+function coefFor(key){ const id=(key||"").split("|")[0]; return (key||"").endsWith("|base") ? bodyCoefFor(id) : optCoefFor(id); }   // 車身用車身係數、其餘用配備係數（各車各設）
+function weightForCar(id){ return bodyWeightFor(id) + totalWeightFor(id); }   // 車身加權＋總價加權（都併進總價、對客戶隱藏）
 function curWeight(){ return weightForCar(typeof cur!=="undefined"&&cur?cur.id:null); }
+/* ===== 各車定價（4 個獨立控制；沒設就用預設：係數 1.4、加權 0）===== */
+function getPriceCfg(id){ return (id&&PRICE_CFG[id])?PRICE_CFG[id]:{}; }
+function bodyCoefFor(id){ const c=getPriceCfg(id); return c.bc!=null?+c.bc:COEF; }
+function optCoefFor(id){ const c=getPriceCfg(id); return c.oc!=null?+c.oc:COEF; }
+function bodyWeightFor(id){ const c=getPriceCfg(id); return c.bw!=null?+c.bw:0; }
+function totalWeightFor(id){ const c=getPriceCfg(id); if(c.tw!=null) return +c.tw; return (id&&WEIGHT_MAP[id]!=null)?+WEIGHT_MAP[id]:WEIGHT; }   // 沿用舊「全車加權」當總價加權
+function curId(){ return (typeof cur!=="undefined"&&cur)?cur.id:""; }
+function setPriceCfg(id,field,v){
+  if(!id) return;
+  const s=getSettings(); s.priceCfg=s.priceCfg||{}; s.priceCfg[id]=s.priceCfg[id]||{};
+  const t=String(v).trim();
+  if(t==="") delete s.priceCfg[id][field];
+  else s.priceCfg[id][field] = (field==="bc"||field==="oc") ? (parseFloat(t)||COEF) : (Math.round(+t)||0);
+  PRICE_CFG=s.priceCfg;
+  localStorage.setItem(LS_SETTINGS,JSON.stringify(s));
+  rerenderPrices();
+}
+function syncPriceCfgInputs(id){
+  const c=getPriceCfg(id);
+  const gTW=(id&&WEIGHT_MAP[id]!=null)?WEIGHT_MAP[id]:WEIGHT;   // 總價加權的目前預設
+  const set=(eid,v,ph)=>{ const e=document.getElementById(eid); if(!e)return; if(String(e.value)!==String(v)) e.value=v; e.placeholder="預設 "+ph; };
+  set("pc_bc", c.bc!=null?c.bc:"", COEF);
+  set("pc_oc", c.oc!=null?c.oc:"", COEF);
+  set("pc_bw", c.bw!=null?c.bw:"", 0);
+  set("pc_tw", c.tw!=null?c.tw:"", gTW);
+}
 function retailOf(cost,key){ const fx=(CURSYM==="€")?FX.EUR:FX.GBP; return cost*fx*coefFor(key); }
 function retailNT(n){ const fx=(CURSYM==="€")?FX.EUR:FX.GBP; return n*fx*COEF; }
 const fmt=n=>{
@@ -1543,7 +1576,7 @@ function cliffCats(model,trim){
   conv.push(["CLIFF RT-Pack 車頂床（含 RT 貼紙）",{STD:4214.39},160]);
   return [
     ["底盤 & 動力 Base vehicle / Engine",[
-      ["8速自排 140hp 8-speed automatic",{STD:2365.65},60],
+      ["8速自排 140hp 8-speed automatic",{STD:S},60],
       ["8速自排 180hp 8-speed automatic",{STD:4768.27},60],
       ["Maxi 底盤 140hp 6速手排",{STD:is540?"na":295.80},40],
       ["Maxi 底盤 140hp 8速自排",{STD:is540?"na":2661.45},60],
@@ -2049,7 +2082,7 @@ function cliffCatsPeu(model){
   const awn = model==="540"?["3.25m",757.98,24] : model==="600"?["3.75m",839.33,27] : ["4m",1009.41,30];
   return [
     ["底盤 & 動力 Base vehicle / Engine",[
-      ["8速自排變速箱 8-speed automatic",{STD:2365.65},60],
+      ["8速自排變速箱 8-speed automatic",{STD:S},60],
       ["90 公升油箱",{STD:36.24},23],
     ]],
     ["車體改裝 Conversion",[
@@ -2510,7 +2543,7 @@ function tCats25(code){
   const fifth      = (code==="T67"||code==="T68")?425.21 : "na";
   return [
     ["底盤 & 動力 Base vehicle / Engine",[
-      ["8速自排 140hp 8-speed automatic",{STD:2365.65},60],
+      ["8速自排 140hp 8-speed automatic",{STD:S},60],
       ["8速自排 180hp 8-speed automatic",{STD:auto180},60],
       ["車身黑（含側裙銀色亮面）Chassis colour black",{STD:1393.21},2.5],
       ["電子手煞車 Electric Park Brake",{STD:450.35},-9.4],
@@ -2622,6 +2655,15 @@ const CLIFF_DPP={
   "600x":44499.25,"640x":46144.63,"540v":45022.78,"600j":43377.40
 };
 CARS.forEach(c=>{ if(c.brandId==="sunlight" && c.id.indexOf("cliff")===0){ const k=c.id.replace("cliff",""); if(CLIFF_DPP[k]!=null) c.dpp=CLIFF_DPP[k]; } });
+/* 8速自排（140hp/變速箱）標配：對 cats 裡有這個自排選項的 Sunlight 車，把 £2,365.65 灌進車身底價＋成本（選項已改標配、價錢改由車身承擔、對客戶隱藏）*/
+CARS.forEach(c=>{
+  if(c.brandId!=="sunlight" || !Array.isArray(c.cats)) return;
+  const hasAuto = c.cats.some(cat=>Array.isArray(cat[1]) && cat[1].some(o=>o&&(o[0]==="8速自排 140hp 8-speed automatic"||o[0]==="8速自排變速箱 8-speed automatic")));
+  if(hasAuto){
+    if(c.variants&&c.variants.STD&&typeof c.variants.STD.base==="number") c.variants.STD.base += 2365.65;
+    if(typeof c.dpp==="number") c.dpp += 2365.65;
+  }
+});
 const CLIFF_ADV_LAYOUT={cliff540:"540",cliff600:"600",cliff601:"601",cliff602:"602",cliff640:"640",cliff540v:"540",cliff600j:"600"};
 CARS.forEach(c=>{ if(CLIFF_ADV_LAYOUT[c.id]){ const L=CLIFF_ADV_LAYOUT[c.id]; c.tech=cliffTech(L); c.included={STD:cliffStd(L)}; } });
 const CLIFF_X_LAYOUT={cliff600x:"600x",cliff640x:"640x"};
@@ -3345,7 +3387,7 @@ function renderOptions(){
       const key=cur.id+"|"+id;
       const priceLabel = val===0
         ? `<span class="nco">無額外費用 NCO</span>`
-        : `${itemPrice(val,key)}${VIEW==="admin"?coefInput(key):""}`;
+        : `${itemPrice(val,key)}`;
       const on = selected[id]!==undefined;
       return `<label class="opt">
         <input type="checkbox" ${on?"checked":""} onchange="toggleOpt('${id}',${val})">
@@ -3936,7 +3978,7 @@ function updateSummary(){
     total = base + opts.reduce((a,o)=>a+o.price,0);
   }
   sumCar.textContent=`${cur.name} · ${cur.variants[variant].label}`;
-  sumBase.innerHTML = (sales ? ntfmtRaw(baseNTWithWeight(base,baseKey)) : (itemPrice(base,baseKey)+coefInput(baseKey)));
+  sumBase.innerHTML = (sales ? ntfmtRaw(baseNTWithWeight(base,baseKey)) : itemPrice(base,baseKey));
   sumBreakdown.innerHTML=sunBreakdownHtml();
   let optHtml = opts.length
     ? opts.map(o=>{
@@ -3950,12 +3992,9 @@ function updateSummary(){
   if(_w.has) optHtml += `<div class="so wgt"><span>選配附加重量 Added weight</span><span>${_w.sum>=0?"+":""}${_w.sum.toFixed(1)} kg${_w.unknown?' <small class="wq">＋待定項</small>':""}</span></div>`;
   sumOpts.innerHTML = optHtml;
   sumTotal.textContent = sales ? ntfmtRaw(total) : (CURSYM+Math.round(total).toLocaleString("en-GB"));
-  { const wb=document.getElementById("carWeightBox");   // 本車加權：只在「管理後台檢視」顯示，業務端／客戶端一律隱藏
-    if(wb){ if(VIEW==="admin"){ wb.style.display="";
-        const wi=document.getElementById("carWeightInput"), gh=document.getElementById("globalWeightHint");
-        if(gh) gh.textContent=WEIGHT.toLocaleString("en-US");
-        if(wi){ const cw=(cur&&WEIGHT_MAP[cur.id]!=null)?WEIGHT_MAP[cur.id]:""; if(String(wi.value)!==String(cw)) wi.value=cw; }
-      } else wb.style.display="none"; } }
+  { const wb=document.getElementById("carWeightBox");   // 本車定價：只在「管理後台檢視」顯示
+    if(wb){ if(VIEW==="admin" && cur){ wb.style.display=""; syncPriceCfgInputs(cur.id); }
+      else wb.style.display="none"; } }
   const isCat = cur.brandId==="caterham";
   const luxSum = (sales && luxTaxOn() && total>=LUX_TAX_MIN) ? Math.round(total*LUX_TAX_RATE) : 0;   // 報價預估奢侈稅（達 300 萬）
   const grandSum = total + luxSum;
@@ -3995,6 +4034,7 @@ function loadSettings(){
   if(s.roundTMode) ROUND_TMODE=s.roundTMode; if(s.roundTUnit) ROUND_TUNIT=+s.roundTUnit;
   COEF_MAP = s.coefMap || {};
   WEIGHT_MAP = s.weightMap || {};
+  PRICE_CFG = s.priceCfg || {};
   document.getElementById("vAdmin").classList.toggle("sel",VIEW==="admin");
   document.getElementById("vSales").classList.toggle("sel",VIEW==="sales");
   if(typeof renderAdminMenu==="function") renderAdminMenu();
