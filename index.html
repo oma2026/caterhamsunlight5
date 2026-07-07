@@ -677,6 +677,7 @@
     <div class="field" style="margin-top:10px"><label class="f">預設加權 Weighting（係數後加值 · NT$，未單獨設定的車用這個）</label><input class="t" id="s_weight" type="number" step="100"></div>
     <div class="field" style="margin-top:10px"><label class="f">訂金比例 Deposit %（訂金 = 總價 × 此比例，交一次）</label><input class="t" id="s_deposit" type="number" step="1" min="0" max="100" placeholder="例如 30"></div>
     <label class="f" style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-weight:400"><input type="checkbox" id="s_luxTax" style="width:auto;margin:0"> 奢侈稅：合約成交價達 300 萬時，自動加收 10%（特種貨物稅）</label>
+    <label class="f" style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-weight:400"><input type="checkbox" id="s_showWeather" style="width:auto;margin:0"> 顯示「風雨防護」選項（Caterham；關閉＝只保留天氣套件為標配，其餘另購零件）</label>
     <div class="row2" style="margin-top:10px">
       <div class="field"><label class="f">品項取整方式 Item rounding</label>
         <select class="t" id="s_roundMode">
@@ -3253,6 +3254,7 @@ function renderVariants(){
 }
 function pickVariant(k){
   variant=k; selected={}; selectedPaint=null; decalSel={items:{},pack:null}; sigSel=null; sigOptSel={}; nurSel={rollcage:false,keepDecals:true,keepNumber:true,raceNumber:"27"};
+  applyForcedOpts();   // 170R/340R：自動選上「賽事防滾架」（必選、進總價）
   document.querySelectorAll(".vbtn").forEach(el=>el.classList.toggle("sel",el.dataset.v===k));
   renderIncluded(); renderOptions(); renderPaint(); renderDecals(); renderSignature(); renderSigOpts(); updateReqBadges();
   inclPanel.style.display=custPanel.style.display="";
@@ -3294,6 +3296,15 @@ function renderIncluded(){
   inclList.innerHTML=html;
 }
 function priceFor(opt){ return opt[1][variant]; }
+/* 必選（鎖定）選項：170R / 340R 的「賽事防滾架」— 一律含、鎖住勾選、但價錢照算進總價 */
+const FORCED_RC_CARS = new Set(["170","340"]);
+function isForcedRC(oname){ return !!(typeof cur!=="undefined" && cur && FORCED_RC_CARS.has(cur.id) && variant==="R" && /賽事防滾架/.test(oname||"")); }
+function applyForcedOpts(){
+  if(typeof cur==="undefined" || !cur || !cur.cats) return;
+  cur.cats.forEach((cat,ci)=>{ (cat[1]||[]).forEach((o,oi)=>{
+    if(isForcedRC(o[0])){ const v=o[1][variant]; if(typeof v==="number") selected[ci+":"+oi]=v; }   // 自動選上 → 進總價
+  }); });
+}
 function weightFor(opt){ if(!opt||opt.length<3) return undefined; const w=opt[2]; if(w&&typeof w==="object") return w[variant]; return w; }
 function optWt(o){ const w=weightFor(o); if(w===undefined) return ""; if(w===null) return '<small class="owt wq">重量待定</small>'; return `<small class="owt">${w>=0?"+":""}${w} kg</small>`; }
 function selectedWeight(){ let sum=0,unknown=false,has=false;
@@ -3304,7 +3315,7 @@ function renderOptions(){
   let html=""; let total=0;
   cur.cats.forEach((cat,ci)=>{
     const [cname,opts]=cat;
-    if(/風雨防護|Weather Protection/i.test(cname)) return;   // 天氣套件一律標配、其餘另購零件 → 整個「風雨防護」分類不列為選項
+    if(!weatherShown() && /風雨防護|Weather Protection/i.test(cname)) return;   // 「風雨防護」預設隱藏（天氣套件已標配）；管理後台可開關顯示
     // rows available for this variant
     const rows=opts.map((o,oi)=>{
       const val=priceFor(o);
@@ -3322,6 +3333,13 @@ function renderOptions(){
           <input type="checkbox" checked disabled>
           <span class="oname">${o[0]}${Array.isArray(o[3])?"<small>"+o[3].join("・")+"</small>":""}</span>
           <span class="oprice"><span class="badge-std">Included</span></span></label>`;
+      }
+      if(isForcedRC(o[0])){   // 必選：鎖住勾選、標示必選、價錢照算
+        const fkey=cur.id+"|"+id;
+        return `<label class="opt included">
+          <input type="checkbox" checked disabled>
+          <span class="oname">${o[0]} <span class="reqbadge" style="display:inline">必選</span></span>
+          <span class="oprice">${itemPrice(val,fkey)}</span></label>`;
       }
       const key=cur.id+"|"+id;
       const priceLabel = val===0
@@ -4776,6 +4794,7 @@ function openSettings(){
   s_fxGBP.value=s.fxGBP||FX.GBP; s_fxEUR.value=s.fxEUR||FX.EUR; s_coef.value=s.coef||COEF; s_weight.value=s.weight||0;
   s_deposit.value=(s.depositPct!=null?s.depositPct:DEPOSIT_PCT);
   { const e=document.getElementById("s_luxTax"); if(e) e.checked=(s.luxTax!==false); }
+  { const e=document.getElementById("s_showWeather"); if(e) e.checked=(s.showWeather===true); }
   s_roundMode.value=s.roundMode||"none"; s_roundUnit.value=s.roundUnit||1;
   s_roundTMode.value=s.roundTMode||"none"; s_roundTUnit.value=s.roundTUnit||1;
   const acc=getAccounts();
@@ -5045,6 +5064,7 @@ function saveSettings(){
   s.fxGBP=+s_fxGBP.value||FX.GBP; s.fxEUR=+s_fxEUR.value||FX.EUR; s.coef=+s_coef.value||COEF; s.weight=+s_weight.value||0;
   s.depositPct=Math.max(0,Math.min(100,+s_deposit.value||0));
   { const e=document.getElementById("s_luxTax"); s.luxTax = e?e.checked:true; }
+  { const e=document.getElementById("s_showWeather"); s.showWeather = !!(e&&e.checked); }
   { const g=id=>{const e=document.getElementById(id);return e?e.value.trim():"";}; const on=document.getElementById("s_en_on");
     s.emailNotify={on:!!(on&&on.checked), service:g("s_en_service"), template:g("s_en_template"), pubkey:g("s_en_pubkey"), fallback:g("s_en_fallback"), always:g("s_en_always")}; }
   s.roundMode=s_roundMode.value; s.roundUnit=+s_roundUnit.value||1;
@@ -5053,6 +5073,7 @@ function saveSettings(){
   catch(err){ toast("儲存失敗：Logo 檔可能太大，請換小一點的圖"); return; }
   loadSettings();closeSettings();toast("設定已儲存");
   rerenderPrices(); updateReqBadges();
+  if(typeof variant!=="undefined" && variant && typeof renderOptions==="function") renderOptions();   // 風雨防護開關即時生效
 }
 
 /* ============ SAVE / LOAD QUOTES ============ */
@@ -5192,6 +5213,7 @@ const SELLER_INFO={
 /* 奢侈稅（特種貨物稅）：合約成交價達門檻時加收。可於「公司資料 → 定價設定」開關（預設開）。 */
 const LUX_TAX_RATE=0.10, LUX_TAX_MIN=3000000;   // 10%；成交價達 300 萬（含）加收
 function luxTaxOn(){ return getSettings().luxTax!==false; }   // 預設開啟
+function weatherShown(){ return getSettings().showWeather===true; }   // 風雨防護選項：預設隱藏，管理後台可開啟
 /* 取得目前這張報價的品項與含稅總額（合約書用；與列印邏輯一致） */
 function contractItemsTotal(){
   const base=cur.variants[variant].base, baseKey=cur.id+"|base";
