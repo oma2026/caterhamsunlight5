@@ -520,6 +520,8 @@
     <div class="viewtabs">
       <button id="vAdmin" class="vt sel" onclick="goAdmin()">管理後台</button>
       <button id="vSales" class="vt" onclick="goSales()">業務端</button>
+      <button id="vAcct" class="vt" style="display:none" onclick="openAcctView()">會計</button>
+      <button id="vCashier" class="vt" style="display:none" onclick="openCashierView()">出納</button>
     </div>
     <div class="user-badge" id="userBadge" style="display:none"></div>
     <div class="spacer"></div>
@@ -4087,6 +4089,7 @@ function applyView(v){
   document.getElementById("vSales").classList.toggle("sel",v==="sales");
   document.getElementById("vAdmin").style.display = (role==="sales"||role==="vip") ? "none" : "";
   document.getElementById("vSales").style.display = (role==="vip") ? "none" : "";
+  { const _a=document.getElementById("vAcct"), _c=document.getElementById("vCashier"); if(_a) _a.style.display=(role==="admin")?"":"none"; if(_c) _c.style.display=(role==="admin")?"":"none"; }   // 會計/出納頁籤：只有管理後台身分看得到，免密碼直接切
   renderAdminMenu();
   { const _xg=document.getElementById("xgBtn"); if(_xg) _xg.style.display = (role==="vip") ? "none" : ""; }  // 互斥設定：員工可用，VIP 客戶隱藏
   if(typeof renderHidToggleBtn==="function") renderHidToggleBtn();   // 顯示隱藏車款：業務/管理可用，VIP 隱藏
@@ -4167,6 +4170,7 @@ function logout(){
   document.getElementById("logoutBtn").style.display="none";
   document.getElementById("vAdmin").style.display="";
   document.getElementById("vSales").style.display="";
+  { const _a=document.getElementById("vAcct"),_c=document.getElementById("vCashier"); if(_a)_a.style.display="none"; if(_c)_c.style.display="none"; }
   updateSummaryActions();
   openRoleGate();
 }
@@ -4600,7 +4604,7 @@ function renderAdminMenu(){
   const admin=role==="admin", sales=role==="sales";
   let items=[], label="管理 ▾";
   if(admin && VIEW==="admin"){
-    items=[["報價明細","openPerf"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["配備管理","openOptMgr"],["塗裝色板","openPaintMgr"],["設定","openSettings"],["會計","openAcctView"],["出納","openCashierView"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
+    items=[["報價明細","openPerf"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["配備管理","openOptMgr"],["塗裝色板","openPaintMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
     label="管理 ▾";
   } else if((admin && VIEW==="sales") || sales){
     const n=(typeof inboxCount==="function")?inboxCount():0;
