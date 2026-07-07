@@ -762,13 +762,15 @@
 
 <!-- 會計 / 出納 全畫面 -->
 <div id="acctBg" class="rolefull" style="display:none">
-  <div class="rolefull-head"><b>會計總覽</b><span style="opacity:.7;font-size:13px">已成交訂單</span><div style="margin-left:auto;display:flex;gap:8px">
+  <div class="rolefull-head"><b>會計總覽</b><span style="opacity:.7;font-size:13px">已成交訂單</span><div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <span id="acctNav" style="display:none;gap:8px"><button class="mini" style="border-color:#555;background:#333;color:#fff" onclick="backToAdminFromRole()">← 管理後台</button><button class="mini" style="border-color:#555;background:#222;color:#fff" onclick="openCashierView()">出納 →</button></span>
     <button class="mini" style="border-color:#555;background:#222;color:#fff" onclick="changeRolePass('acct')">變更密碼</button>
     <button class="mini" style="border-color:#8a2b2b;background:transparent;color:#fff" onclick="logout()">登出</button></div></div>
   <div class="rolefull-body" id="acctBody"></div>
 </div>
 <div id="cashierBg" class="rolefull" style="display:none">
-  <div class="rolefull-head"><b>出納總覽</b><span style="opacity:.7;font-size:13px">已成交訂單 · 收款</span><div style="margin-left:auto;display:flex;gap:8px">
+  <div class="rolefull-head"><b>出納總覽</b><span style="opacity:.7;font-size:13px">已成交訂單 · 收款</span><div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <span id="cashierNav" style="display:none;gap:8px"><button class="mini" style="border-color:#555;background:#333;color:#fff" onclick="backToAdminFromRole()">← 管理後台</button><button class="mini" style="border-color:#555;background:#222;color:#fff" onclick="openAcctView()">會計 →</button></span>
     <button class="mini" style="border-color:#555;background:#222;color:#fff" onclick="changeRolePass('cashier')">變更密碼</button>
     <button class="mini" style="border-color:#8a2b2b;background:transparent;color:#fff" onclick="logout()">登出</button></div></div>
   <div class="rolefull-body" id="cashierBody"></div>
@@ -3007,8 +3009,9 @@ function rolePrintContract(dealId){
     printContract();
   }catch(e){ console.error(e); toast("列印合約失敗"); } }, 220);
 }
-function openAcctView(){ const b=document.getElementById("acctBg"); if(b){ b.style.display="flex"; renderAcctPanel(); } }
-function openCashierView(){ const b=document.getElementById("cashierBg"); if(b){ b.style.display="flex"; renderCashierPanel(); } }
+function openAcctView(){ const c=document.getElementById("cashierBg"); if(c) c.style.display="none"; const b=document.getElementById("acctBg"); if(b){ b.style.display="flex"; const nav=document.getElementById("acctNav"); if(nav) nav.style.display=(role==="admin")?"inline-flex":"none"; renderAcctPanel(); } }
+function openCashierView(){ const a=document.getElementById("acctBg"); if(a) a.style.display="none"; const b=document.getElementById("cashierBg"); if(b){ b.style.display="flex"; const nav=document.getElementById("cashierNav"); if(nav) nav.style.display=(role==="admin")?"inline-flex":"none"; renderCashierPanel(); } }
+function backToAdminFromRole(){ var a=document.getElementById("acctBg"); if(a) a.style.display="none"; var c=document.getElementById("cashierBg"); if(c) c.style.display="none"; if(typeof applyView==="function") applyView("admin"); }
 function renderAcctPanel(){
   const b=document.getElementById("acctBody"); if(!b) return;
   const all=acctDoneDeals(); const deals=all.filter(d=>inPeriod(d.ts,acctFilter)); let rev=0,cost=0;
