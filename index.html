@@ -623,6 +623,7 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px">
               <label style="display:flex;flex-direction:column;font-size:12px;color:#888;gap:3px">車身係數<input class="t" id="pc_bc" type="number" step="0.05" min="0" style="text-align:right" placeholder="1.4" onchange="setPriceCfg(curId(),'bc',this.value)"></label>
               <label style="display:flex;flex-direction:column;font-size:12px;color:#888;gap:3px">配備係數<input class="t" id="pc_oc" type="number" step="0.05" min="0" style="text-align:right" placeholder="1.4" onchange="setPriceCfg(curId(),'oc',this.value)"></label>
+              <label style="display:flex;flex-direction:column;font-size:12px;color:#888;gap:3px;grid-column:1/-1">運輸費 £/€（灌進車身・客戶看不到）<input class="t" id="pc_tr" type="number" step="50" style="text-align:right" placeholder="1500" onchange="setPriceCfg(curId(),'tr',this.value)"></label>
               <label style="display:flex;flex-direction:column;font-size:12px;color:#888;gap:3px;grid-column:1/-1">總價加權 NT$（灌進總價・客戶看不到）<input class="t" id="pc_tw" type="number" step="100" style="text-align:right" placeholder="0" onchange="setPriceCfg(curId(),'tw',this.value)"></label>
             </div>
           </div>
@@ -1167,10 +1168,11 @@ let VIEW="sales";           // admin=管理後台（顯示成本 £/€）; sale
 let FX={GBP:41,EUR:36};     // 匯率 → NT$
 let COEF=2.4;               // 係數（預設加成倍率）— 隱藏 fallback，未單獨設定的車用這個（設定頁已移除此欄位）
 let WEIGHT=200000;          // 加權（係數/匯率換算後加值，NT$）— 隱藏 fallback，未單獨設定的車用這個（設定頁已移除此欄位）
+let TRANSPORT_DEFAULT=1500; // 運輸費（每台預設，車別幣別 £/€）；灌進車身成本、乘車身係數後併入售價，對業務/客戶隱藏
 let WEIGHT_MAP={};          // 各車款加權覆寫：carId -> 加權（沒設的車用全域 WEIGHT）
 let DEPOSIT_PCT=30;         // 訂金比例 %（訂金 = 總價 × 此比例）
 let COEF_MAP={};            // 各品項係數覆寫：key -> coef（舊機制，已停用）
-let PRICE_CFG={};           // 各車定價：carId -> {bc:車身係數, oc:配備係數, tw:總價加權}（車身加權已移除）
+let PRICE_CFG={};           // 各車定價：carId -> {bc:車身係數, oc:配備係數, tr:運輸費, tw:總價加權}
 let ROUND_MODE="none", ROUND_UNIT=1;        // 品項取整
 let ROUND_TMODE="none", ROUND_TUNIT=1;      // 總計取整
 function _roundBy(n,mode,u){ n=+n||0; u=u||1;
@@ -1183,7 +1185,7 @@ function roundTotal(n){ return _roundBy(n,ROUND_TMODE,ROUND_TUNIT); }  // 總計
 function coefFor(key){ const id=(key||"").split("|")[0]; return (key||"").endsWith("|base") ? bodyCoefFor(id) : optCoefFor(id); }   // 車身用車身係數、其餘用配備係數（各車各設）
 function weightForCar(id){ return totalWeightFor(id); }   // 只保留「總價加權」（灌進總價、對客戶隱藏）
 function curWeight(){ return weightForCar(typeof cur!=="undefined"&&cur?cur.id:null); }
-/* ===== 各車定價（3 個獨立控制：車身係數/配備係數/總價加權；沒設就用預設）===== */
+/* ===== 各車定價（車身係數/配備係數/運輸費/總價加權；沒設就用預設）===== */
 function getPriceCfg(id){ return (id&&PRICE_CFG[id])?PRICE_CFG[id]:{}; }
 function bodyCoefFor(id){ const c=getPriceCfg(id); return c.bc!=null?+c.bc:COEF; }
 function optCoefFor(id){ const c=getPriceCfg(id); return c.oc!=null?+c.oc:COEF; }
@@ -1205,9 +1207,11 @@ function syncPriceCfgInputs(id){
   const set=(eid,v,ph)=>{ const e=document.getElementById(eid); if(!e)return; if(String(e.value)!==String(v)) e.value=v; e.placeholder="預設 "+ph; };
   set("pc_bc", c.bc!=null?c.bc:"", COEF);
   set("pc_oc", c.oc!=null?c.oc:"", COEF);
+  set("pc_tr", c.tr!=null?c.tr:"", TRANSPORT_DEFAULT);
   set("pc_tw", c.tw!=null?c.tw:"", gTW);
 }
-function retailOf(cost,key){ const fx=(CURSYM==="€")?FX.EUR:FX.GBP; return cost*fx*coefFor(key); }
+function transportFor(id){ const c=getPriceCfg(id); return c.tr!=null?+c.tr:TRANSPORT_DEFAULT; }   // 運輸費（車別幣別 £/€；空白＝預設 1500）
+function retailOf(cost,key){ const fx=(CURSYM==="€")?FX.EUR:FX.GBP; const tr=(key||"").endsWith("|base")?transportFor((key||"").split("|")[0]):0; return (cost+tr)*fx*coefFor(key); }   // 車身：把運輸費灌進成本再×匯率×車身係數
 function retailNT(n){ const fx=(CURSYM==="€")?FX.EUR:FX.GBP; return n*fx*COEF; }
 const fmt=n=>{
   if(VIEW==="sales") return "NT$"+roundRetail(retailNT(n)).toLocaleString("en-US");
