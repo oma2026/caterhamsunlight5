@@ -4029,7 +4029,7 @@ function applyView(v){
   renderAdminMenu();
   { const _xg=document.getElementById("xgBtn"); if(_xg) _xg.style.display = (role==="vip") ? "none" : ""; }  // 互斥設定：員工可用，VIP 客戶隱藏
   if(typeof renderHidToggleBtn==="function") renderHidToggleBtn();   // 顯示隱藏車款：業務/管理可用，VIP 隱藏
-  { const _lo=document.getElementById("logoutBtn"); if(_lo) _lo.style.display = role ? "" : "none"; }
+  { const _lo=document.getElementById("logoutBtn"); if(_lo) _lo.style.display = (role && role!=="vip") ? "" : "none"; }  // VIP 客戶不給店內登出鈕（避免看到員工登入閘門）；改用入口頁的「登出」
   updateUserBadge();
   updateSummaryActions();
   { const csf=document.getElementById("custSalesFields"); if(csf) csf.style.display = (role==="vip") ? "none" : "";
