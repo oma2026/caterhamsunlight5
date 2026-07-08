@@ -571,6 +571,28 @@
 .dp-field{ margin-bottom:12px; }
 .dp-field label{ display:block; font-size:13px; color:#555; margin-bottom:6px; font-weight:600; }
 </style>
+<style>
+#adminDashView, #carDbView{ display:none; }
+#adminDashView{ max-width:1180px; margin:0 auto; padding:34px 22px 90px; }
+#carDbView{ max-width:1240px; margin:0 auto; padding:24px 22px 90px; }
+.cdb-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:16px; flex-wrap:wrap; }
+.cdb-head h2{ margin:0; font-size:22px; }
+.cdb-grid{ display:grid; grid-template-columns:270px 1fr 260px; gap:16px; align-items:start; }
+@media(max-width:980px){ .cdb-grid{ grid-template-columns:1fr; } }
+.cdb-col{ background:#fff; border:1px solid var(--line,#d9d6ce); border-radius:14px; padding:14px 15px; }
+.cdb-col h4{ margin:2px 0 8px; font-size:12px; letter-spacing:.08em; color:#8a857c; text-transform:uppercase; }
+.cdb-list{ display:flex; flex-direction:column; gap:6px; }
+.cdb-item{ width:100%; text-align:left; border:1px solid var(--line,#e5e2da); border-radius:9px; padding:9px 11px; background:#fafafa; cursor:pointer; font-size:14px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.cdb-item.sel{ border-color:#111; background:#111; color:#fff; }
+.cdb-item .mini-badge{ font-size:11px; padding:2px 7px; border-radius:8px; background:#eee; color:#666; white-space:nowrap; }
+.cdb-item.sel .mini-badge{ background:rgba(255,255,255,.2); color:#fff; }
+.cdb-item.cdb-off{ opacity:.5; }
+.cdb-field{ margin-bottom:11px; }
+.cdb-field label{ display:block; font-size:12px; color:#666; margin-bottom:4px; font-weight:600; }
+.cdb-vrow{ display:grid; grid-template-columns:1fr 130px; gap:8px; align-items:center; margin-bottom:8px; }
+.cdb-add{ border-top:1px dashed var(--line,#e5e2da); margin-top:12px; padding-top:12px; }
+.cdb-sum{ font-size:13px; color:#555; line-height:1.9; }
+</style>
 </head>
 <body>
 
@@ -595,6 +617,32 @@
     <button class="mini" id="logoutBtn" style="border-color:#8a2b2b;background:transparent;color:#fff;display:none" onclick="logout()">登出</button>
   </div>
 </header>
+
+<!-- ===== 管理後台 Dashboard ===== -->
+<div id="adminDashView">
+  <div class="dash-hi">管理後台</div>
+  <div class="dash-sub">請選擇要管理的項目</div>
+  <div class="dash-cards">
+    <div class="dash-card" onclick="openCarDb()"><div class="dash-ic">🚗</div><div><div class="dc-t">車型資料庫</div><div class="dc-d">品牌・車型・年份・版本・價格・上架</div></div></div>
+    <div class="dash-card" onclick="openOptMgrFromDash()"><div class="dash-ic">🧩</div><div><div class="dc-t">配備管理</div><div class="dc-d">管理各車的選配項目</div></div></div>
+    <div class="dash-card" onclick="openSettings()"><div class="dash-ic">💲</div><div><div class="dc-t">價格設定</div><div class="dc-d">係數・運輸費・訂金比例・匯率</div></div></div>
+    <div class="dash-card" onclick="openCarDb('copy')"><div class="dash-ic">📋</div><div><div class="dc-t">複製車型</div><div class="dc-d">把某年份複製成新年份</div></div></div>
+    <div class="dash-card" onclick="openQuotePreview()"><div class="dash-ic">👁️</div><div><div class="dc-t">報價預覽</div><div class="dc-d">用業務端視角預覽車輛報價</div></div></div>
+  </div>
+</div>
+
+<!-- ===== 車型資料庫 ===== -->
+<div id="carDbView">
+  <div class="cdb-head">
+    <h2>車型資料庫</h2>
+    <button class="btn ghost" onclick="showAdminDash()">← 管理後台</button>
+  </div>
+  <div class="cdb-grid">
+    <div class="cdb-col" id="cdbLeft"></div>
+    <div class="cdb-col" id="cdbMid"></div>
+    <div class="cdb-col" id="cdbRight"></div>
+  </div>
+</div>
 
 <!-- ===== 業務工作台 ===== -->
 <div id="dashView">
@@ -3443,6 +3491,7 @@ function renderCars(){
   // 客戶端＋業務端預設：只看「客戶可見」；業務端按「顯示隱藏車款」才連隱藏車一起看
   const showAll=(!isVip && STAFF_SHOW_HIDDEN);
   if(!showAll) list=list.filter(c=> !custHidden(c));
+  list.sort(function(a,b){ var oa=carMetaFor(a.id).displayOrder, ob=carMetaFor(b.id).displayOrder; if(oa==null&&ob==null) return 0; if(oa==null) return 1; if(ob==null) return -1; return oa-ob; });
   cliffNotes.innerHTML = "";   // 注意事項改放列印報價單底部
   renderHidToggleBtn();
   if(!list.length){
@@ -3460,8 +3509,9 @@ function renderCars(){
   }).join("");
 }
 function pickCar(id){
-  cur=CARS.find(c=>c.id===id); applyOptOverrides(cur); applyStdOverrides(cur); applyTechOverrides(cur); variant=null; selected={}; selectedPaint=null; decalSel={items:{},pack:null}; sigSel=null; sigOptSel={}; nurSel={rollcage:false,keepDecals:true,keepNumber:true,raceNumber:"27"};
+  cur=CARS.find(c=>c.id===id); applyOptOverrides(cur); applyStdOverrides(cur); applyTechOverrides(cur); applyCarMeta(cur); variant=null; selected={}; selectedPaint=null; decalSel={items:{},pack:null}; sigSel=null; sigOptSel={}; nurSel={rollcage:false,keepDecals:true,keepNumber:true,raceNumber:"27"};
   CURSYM = cur.brandId==="sunlight" ? "€" : "£";
+  if(cur && cur._curOverride) CURSYM = cur._curOverride;
   document.querySelectorAll(".car").forEach(el=>el.classList.toggle("sel",el.dataset.id===id));
   inclPanel.style.display=optPanel.style.display=paintPanel.style.display=decalPanel.style.display=sigPanel.style.display=sigOptPanel.style.display=custPanel.style.display="none";
   renderVariants();
@@ -4311,9 +4361,9 @@ function onLoginUserChange(){
   setTimeout(()=>document.getElementById("loginPass").focus(),30);
 }
 // 管理後台已登入可自由切換檢視；業務端一律以「業務共用」身分呈現
-function goAdmin(){ if(role==="admin"){ currentSales=null; applyView("admin"); } else openLogin("__admin"); }
+function goAdmin(){ if(role==="admin"){ currentSales=null; applyView("admin"); showAdminDash(); } else openLogin("__admin"); }
 function goSales(){
-  if(role==="admin"){ currentSales=sharedSales(); applyView("sales"); if(document.getElementById("c_sales")) c_sales.value=`${currentSales.title}（${currentSales.u}）`; }
+  if(role==="admin"){ if(typeof hideAdminDash==="function") hideAdminDash(); currentSales=sharedSales(); applyView("sales"); if(document.getElementById("c_sales")) c_sales.value=`${currentSales.title}（${currentSales.u}）`; }
   else if(role) applyView("sales");
   else openLogin();
 }
@@ -4342,6 +4392,7 @@ function logout(){
   role=null; currentSales=null; vipSales=null; customerName=""; VIEW="sales";
   { const _a=document.getElementById("acctBg"); if(_a) _a.style.display="none"; const _c=document.getElementById("cashierBg"); if(_c) _c.style.display="none"; }
   if(typeof hideDashboard==="function") hideDashboard();   // 登出後清掉工作台，換人登入不會看到殘留
+  if(typeof hideAdminDash==="function") hideAdminDash();
   { const _cv=document.getElementById("casesView"); if(_cv) _cv.style.display="none"; }
   editingCaseRef=null; _caseMode=null;
   { const _wb=document.getElementById("wzBack"); if(_wb) _wb.style.display="none"; }
@@ -4362,7 +4413,7 @@ function doLogin(){
   const u=document.getElementById("loginUser").value;
   const pass=document.getElementById("loginPass").value;
   if(u==="__admin"){                       // 管理後台：需密碼（僅老闆）
-    if(pass===a.adminPass){ role="admin"; currentSales=null; closeLogin(); applyView("admin"); toast("已登入管理後台"); }
+    if(pass===a.adminPass){ role="admin"; currentSales=null; closeLogin(); applyView("admin"); showAdminDash(); toast("已登入管理後台"); }
     else { err.textContent="密碼錯誤"; err.style.display=""; }
     return;
   }
@@ -4403,6 +4454,7 @@ function closePw(){ document.getElementById("pwBg").style.display="none"; }
 /* ===== 業務工作台 Dashboard ===== */
 function showDashboard(){
   if(role!=="sales") return;
+  if(typeof hideAdminDash==="function") hideAdminDash();
   editingCaseRef=null; _caseMode=null;
   var c=document.getElementById("casesView"); if(c) c.style.display="none";
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
@@ -4410,6 +4462,143 @@ function showDashboard(){
   var b=document.getElementById("wzBack"); if(b) b.style.display="";
   refreshDash(); window.scrollTo(0,0);
 }
+/* ===================== 管理後台 Dashboard + 車型資料庫 + 報價預覽 ===================== */
+function showAdminDash(){
+  if(role!=="admin") return;
+  ["dashView","casesView","carDbView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
+  var d=document.getElementById("adminDashView"); if(d) d.style.display="block";
+  window.scrollTo(0,0);
+}
+function hideAdminDash(){
+  var d=document.getElementById("adminDashView"); if(d) d.style.display="none";
+  var c=document.getElementById("carDbView"); if(c) c.style.display="none";
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="";
+}
+function openOptMgrFromDash(){
+  if(typeof cur==="undefined" || !cur){ openCarDb(); if(typeof toast==="function") toast("請先在車型資料庫選一部車，再開配備管理"); return; }
+  if(typeof openOptMgr==="function") openOptMgr();
+}
+function _esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/'/g,"&#39;"); }
+
+/* ---- 車型資料庫 ---- */
+var carDbSel={brand:null, model:null, carId:null};
+function _cdbCars(brand){ return CARS.filter(function(c){return c.brandId===brand;}); }
+function _cdbModels(brand){ var seen={}, out=[]; _cdbCars(brand).forEach(function(c){ var m=modelGroupOf(c); if(!seen[m]){ seen[m]=1; out.push(m); } }); return out; }
+function _cdbYears(brand,model){ return _cdbCars(brand).filter(function(c){return modelGroupOf(c)===model;}); }
+function _curSymForCar(car){ var m=carMetaFor(car.id); if(m.currency==="£"||m.currency==="€") return m.currency; return (typeof symForBrand==="function")?symForBrand(car.brandId):(car.brandId==="sunlight"?"€":"£"); }
+
+function openCarDb(mode){
+  if(role!=="admin") return;
+  ["adminDashView","dashView","casesView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
+  var v=document.getElementById("carDbView"); if(v) v.style.display="block";
+  if(!carDbSel.brand){ carDbSel.brand=(BRANDS[0]&&BRANDS[0].id)||"caterham"; }
+  var models=_cdbModels(carDbSel.brand);
+  if(!carDbSel.model || models.indexOf(carDbSel.model)<0) carDbSel.model=models[0]||null;
+  var years=carDbSel.model?_cdbYears(carDbSel.brand,carDbSel.model):[];
+  if(!carDbSel.carId || !years.some(function(c){return c.id===carDbSel.carId;})) carDbSel.carId=(years[0]&&years[0].id)||null;
+  renderCarDb();
+  if(mode==="copy" && carDbSel.carId && typeof toast==="function") toast("選好要複製的車型年份，按右側「複製車型」");
+  window.scrollTo(0,0);
+}
+function carDbPickBrand(b){ carDbSel.brand=b; carDbSel.model=null; carDbSel.carId=null; openCarDb(); }
+function carDbPickModel(m){ carDbSel.model=m; carDbSel.carId=null; openCarDb(); }
+function carDbPickYear(id){ carDbSel.carId=id; renderCarDb(); }
+
+function renderCarDb(){
+  var L=document.getElementById("cdbLeft"), M=document.getElementById("cdbMid"), R=document.getElementById("cdbRight");
+  if(!L||!M||!R) return;
+  var b=carDbSel.brand;
+  var brandsHtml=BRANDS.map(function(x){ return '<button class="cdb-item'+(x.id===b?' sel':'')+'" onclick="carDbPickBrand(\''+x.id+'\')">'+_esc(x.label)+'</button>'; }).join("");
+  var models=_cdbModels(b);
+  var modelsHtml=models.map(function(m){ var n=_cdbYears(b,m).length; return '<button class="cdb-item'+(m===carDbSel.model?' sel':'')+'" onclick="carDbPickModel(\''+_esc(m)+'\')"><span>'+_esc(m)+'</span><span class="mini-badge">'+n+'</span></button>'; }).join("")||'<div class="hint">此品牌尚無車型</div>';
+  var years=carDbSel.model?_cdbYears(b,carDbSel.model):[];
+  var yearsHtml=years.map(function(c){ var act=isCarActive(c.id); return '<button class="cdb-item'+(c.id===carDbSel.carId?' sel':'')+(act?'':' cdb-off')+'" onclick="carDbPickYear(\''+c.id+'\')"><span>'+_esc(c.year||c.name)+'</span><span class="mini-badge">'+(act?'上架':'未上架')+'</span></button>'; }).join("")||'<div class="hint">此車型尚無年份</div>';
+  L.innerHTML='<h4>品牌</h4><div class="cdb-list">'+brandsHtml+'</div>'
+    +'<div class="cdb-add"><input class="t" id="cdb_nbLabel" placeholder="新品牌名稱" style="margin-bottom:6px"><select class="t" id="cdb_nbCur" style="margin-bottom:6px"><option value="£">£ 英鎊</option><option value="€">€ 歐元</option></select><button class="btn ghost" style="width:100%" onclick="cdbAddBrand()">＋ 新增品牌</button></div>'
+    +'<h4 style="margin-top:14px">車型</h4><div class="cdb-list">'+modelsHtml+'</div>'
+    +'<div class="cdb-add"><input class="t" id="cdb_ncName" placeholder="新車型名稱，例：Seven 420" style="margin-bottom:6px"><input class="t" id="cdb_ncBase" type="number" placeholder="基本價（£/€ 成本）" style="margin-bottom:6px"><button class="btn ghost" style="width:100%" onclick="cdbAddModel()">＋ 新增車型</button></div>'
+    +'<h4 style="margin-top:14px">年份</h4><div class="cdb-list">'+yearsHtml+'</div>';
+  var car=CARS.find(function(c){return c.id===carDbSel.carId;});
+  if(!car){ M.innerHTML='<div class="hint">左側選一個車型年份。</div>'; R.innerHTML=''; return; }
+  applyCarMeta(car);
+  var meta=carMetaFor(car.id), sym=_curSymForCar(car), isCustom=!!car.custom;
+  var vrows=Object.keys(car.variants).map(function(vk){
+    var v=car.variants[vk];
+    var nameCell = isCustom
+      ? '<input class="t" value="'+_esc(v.label)+'" onchange="cdbSetVarName(\''+car.id+'\',\''+vk+'\',this.value)">'
+      : '<div style="padding:8px 2px;font-weight:600">'+_esc(v.label)+'</div>';
+    return '<div class="cdb-vrow">'+nameCell+'<input class="t" type="number" value="'+(v.base||0)+'" title="基本價 '+sym+'" onchange="cdbSetBase(\''+car.id+'\',\''+vk+'\',this.value)"></div>';
+  }).join("");
+  var brandDefaultSym=(typeof symForBrand==="function")?symForBrand(car.brandId):"";
+  M.innerHTML='<h4>車型年份資料</h4>'
+    +'<div class="cdb-field"><label>顯示名稱</label><div style="font-size:16px;font-weight:800">'+_esc(car.brand+' '+car.name)+'</div><div class="hint">'+_esc(modelGroupOf(car))+(car.year?(' · '+_esc(car.year)):'')+'</div></div>'
+    +'<div class="cdb-field"><label>年份 / 標籤 (displayName)</label>'+(isCustom?'<input class="t" value="'+_esc(car.year||"")+'" onchange="cdbSetYear(\''+car.id+'\',this.value)">':'<div class="hint">內建車型年份固定；要新年份請按右側「複製車型」。</div>')+'</div>'
+    +'<div class="cdb-field"><label>幣別 currency</label><select class="t" onchange="cdbSetCurrency(\''+car.id+'\',this.value)"><option value="">（依品牌預設 '+brandDefaultSym+'）</option><option value="£"'+(meta.currency==="£"?" selected":"")+'>£ 英鎊</option><option value="€"'+(meta.currency==="€"?" selected":"")+'>€ 歐元</option></select></div>'
+    +'<div class="cdb-field"><label>版本 & 基本價（'+sym+' 成本；系統自動換算 NT$ 售價）</label>'+vrows
+      +(isCustom?'<button class="btn ghost" style="margin-top:4px" onclick="cdbAddVariant(\''+car.id+'\')">＋ 新增版本</button>':'<div class="hint">新增版本請在複製出的自訂車上進行。</div>')+'</div>'
+    +'<div class="cdb-field"><label>排序 displayOrder（小的在前，影響業務端）</label><input class="t" type="number" value="'+(meta.displayOrder!=null?meta.displayOrder:"")+'" onchange="cdbSetOrder(\''+car.id+'\',this.value)"></div>'
+    +'<div class="cdb-field"><label>備註 notes</label><textarea class="t" rows="2" onchange="cdbSetNotes(\''+car.id+'\',this.value)">'+_esc(meta.notes||"")+'</textarea></div>';
+  var active=isCarActive(car.id);
+  var bases=Object.keys(car.variants).map(function(vk){return car.variants[vk].base;});
+  R.innerHTML='<h4>快速摘要</h4>'
+    +'<div class="cdb-sum">品牌：'+_esc(car.brand)+'<br>車型：'+_esc(modelGroupOf(car))+'<br>年份：'+_esc(car.year||'—')+'<br>版本：'+Object.keys(car.variants).length+' 個<br>基本價：'+sym+Math.min.apply(null,bases).toLocaleString("en-GB")+' 起'+(car.custom?'<br><span class="mini-badge">自訂/複製車</span>':'')+'</div>'
+    +'<div class="cdb-field" style="margin-top:14px"><label>上架狀態</label><div style="display:flex;align-items:center;gap:8px"><span class="case-badge '+(active?"cb-ready":"cb-submitted")+'">'+(active?"已上架":"未上架")+'</span><button class="btn ghost" onclick="cdbToggleActive(\''+car.id+'\')">'+(active?"下架":"上架")+'</button></div></div>'
+    +'<button class="btn primary" style="width:100%;margin-top:12px" onclick="cdbPreview(\''+car.id+'\')">👁️ 預覽（業務端）</button>'
+    +'<button class="btn" style="width:100%;margin-top:8px" onclick="cdbCopy(\''+car.id+'\')">📋 複製車型（→ 新年份）</button>';
+}
+function cdbApplyRefresh(carId){ var car=CARS.find(function(c){return c.id===carId;}); if(car) applyCarMeta(car); if(typeof cur!=="undefined" && cur && cur.id===carId){ applyCarMeta(cur); if(typeof updateSummary==="function") updateSummary(); } if(typeof renderCars==="function") renderCars(); renderCarDb(); }
+function cdbSetBase(carId,vk,val){ setCarMetaBase(carId,vk,val); cdbApplyRefresh(carId); }
+function cdbSetCurrency(carId,val){ setCarMetaField(carId,"currency",val); cdbApplyRefresh(carId); }
+function cdbSetOrder(carId,val){ setCarMetaField(carId,"displayOrder",(val===""?undefined:+val)); cdbApplyRefresh(carId); }
+function cdbSetNotes(carId,val){ setCarMetaField(carId,"notes",val); }
+function cdbToggleActive(carId){ setCarActive(carId, !isCarActive(carId)); renderCarDb(); }
+function cdbPreview(carId){ goPreviewCar(carId); }
+function cdbCopy(carId){ var nid=copyCar(carId); if(nid){ carDbSel.carId=nid; if(typeof renderCars==="function") renderCars(); renderCarDb(); if(typeof toast==="function") toast("已複製車型（未上架），可在中間修改"); } }
+function _cdbUpdateSpec(carId, fn){
+  var arr=getCustomCars(); var i=-1; for(var j=0;j<arr.length;j++){ if(arr[j].id===carId){ i=j; break; } } if(i<0) return false;
+  fn(arr[i]); setCustomCars(arr);
+  var idx=-1; for(var k=0;k<CARS.length;k++){ if(CARS[k].id===carId){ idx=k; break; } } if(idx>=0) CARS[idx]=buildCustomCar(arr[i]);
+  return true;
+}
+function cdbSetVarName(carId,vk,val){ _cdbUpdateSpec(carId,function(s){ if(s.variants&&s.variants[vk]) s.variants[vk].label=val; }); cdbApplyRefresh(carId); }
+function cdbSetYear(carId,val){ _cdbUpdateSpec(carId,function(s){ s.year=val; }); cdbApplyRefresh(carId); }
+function cdbAddVariant(carId){ var lbl=prompt("新版本名稱（例：620S）"); if(!lbl) return; _cdbUpdateSpec(carId,function(s){ if(!s.variants||typeof s.variants!=="object"||s.variants.length!=null){ /* rich spec has object variants */ } var keys=Object.keys(s.variants||{}); s.variants["V"+keys.length]={label:lbl,base:0}; }); cdbApplyRefresh(carId); }
+function cdbAddBrand(){
+  var label=(document.getElementById("cdb_nbLabel").value||"").trim(); if(!label){ if(typeof toast==="function") toast("請填品牌名稱"); return; }
+  var curSym=document.getElementById("cdb_nbCur").value||"£";
+  var id="b"+Date.now(); var arr=getCustomBrands(); arr.push({id:id,label:label,sub:"",cur:curSym}); setCustomBrands(arr);
+  if(!BRANDS.some(function(x){return x.id===id;})) BRANDS.push({id:id,label:label,sub:"",cur:curSym,custom:true});
+  carDbSel.brand=id; carDbSel.model=null; carDbSel.carId=null; openCarDb(); if(typeof toast==="function") toast("已新增品牌");
+}
+function cdbAddModel(){
+  var name=(document.getElementById("cdb_ncName").value||"").trim(); if(!name){ if(typeof toast==="function") toast("請填車型名稱"); return; }
+  var base=+document.getElementById("cdb_ncBase").value||0;
+  var spec={ id:"cust"+Date.now(), brandId:carDbSel.brand, name:name, year:"", line:(carDbSel.brand==="sunlight"?"cliff":undefined), my:"both", variants:[{label:name, base:base}] };
+  var arr=getCustomCars(); arr.push(spec); setCustomCars(arr);
+  if(!CARS.some(function(c){return c.id===spec.id;})) CARS.push(buildCustomCar(spec));
+  var h=getHiddenCars(); if(h.indexOf(spec.id)<0){ h.push(spec.id); setHiddenCars(h); }
+  setCarMetaField(spec.id,"isActive",false);
+  carDbSel.model=modelGroupOf(buildCustomCar(spec)); carDbSel.carId=spec.id; openCarDb(); if(typeof toast==="function") toast("已新增車型（未上架）");
+}
+
+/* ---- 報價預覽（重用 goSales / VIEW=sales，不建立正式報價/案件） ---- */
+var _previewMode=false;
+function goPreviewCar(carId, variantKey){
+  if(role!=="admin") return;
+  hideAdminDash();
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="";
+  if(typeof sharedSales==="function") currentSales=sharedSales();
+  applyView("sales");
+  if(typeof pickCar==="function") pickCar(carId);
+  if(variantKey && typeof pickVariant==="function") pickVariant(variantKey);
+  _previewMode=true;
+  if(typeof toast==="function") toast("報價預覽（業務端檢視）· 不會建立報價");
+}
+function openQuotePreview(){ openCarDb('preview'); if(typeof toast==="function") toast("在車型資料庫選車後按右側「預覽」"); }
+function exitPreview(){ _previewMode=false; if(role==="admin"){ currentSales=null; applyView("admin"); showAdminDash(); } }
+
 function hideDashboard(){
   var d=document.getElementById("dashView"); if(d) d.style.display="none";
   var c=document.getElementById("casesView"); if(c) c.style.display="none";
@@ -4682,6 +4871,7 @@ function setCustomCars(a){ try{localStorage.setItem(LS_CUSTOMCARS,JSON.stringify
 function getHiddenCars(){ try{return JSON.parse(localStorage.getItem(LS_HIDDENCARS))||[];}catch(e){return[];} }
 function setHiddenCars(a){ try{localStorage.setItem(LS_HIDDENCARS,JSON.stringify(a));}catch(e){} }
 function buildCustomCar(spec){
+  if(spec && spec.__rich){ var _c=JSON.parse(JSON.stringify(spec)); delete _c.__rich; return _c; }
   const variants={}; const vs=(spec.variants&&spec.variants.length)?spec.variants:[{label:spec.name,base:0}];
   vs.forEach((v,i)=>{ const key=vs.length===1?"STD":("V"+i); variants[key]={label:v.label||("版本"+(i+1)),base:+v.base||0}; });
   return { id:spec.id, brand:spec.brandId==="sunlight"?"Sunlight":"Caterham", brandId:spec.brandId,
@@ -4689,6 +4879,42 @@ function buildCustomCar(spec){
     my:spec.brandId==="sunlight"?(spec.my||"both"):"both", ref:"自訂車型 Custom", variants, cats:[], custom:true };
 }
 function loadCustomCars(){ getCustomCars().forEach(spec=>{ if(!CARS.some(c=>c.id===spec.id)) CARS.push(buildCustomCar(spec)); }); }
+
+/* ===== 複製車型：來源車型年份 → 新的、可編輯、預設未上架的車，綁車號的設定一起改綁 ===== */
+function copyCar(srcId){
+  var src=CARS.find(function(c){return c.id===srcId;});
+  if(!src){ if(typeof toast==="function") toast("找不到來源車型"); return null; }
+  try{ applyOptOverrides(src); applyStdOverrides(src); applyTechOverrides(src); applyCarMeta(src); }catch(e){}
+  var clone=JSON.parse(JSON.stringify(src));
+  ["_baseCats","_baseIncluded","_baseTech","_baseVariants","_curOverride"].forEach(function(k){ delete clone[k]; });
+  var nid="copy"+Date.now();
+  clone.id=nid; clone.custom=true; clone.ref="複製自 "+(src.name||""); clone.year=(src.year||"")+" (複製)";
+  var arr=getCustomCars(); arr.push(Object.assign({__rich:true}, clone)); setCustomCars(arr);
+  if(!CARS.some(function(c){return c.id===nid;})) CARS.push(buildCustomCar(arr[arr.length-1]));
+  try{ var ov=getOptOverrides();
+    ["hidden","added","edits","req","tech"].forEach(function(k){ if(ov[k] && ov[k][srcId]!==undefined) ov[k][nid]=JSON.parse(JSON.stringify(ov[k][srcId])); });
+    if(ov.std && ov.std[srcId]) ov.std[nid]=JSON.parse(JSON.stringify(ov.std[srcId]));
+    setOptOverrides(ov);
+  }catch(e){}
+  try{ var pv=getPaintOv();
+    Object.keys(clone.variants||{}).forEach(function(vk){ var sk=srcId+":"+vk; if(pv[sk]) pv[nid+":"+vk]=JSON.parse(JSON.stringify(pv[sk])); });
+    setPaintOv(pv);
+  }catch(e){}
+  try{ var s=getSettings();
+    if(s.priceCfg && s.priceCfg[srcId]) s.priceCfg[nid]=JSON.parse(JSON.stringify(s.priceCfg[srcId]));
+    if(s.weightMap && s.weightMap[srcId]!=null) s.weightMap[nid]=s.weightMap[srcId];
+    if(s.coefMap){ Object.keys(s.coefMap).forEach(function(key){ if(key===srcId || key.indexOf(srcId+"|")===0){ var nk=nid+key.slice(srcId.length); s.coefMap[nk]=s.coefMap[key]; } }); }
+    localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
+    if(typeof PRICE_CFG!=="undefined") PRICE_CFG=s.priceCfg||PRICE_CFG;
+    if(typeof WEIGHT_MAP!=="undefined") WEIGHT_MAP=s.weightMap||WEIGHT_MAP;
+    if(typeof COEF_MAP!=="undefined") COEF_MAP=s.coefMap||COEF_MAP;
+  }catch(e){}
+  setCarMetaField(nid,"modelGroup", modelGroupOf(src));
+  setCarMetaField(nid,"isActive", false);
+  var h=getHiddenCars(); if(h.indexOf(nid)<0){ h.push(nid); setHiddenCars(h); }
+  return nid;
+}
+
 const LS_BRANDS="ctm_custombrands_v1";
 function getCustomBrands(){ try{return JSON.parse(localStorage.getItem(LS_BRANDS))||[];}catch(e){return[];} }
 function setCustomBrands(a){ try{localStorage.setItem(LS_BRANDS,JSON.stringify(a));}catch(e){} }
@@ -4726,6 +4952,52 @@ function applyTechOverrides(car){
   if(t) car.tech=JSON.parse(JSON.stringify(t));
   else if(car._baseTech) car.tech=JSON.parse(JSON.stringify(car._baseTech));
 }
+
+/* ===== 車型設定層 registry (ctm_carmeta_v1) — 疊加、不改動原始車型資料 ===== */
+var LS_CARMETA="ctm_carmeta_v1";
+function getCarMeta(){ try{ var o=JSON.parse(localStorage.getItem(LS_CARMETA)); if(!o||typeof o!=="object") o={cars:{}}; if(!o.cars) o.cars={}; return o; }catch(e){ return {cars:{}}; } }
+function setCarMeta(o){ try{ localStorage.setItem(LS_CARMETA, JSON.stringify(o)); }catch(e){} }
+function carMetaFor(id){ return (getCarMeta().cars[id])||{}; }
+function setCarMetaField(id, field, val){
+  var o=getCarMeta(); if(!o.cars[id]) o.cars[id]={};
+  if(val===undefined || val===null || val==="") delete o.cars[id][field]; else o.cars[id][field]=val;
+  setCarMeta(o);
+}
+function setCarMetaBase(id, vk, val){
+  var o=getCarMeta(); if(!o.cars[id]) o.cars[id]={}; if(!o.cars[id].basePrice) o.cars[id].basePrice={};
+  if(val===undefined||val===null||val==="") delete o.cars[id].basePrice[vk]; else o.cars[id].basePrice[vk]=+val;
+  if(!Object.keys(o.cars[id].basePrice).length) delete o.cars[id].basePrice;
+  setCarMeta(o);
+}
+/* 選車時套用：只換基本價 + 幣別標記；沒設定就還原原價（可重複套用不累加） */
+function applyCarMeta(car){
+  if(!car) return;
+  if(!car._baseVariants) car._baseVariants=JSON.parse(JSON.stringify(car.variants||{}));
+  var m=carMetaFor(car.id);
+  Object.keys(car.variants||{}).forEach(function(vk){
+    var orig=(car._baseVariants[vk]!=null)?car._baseVariants[vk].base:car.variants[vk].base;
+    var ov=m.basePrice&&m.basePrice[vk];
+    car.variants[vk].base=(ov!=null&&ov!=="")?(+ov):orig;
+  });
+  car._curOverride=(m.currency==="£"||m.currency==="€")?m.currency:null;
+}
+/* 車型分組（品牌→車型）：登錄表可覆寫，否則由車名推導 */
+function modelGroupOf(car){
+  var m=carMetaFor(car.id); if(m.modelGroup) return m.modelGroup;
+  var n=((car.name||"").trim());
+  if(car.brandId==="caterham"){ var p=n.split(/\s+/); return p.slice(0,2).join(" ")||n; }
+  var code=n.split(/\s+/)[0]||n; return code;
+}
+/* 上架狀態 = 沿用隱藏車款清單（隱藏＝未上架），業務端過濾/白名單/顯示隱藏都不用改 */
+function isCarActive(id){ return getHiddenCars().indexOf(id)<0; }
+function setCarActive(id,on){
+  var h=getHiddenCars(); var i=h.indexOf(id);
+  if(on){ if(i>=0) h.splice(i,1); } else { if(i<0) h.push(id); }
+  setHiddenCars(h);
+  setCarMetaField(id,"isActive",!!on);
+  if(typeof renderCars==="function") renderCars();
+}
+
 let optMgr={carId:null,hidden:new Set(),added:[],edits:{},open:null};
 let carMgr={nv:[{label:"",base:""}]};
 function openCarMgr(){
@@ -5050,7 +5322,7 @@ function saveOptMgr(){
   { const t=(optMgr.tech||[]).map(r=>[String(r[0]||"").trim(),String(r[1]||"").trim()]).filter(r=>r[0]||r[1]); if(t.length) ov.tech[optMgr.carId]=t; else delete ov.tech[optMgr.carId]; }
   setOptOverrides(ov);
   if(cur&&cur.id===optMgr.carId){
-    applyOptOverrides(cur); applyStdOverrides(cur); applyTechOverrides(cur);
+    applyOptOverrides(cur); applyStdOverrides(cur); applyTechOverrides(cur); applyCarMeta(cur);
     selected={};
     if(variant){ renderOptions(); renderIncluded(); optPanel.style.display=cur.cats.length?"":"none"; updateReqBadges(); updateSummary(); }
   }
@@ -5062,7 +5334,7 @@ function renderAdminMenu(){
   const admin=role==="admin", sales=role==="sales";
   let items=[], label="管理 ▾";
   if(admin && VIEW==="admin"){
-    items=[["報價明細","openPerf"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
+    items=[["管理後台","showAdminDash"],["報價明細","openPerf"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
     label="管理 ▾";
   } else if((admin && VIEW==="sales") || sales){
     const n=(typeof inboxCount==="function")?inboxCount():0;
@@ -6046,6 +6318,7 @@ window.__cloudRefresh = function(){
     if(typeof cur!=="undefined" && cur){
       if(typeof applyOptOverrides==="function") applyOptOverrides(cur);
       if(typeof applyStdOverrides==="function") applyStdOverrides(cur);
+      if(typeof applyCarMeta==="function") applyCarMeta(cur);
       if(typeof applyTechOverrides==="function") applyTechOverrides(cur);
       if(variant){ typeof renderOptions==="function"&&renderOptions(); typeof renderIncluded==="function"&&renderIncluded(); typeof updateSummary==="function"&&updateSummary(); }
     }
