@@ -287,7 +287,8 @@
   .deposit b{color:var(--ink);font-family:"SF Mono",ui-monospace,monospace}
   .deposit .bal{border-top:1px solid var(--line);margin-top:4px;padding-top:6px;color:var(--ink);font-weight:700}
 
-  .btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+  .btns{display:flex;flex-direction:column;gap:6px;margin-top:10px;position:sticky;bottom:0;background:var(--wash);padding-top:8px;z-index:2}
+  .btns .btn{padding:8px;font-size:13.5px}
   .btn{border:1.5px solid var(--ink);background:#fff;color:var(--ink);border-radius:8px;padding:11px;font:inherit;font-weight:600;cursor:pointer;text-align:center}
   .btn:hover{background:#f2f2f2}
   .btn.primary{background:var(--ink);color:#fff}
@@ -636,8 +637,9 @@
             <div><span>訂金 Deposit <small id="depPctLbl"></small></span><b id="sumDep">—</b></div>
             <div class="bal"><span>交車前餘款 Balance</span><b id="sumBal">—</b></div>
           </div>
+          <p class="hint" style="margin:12px 0 0">「列印報價單」會開啟瀏覽器列印視窗，選「另存為 PDF」即可下載。</p>
           <div class="btns">
-            <button class="btn red" id="btnPrint" onclick="printQuote()">列印 / 存成 PDF</button>
+            <button class="btn red" id="btnPrint" onclick="printQuote()">列印報價單</button>
             <button class="btn" id="btnContract" onclick="printContractDirect()" style="border-color:#111">📄 列印合約書</button>
             <div class="row2" id="btnSaveRow">
               <button class="btn primary" onclick="saveQuote()">儲存報價</button>
@@ -645,7 +647,6 @@
             </div>
             <button class="btn primary" id="btnVipSubmit" style="display:none;background:#b8860b;border-color:#b8860b" onclick="submitToSales()">完成，送出給業務</button>
           </div>
-          <p class="hint">「列印 / 存成 PDF」會開啟瀏覽器列印視窗，選「另存為 PDF」即可下載。</p>
         </div>
       </div>
     </div>
