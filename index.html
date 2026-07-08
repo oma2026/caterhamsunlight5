@@ -1587,10 +1587,10 @@ function cliffCats(model,trim){
       ["Maxi 底盤 180hp 8速自排",{STD:is540?"na":5064.07},60],
       ["Maxi 底盤 4,250kg 180hp 8速自排（HD）",{STD:is640?5669.72:"na"},60],
       ["全 LED 頭燈（含 LED 日行燈、動態方向燈）",{STD:812.71},0],
-      ["胎壓偵測",{STD:210.76},0.8],
+      ["胎壓偵測",{STD:S},0.8],
       ["拖車電路預接",{STD:272.87},0],
       ["備胎（含固定架與千斤頂，取代 Fix & Go）",{STD:221.11},30],
-      ["90 公升油箱",{STD:36.24},23],
+      ["90 公升油箱",{STD:S},23],
     ]],
     ["外觀塗裝 Painting",[
       ["底盤色：金屬黑 Black metallic",{STD:698.82},2.5],
@@ -1848,8 +1848,8 @@ function tCats(code){
   return [
     ["底盤 & 動力 Base vehicle / Engine",[
       ["電子手煞車 Electric Park Brake",{STD:450.35},-9.4],
-      ["90 公升油箱",{STD:36.24},23],
-      ["胎壓偵測",{STD:210.76},0.8],
+      ["90 公升油箱",{STD:S},23],
+      ["胎壓偵測",{STD:S},0.8],
       ["全 LED 頭燈（含動態方向燈、LED 日行燈）",{STD:812.71},0],
     ]],
     ["增重 Weight Increase",[
@@ -2087,7 +2087,7 @@ function cliffCatsPeu(model){
   return [
     ["底盤 & 動力 Base vehicle / Engine",[
       ["8速自排變速箱 8-speed automatic",{STD:S},60],
-      ["90 公升油箱",{STD:36.24},23],
+      ["90 公升油箱",{STD:S},23],
     ]],
     ["車體改裝 Conversion",[
       ["隔熱加熱廢水箱",{STD:442.96},10.5],
@@ -2234,7 +2234,7 @@ function tCatsCit(code){
     ["底盤 & 動力 Base vehicle / Engine",[
       ["8速自排變速箱 8-speed automatic ³⁾",{STD:2365.65},60],
       ["電子手煞車 Electric Park Brake",{STD:450.35},-9.4],
-      ["90 公升油箱",{STD:36.24},23],
+      ["90 公升油箱",{STD:S},23],
     ]],
     ["增重 Weight Increase",[
       ["增重至 3.65t（不改底盤）",{STD:184.13},0],
@@ -2381,7 +2381,7 @@ function tCatsCit25(code){
     ["底盤 & 動力 Base vehicle / Engine",[
       ["8速自排變速箱 8-speed automatic ³⁾",{STD:2365.65}],
       ["電子手煞車 Electric Park Brake",{STD:450.35}],
-      ["90 公升油箱",{STD:36.24}],
+      ["90 公升油箱",{STD:S}],
     ]],
     ["增重 Weight Increase",[
       ["增重至 3.65t（不改底盤）",{STD:184.13},0],
@@ -2551,8 +2551,8 @@ function tCats25(code){
       ["8速自排 180hp 8-speed automatic",{STD:auto180},60],
       ["車身黑（含側裙銀色亮面）Chassis colour black",{STD:1393.21},2.5],
       ["電子手煞車 Electric Park Brake",{STD:450.35},-9.4],
-      ["90 公升油箱",{STD:36.24},23],
-      ["胎壓偵測",{STD:210.76},0.8],
+      ["90 公升油箱",{STD:S},23],
+      ["胎壓偵測",{STD:S},0.8],
       ["全 LED 頭燈（含動態方向燈、LED 日行燈）",{STD:812.71},0],
     ]],
     ["增重 Weight Increase",[
@@ -2666,6 +2666,18 @@ CARS.forEach(c=>{
   if(hasAuto){
     if(c.variants&&c.variants.STD&&typeof c.variants.STD.base==="number") c.variants.STD.base += 2365.65;
     if(typeof c.dpp==="number") c.dpp += 2365.65;
+  }
+});
+/* 胎壓偵測（€210.76）／ 90 公升油箱（€36.24）標配：對 cats 有這兩項的 Sunlight 車（CLIFF＋T），把價錢灌進車身底價＋成本（選項已改標配、對客戶隱藏價格）。Peugeot / Citroën 無胎壓偵測選項，故那些車只灌油箱。*/
+CARS.forEach(c=>{
+  if(c.brandId!=="sunlight" || !Array.isArray(c.cats)) return;
+  const has=name=>c.cats.some(cat=>Array.isArray(cat[1]) && cat[1].some(o=>o&&o[0]===name));
+  let bake=0;
+  if(has("胎壓偵測")) bake += 210.76;
+  if(has("90 公升油箱")) bake += 36.24;
+  if(bake>0){
+    if(c.variants&&c.variants.STD&&typeof c.variants.STD.base==="number") c.variants.STD.base += bake;
+    if(typeof c.dpp==="number") c.dpp += bake;
   }
 });
 const CLIFF_ADV_LAYOUT={cliff540:"540",cliff600:"600",cliff601:"601",cliff602:"602",cliff640:"640",cliff540v:"540",cliff600j:"600"};
