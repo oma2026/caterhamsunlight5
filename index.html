@@ -637,7 +637,10 @@
             <div><span>訂金 Deposit <small id="depPctLbl"></small></span><b id="sumDep">—</b></div>
             <div class="bal"><span>交車前餘款 Balance</span><b id="sumBal">—</b></div>
           </div>
-          <p class="hint" style="margin:12px 0 0">「列印報價單」會開啟瀏覽器列印視窗，選「另存為 PDF」即可下載。</p>
+          <div id="sumNotesWrap" style="display:none;margin-top:14px">
+            <div style="font-size:12px;color:var(--ink-2);font-weight:600;margin-bottom:5px">留言 / 備註給業務</div>
+            <textarea id="sumNotes" rows="2" placeholder="想跟業務說的話、特殊需求…" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;resize:vertical;background:#fff;color:var(--ink)"></textarea>
+          </div>
           <div class="btns">
             <button class="btn red" id="btnPrint" onclick="printQuote()">列印報價單</button>
             <button class="btn" id="btnContract" onclick="printContractDirect()" style="border-color:#111">📄 列印合約書</button>
@@ -2883,7 +2886,7 @@ function submitToSales(){
     vin:(document.getElementById("c_vin")&&c_vin.value)||"",
     salesCode:vipSales?vipSales.u:"", salesName:vipSales?[vipSales.title,vipSales.name].filter(Boolean).join(" "):"",
     carId:cur.id, carName:cur.name, variant:variant,
-    notes:(document.getElementById("c_notes")&&c_notes.value)||"",
+    notes:(document.getElementById("sumNotes")&&sumNotes.value)||(document.getElementById("c_notes")&&c_notes.value)||"",
     sel:JSON.parse(JSON.stringify(selected)), sigSel:JSON.parse(JSON.stringify(sigOptSel)),
     status:"new"
   });
@@ -3300,8 +3303,8 @@ function pickCar(id){
   cur=CARS.find(c=>c.id===id); applyOptOverrides(cur); applyStdOverrides(cur); applyTechOverrides(cur); variant=null; selected={}; selectedPaint=null; decalSel={items:{},pack:null}; sigSel=null; sigOptSel={}; nurSel={rollcage:false,keepDecals:true,keepNumber:true,raceNumber:"27"};
   CURSYM = cur.brandId==="sunlight" ? "€" : "£";
   document.querySelectorAll(".car").forEach(el=>el.classList.toggle("sel",el.dataset.id===id));
-  renderVariants();
   inclPanel.style.display=optPanel.style.display=paintPanel.style.display=decalPanel.style.display=sigPanel.style.display=sigOptPanel.style.display=custPanel.style.display="none";
+  renderVariants();
   updateSummary();
 }
 function renderVariants(){
@@ -3309,14 +3312,14 @@ function renderVariants(){
   variantRow.className="variants";
   variantRow.innerHTML=vs.map(([k,v])=>`<button class="vbtn" data-v="${k}" onclick="pickVariant('${k}')">
      <span class="vtag">${v.label}</span><span class="vprice">${fmtBase(v.base,cur.id)}</span></button>`).join("");
-  if(vs.length===1) pickVariant(vs[0][0]);   // auto-select single variant
+  if(vs.length) pickVariant(vs[0][0]);   // 一律自動選第一個版本 → 點車就直接顯示全部（可再點別的版本切換）
 }
 function pickVariant(k){
   variant=k; selected={}; selectedPaint=null; decalSel={items:{},pack:null}; sigSel=null; sigOptSel={}; nurSel={rollcage:false,keepDecals:true,keepNumber:true,raceNumber:"27"};
   applyForcedOpts();   // 170R/340R：自動選上「賽事防滾架」（必選、進總價）
   document.querySelectorAll(".vbtn").forEach(el=>el.classList.toggle("sel",el.dataset.v===k));
   renderIncluded(); renderOptions(); renderPaint(); renderDecals(); renderSignature(); renderSigOpts(); updateReqBadges();
-  inclPanel.style.display=custPanel.style.display="";
+  inclPanel.style.display=""; custPanel.style.display=(role==="vip")?"none":"";
   optPanel.style.display = cur.cats.length ? "" : "none";
   decalPanel.style.display = (cur.decals||cur.nurAddons) ? "" : "none";
   sigPanel.style.display = cur.signature ? "" : "none";
@@ -4111,7 +4114,8 @@ function applyView(v){
   updateSummaryActions();
   { const csf=document.getElementById("custSalesFields"); if(csf) csf.style.display = (role==="vip") ? "none" : "";
     const ht=document.getElementById("custHeadTxt"); if(ht) ht.textContent = (role==="vip") ? "留言 / 備註給業務" : "客戶資料";
-    const nl=document.getElementById("custNotesLbl"); if(nl) nl.textContent = (role==="vip") ? "備註 / 需求（會一併送給業務）" : "備註 / Bespoke 需求"; }
+    const nl=document.getElementById("custNotesLbl"); if(nl) nl.textContent = (role==="vip") ? "備註 / 需求（會一併送給業務）" : "備註 / Bespoke 需求";
+    const sn=document.getElementById("sumNotesWrap"); if(sn) sn.style.display = (role==="vip") ? "" : "none"; }
   rerenderPrices();
   if(role && typeof startAutoLogout==="function") startAutoLogout();   // 登入後啟動自動登出計時
 }
