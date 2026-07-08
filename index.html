@@ -1623,8 +1623,8 @@ function cliffCats(model,trim){
     ]],
     ["套件 Packs",[
       ["黑色鋁圈套件 Black alloy wheels Pack",{STD:0},8,["真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 消光黑鋁圈"]],
-      ["Chassis Package 底盤套件",{STD:1349.58},-8.3,["電動收折後視鏡","後方停車雷達","盲點偵測輔助","電子手煞車"]],
-      ["Digital Package 數位套件",{STD:2399.66},4,["駕駛艙自動空調","無線手機充電","10吋 收音機 & 導航 DAB+","7吋 TFT 彩色數位儀表","動態軌跡倒車顯影"]],
+      ["車身包",{STD:1349.58},-8.3,["電動折疊後視鏡","後方停車感測器","盲點偵測輔助","電子駐車煞車"]],
+      ["Digital Package 數位套件",{STD:2399.66},4,["駕駛艙自動空調","無線手機充電","10吋 收音機 & 導航 DAB+","7吋 TFT 彩色數位儀表","倒車攝影機（搭配動態停車輔助線）"]],
       ["Safety Pack 安全套件",{STD:797.92},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助"]],
       ["安全包 + ACC",{STD:1249.01},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
       ["副駕駛包（安全包 + ACC PLUS）",{STD:1748.91},null,["ACC 含 Stop & Go","車道置中","塞車輔助","煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助"]],
@@ -1677,7 +1677,7 @@ function cliffStd(model){
       "定速巡航 Cruise control","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
       "LED 日行燈（整合於頭燈）","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊",
       "碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖",
-      "ABS · EBD · ESP","ESC（含 ASR、Hill Holder、CWA 側風輔助、拖車穩定）","ESC Setup",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制","ESC Setup",
       "Traction+（含陡坡緩降 hill descent）","電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡",
       "DAB 天線整合於後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組",
       "行車電腦（含外溫顯示）","中央置杯架","USB 充電（A+C）",
@@ -1795,7 +1795,7 @@ function cliffStdX(){
       "定速巡航 Cruise control","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
       "LED 日行燈（整合於頭燈）","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊",
       "碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖",
-      "ABS · EBD · ESP","ESC（含 ASR、Hill Holder、CWA 側風輔助、拖車穩定）","ESC Setup",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制","ESC Setup",
       "Traction+（含陡坡緩降 hill descent）","電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡",
       "DAB 天線整合於後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組",
       "行車電腦（含外溫顯示）","中央置杯架","USB 充電（A+C）",
@@ -1864,7 +1864,7 @@ function tCats(code){
     ]],
     ["舒適 Comfort",[
       ["轉換床",{STD:bed},5],
-      ["下降式床（含 Clima-Plux 元件）",{STD:1182.45},44],
+      ["下拉床",{STD:1182.45},44],
       ["側長椅第 5 座位（含安全帶）³⁾",{STD:fifth},15],
       ["浴室木地板隔扇",{STD:65.82},2],
       ["地毯",{STD:213.71},5],
@@ -1896,7 +1896,7 @@ function tCats(code){
       ["Safety Pack 安全套件",{STD:797.92},0,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助"]],
       ["安全包 + ACC",{STD:1249.01},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
       ["露營遮陽篷 "+awn[0]+"（黑）",{STD:awn[1]},awn[2]],
-      ["Pack One（遮陽篷 "+awn[0]+" + 3 車自行車架）",{STD:packOne.p},packOne.w],
+      ["Pack One（遮陽篷 "+awn[0]+" + 自行車架（可載三部自行車））",{STD:packOne.p},packOne.w],
       ["Pack All-In-One（遮陽篷 "+awn[0]+" + 自行車架 + 更多配備）",{STD:allIn.p},allIn.w],
     ]],
   ];
@@ -1962,7 +1962,7 @@ function tStd(code){
     ["基礎車輛 Fiat Base vehicle",[
       "Start & Stop（含 booster）","60L 柴油油箱","手動駕駛艙冷氣","定速巡航","M+S* Camping 雪地胎（雪花標）","前輪驅動 FWD","寬軌底盤 Wide-track chassis",
       "LED 日行燈（整合頭燈）","黑框頭燈","駕駛 & 副駕安全氣囊","碟煞・暖氣對流・轉速表・動力方向盤・防盜鎖・三點式安全帶",
-      "ABS · EBD · ESP","ESC（含 ASR、Hill Holder、CWA 側風輔助、拖車穩定、PCB 碰撞後煞車）","Traction+（含陡坡緩降）",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車","Traction+（含陡坡緩降）",
       "電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡","DAB 天線整合後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組","中央置杯架","前後軸穩定桿","USB 充電（A+C）",
       "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉","座椅腰靠","座椅高低 & 傾角可調"
     ]],
@@ -2053,7 +2053,7 @@ function cliffStdPeu(){
       "Peugeot Boxer 3,500kg · 2.2 BlueHDi 140hp · 6速手排 Euro6","Peugeot 原廠白 Peugeot white",
       "Start & Stop（含 booster）","60L 柴油油箱","手動駕駛艙冷氣","定速巡航","15吋 鋼圈","M+S* Camping 雪地胎（雪花標）","前輪驅動 FWD",
       "LED 日行燈（整合頭燈）","黑框頭燈","駕駛 & 副駕安全氣囊","碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖・三點式安全帶",
-      "ABS · EBD · ESP","ESC（含 ASR、Hill Holder、CWA 側風輔助、拖車穩定、PCB 碰撞後煞車）","ESC Setup","Traction+（含陡坡緩降）",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車","ESC Setup","Traction+（含陡坡緩降）",
       "行車電腦（含外溫顯示）","電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡","DAB 天線整合後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組","中央置杯架","USB 充電（A+C）",
       "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉","座椅腰靠","駕駛座高低 & 傾角可調"
     ]],
@@ -2176,7 +2176,7 @@ function tStdCit(code){
     ["基礎車輛 Citroën Base vehicle",[
       "Citroën Jumper 3,500kg · 2.2 BlueHDi 140hp · 6速手排 Euro6","Start & Stop（含 booster）","60L 柴油油箱","手動駕駛艙冷氣","定速巡航","寬軌底盤 Wide-track chassis","15吋 鋼圈 Steel rims 15\"","M+S* Camping 雪地胎（雪花標）","前輪驅動 FWD",
       "LED 日行燈（整合頭燈）","黑框頭燈","駕駛 & 副駕安全氣囊","碟煞・暖氣對流・轉速表・動力方向盤・防盜鎖・三點式安全帶",
-      "ABS · EBD · ESP","ESC（含 ASR、Hill Holder、CWA 側風輔助、拖車穩定、PCB 碰撞後煞車）","Traction+（含陡坡緩降）",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車","Traction+（含陡坡緩降）",
       "電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡","DAB 天線整合後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組","中央置杯架","前後軸穩定桿","USB 充電（A+C）",
       "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉","座椅腰靠","座椅高低 & 傾角可調"
     ]],
@@ -2241,7 +2241,7 @@ function tCatsCit(code){
     ["舒適 Comfort",[
       ["單人床轉雙人床",{STD:single2dbl},5],
       ["轉換床",{STD:seatingBed},5],
-      ["下降式床（含 Clima-Plux 元件）",{STD:1182.45},44],
+      ["下拉床",{STD:1182.45},44],
       ["側長椅第 5 座位（含安全帶）⁴⁾",{STD:fifth},15],
       ["浴室木地板隔扇",{STD:65.82},2],
     ]],
@@ -2268,7 +2268,7 @@ function tCatsCit(code){
       ["Safety Pack 安全套件",{STD:797.92},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌 & 遠光燈辨識","駕駛疲勞偵測","智慧速度輔助"]],
       ["安全包 + ACC",{STD:1647.60},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌 & 遠光燈辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
       ["露營遮陽篷 "+awn[0]+"（黑）",{STD:awn[1]},awn[2]],
-      ["Pack One（遮陽篷 "+awn[0]+" + 3 車自行車架）",{STD:packOne.p},packOne.w],
+      ["Pack One（遮陽篷 "+awn[0]+" + 自行車架（可載三部自行車））",{STD:packOne.p},packOne.w],
       ["Pack All-In-One（遮陽篷 "+awn[0]+" + 自行車架 + 22\" Smart TV + Teleco Flatsat）",{STD:allIn.p},allIn.w],
     ]],
   ];
@@ -2319,7 +2319,7 @@ function tStdCit25(code){
     ["基礎車輛 Citroën Base vehicle",[
       "Citroën Jumper 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6","Start & Stop（含 booster）","60L 柴油油箱","手動駕駛艙冷氣","定速巡航","寬軌底盤 Wide-track chassis","15吋 鋼圈 Steel rims 15\"","M+S* Camping 雪地胎（雪花標）","前輪驅動 FWD",
       "LED 日行燈（整合頭燈）","黑框頭燈","駕駛 & 副駕安全氣囊","碟煞・暖氣對流・轉速表・動力方向盤・防盜鎖・三點式安全帶",
-      "ABS · EBD · ESP","ESC（含 ASR、Hill Holder）","Traction+",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助","Traction+",
       "電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡","DAB 天線整合後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組","中央置杯架","前後軸穩定桿","USB 充電（A+C）",
       "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉","座椅腰靠","座椅高低 & 傾角可調"
     ]],
@@ -2383,7 +2383,7 @@ function tCatsCit25(code){
     ["舒適 Comfort",[
       ["單人床轉雙人床",{STD:single2dbl},5],
       ["轉換床",{STD:seatingBed},5],
-      ["下降式床（含 Clima-Plux 元件）",{STD:pulldown},44],
+      ["下拉床",{STD:pulldown},44],
       ["側長椅第 5 座位（含安全帶）⁴⁾",{STD:fifth},15],
       ["浴室木地板隔扇",{STD:65.82},2],
     ]],
@@ -2406,7 +2406,7 @@ function tCatsCit25(code){
     ]],
     ["內部選配與遮陽篷 Internal optional equipment pack and awning",[
       ["露營遮陽篷 "+awn[0]+"（黑）Awning",{STD:awn[1]},awn[2]],
-      ["Pack One（遮陽篷 "+awn[0]+" + 3 車自行車架）",{STD:packOne.p},packOne.w],
+      ["Pack One（遮陽篷 "+awn[0]+" + 自行車架（可載三部自行車））",{STD:packOne.p},packOne.w],
       ["Pack All-In-One（遮陽篷 "+awn[0]+" + 自行車架 + 22\" Smart TV + Teleco Flatsat Classic 65）",{STD:allIn.p},allIn.w],
     ]],
   ];
@@ -2480,12 +2480,12 @@ function tStd25(code){
       !isT58 && "大型冰箱 156L（含獨立冷凍 29L）Large 156 l fridge",
       seatBedStd && "起居區床舖轉換 Bed conversion for seating area",
       single2dbl && "單人床轉雙人床 Bed conversion single to double bed",
-      "Pack One（遮陽篷 + 3 車自行車架）Pack One","Basic Pack","彩繪前保桿 Painted front bumper","雙色鋁圈套件 Two-colour alloy wheels"
+      "Pack One（遮陽篷 + 自行車架（可載三部自行車））Pack One","Basic Pack","彩繪前保桿 Painted front bumper","雙色鋁圈套件 Two-colour alloy wheels"
     ])],
     ["基礎車輛 Fiat Base vehicle",[
       "Start & Stop（含 booster）","60L 柴油油箱","手動駕駛艙冷氣","定速巡航","寬軌底盤 Wide-track chassis","M+S* Camping 雪地胎（雪花標）","前輪驅動 FWD",
       "LED 日行燈（整合頭燈）","黑框頭燈","駕駛 & 副駕安全氣囊","碟煞・暖氣對流・轉速表・動力方向盤・防盜鎖・三點式安全帶",
-      "ABS · EBD · ESP","ESC（含 ASR、Hill Holder）","Traction+",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助","Traction+",
       "電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡","DAB 天線整合後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組","中央置杯架","前後軸穩定桿","USB 充電（A+C）",
       "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉","座椅腰靠","座椅高低 & 傾角可調"
     ]],
@@ -2552,7 +2552,7 @@ function tCats25(code){
     ]],
     ["舒適 Comfort",[
       ["轉換床",{STD:seatingBed},5],
-      ["下降式床（含 Clima-Plux 元件）",{STD:pulldown},44],
+      ["下拉床",{STD:pulldown},44],
       ["側長椅第 5 座位（含安全帶）³⁾",{STD:fifth},15],
       ["浴室木地板隔扇",{STD:65.82},2],
       ["地毯",{STD:213.71},5],
