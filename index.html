@@ -1583,7 +1583,6 @@ function cliffCats(model,trim){
       ["8速自排 140hp 8-speed automatic",{STD:S},60],
       ["8速自排 180hp 8-speed automatic",{STD:4768.27},60],
       ["Maxi 底盤 140hp 6速手排",{STD:is540?"na":295.80},40],
-      ["Maxi 底盤 140hp 8速自排",{STD:is540?"na":2661.45},60],
       ["Maxi 底盤 180hp 8速自排",{STD:is540?"na":5064.07},60],
       ["Maxi 底盤 4,250kg 180hp 8速自排（HD）",{STD:is640?5669.72:"na"},60],
       ["全 LED 頭燈（含 LED 日行燈、動態方向燈）",{STD:812.71},0],
@@ -1650,7 +1649,7 @@ const CLIFF_FOOTNOTES=[
   {t:"僅能與自排變速箱、Chassis Pack 及 Digital Pack 同時選配。 Only in conjunction with automatic gearbox, Chassis Pack and Digital Pack."}
 ];
 const CLIFF_FN_MARK={
-  "Maxi 底盤 140hp 6速手排":"⁴⁾","Maxi 底盤 140hp 8速自排":"⁴⁾","Maxi 底盤 180hp 8速自排":"⁴⁾",
+  "Maxi 底盤 140hp 6速手排":"⁴⁾","Maxi 底盤 180hp 8速自排":"⁴⁾",
   "CLIFF RT-Pack 車頂床（含 RT 貼紙）":"⁵⁾","轉換床":"⁶⁾",
   "太陽能預接線":"⁷⁾","太陽能板 100W（含 MPPT 控制器）":"⁵⁾⁷⁾",
   "黑色鋁圈套件 Black alloy wheels Pack":"⁸⁾","安全包 + ACC":"⁹⁾","副駕駛包（安全包 + ACC PLUS）":"¹⁰⁾"
@@ -3254,7 +3253,7 @@ function pickYear(y){
   updateSummary();
 }
 /* 客戶端(VIP) Sunlight 只顯示這 11 台（T 系列 7 + CLIFF 4）；業務/管理端不受限、看全部 */
-const CUST_SUNLIGHT_WL = new Set(["t58c26","t66sc26","t67sc26","t58a26","t66sa26","t67sa26","t67a26","cliff540","cliff600","cliff601","cliff602"]);
+const CUST_SUNLIGHT_WL = new Set(["t58c26","t66sc26","t67sc26","t58a26","t66sa26","t67sa26","t67a26","cliff540","cliff600","cliff601"]);
 /* 業務端「顯示隱藏車款」開關：只存這台電腦(不上雲端)、客戶端永遠看不到隱藏車 */
 let STAFF_SHOW_HIDDEN = (function(){ try{ return localStorage.getItem("staff_show_hidden")==="1"; }catch(e){ return false; } })();
 function renderHidToggleBtn(){
@@ -3445,7 +3444,7 @@ function seedXGroupsIfEmpty(){
   setXGroups({
     "外觀塗裝 Painting":{"黑色金屬":"A","Lanzarote Grey（深灰）":"A","Expedition Grey（卡其灰）":"A"},
     "暖氣 / 瓦斯 Heating":{"Combi 4 柴油暖氣（含高度感測 + 數位面板）":"A","Combi 6 E 暖氣（含電熱、數位面板）":"A"},
-    "底盤 & 動力 Base vehicle / Engine":{"Maxi 底盤 140hp 6速手排":"A","Maxi 底盤 140hp 8速自排":"A","Maxi 底盤 180hp 8速自排":"A","Maxi 底盤 4,250kg 180hp 8速自排（HD）":"A"},
+    "底盤 & 動力 Base vehicle / Engine":{"Maxi 底盤 140hp 6速手排":"A","Maxi 底盤 180hp 8速自排":"A","Maxi 底盤 4,250kg 180hp 8速自排（HD）":"A"},
     "SIGNATURE 內裝選項":{"儀表板 – 木紋飾 Dash Wood effect":"A","儀表板 – 真皮 Dash Leather":"A","儀表板 – 黑色 Alcantara":"A","儀表板 – 烤漆 Dash Painted":"A","儀表板 – 620 樣式 Dash 620 style":"A"}
   });
 }
@@ -4616,7 +4615,7 @@ function renderAdminMenu(){
   const admin=role==="admin", sales=role==="sales";
   let items=[], label="管理 ▾";
   if(admin && VIEW==="admin"){
-    items=[["報價明細","openPerf"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["配備管理","openOptMgr"],["塗裝色板","openPaintMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
+    items=[["報價明細","openPerf"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
     label="管理 ▾";
   } else if((admin && VIEW==="sales") || sales){
     const n=(typeof inboxCount==="function")?inboxCount():0;
