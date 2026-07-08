@@ -593,6 +593,17 @@
 .cdb-add{ border-top:1px dashed var(--line,#e5e2da); margin-top:12px; padding-top:12px; }
 .cdb-sum{ font-size:13px; color:#555; line-height:1.9; }
 </style>
+<style>
+#adminCasesView{ display:none; max-width:1320px; margin:0 auto; padding:24px 22px 90px; }
+.adm-filters{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+.adm-tablewrap{ overflow-x:auto; border:1px solid var(--line,#d9d6ce); border-radius:12px; background:#fff; }
+table.adm{ border-collapse:collapse; width:100%; font-size:13px; white-space:nowrap; }
+table.adm th, table.adm td{ padding:9px 11px; border-bottom:1px solid var(--line,#eee); text-align:left; vertical-align:top; }
+table.adm th{ background:#f7f5ef; font-size:12px; color:#666; position:sticky; top:0; }
+table.adm .adm-act{ display:flex; gap:5px; flex-wrap:wrap; }
+table.adm .btn{ padding:3px 9px; font-size:12px; }
+.adm-badge{ font-size:11px; padding:2px 8px; border-radius:8px; background:#eee; color:#555; }
+</style>
 </head>
 <body>
 
@@ -628,6 +639,7 @@
     <div class="dash-card" onclick="openSettings()"><div class="dash-ic">💲</div><div><div class="dc-t">價格設定</div><div class="dc-d">係數・運輸費・訂金比例・匯率</div></div></div>
     <div class="dash-card" onclick="openCarDb('copy')"><div class="dash-ic">📋</div><div><div class="dc-t">複製車型</div><div class="dc-d">把某年份複製成新年份</div></div></div>
     <div class="dash-card" onclick="openQuotePreview()"><div class="dash-ic">👁️</div><div><div class="dc-t">報價預覽</div><div class="dc-d">用業務端視角預覽車輛報價</div></div></div>
+    <div class="dash-card" onclick="openAdminCases()"><div class="dash-ic">📇</div><div><div class="dc-t">業務案件總覽</div><div class="dc-d">所有業務案件・下載・確認訂金/下定</div></div></div>
   </div>
 </div>
 
@@ -642,6 +654,22 @@
     <div class="cdb-col" id="cdbMid"></div>
     <div class="cdb-col" id="cdbRight"></div>
   </div>
+</div>
+
+<!-- ===== 業務案件總覽（管理後台/會計）===== -->
+<div id="adminCasesView">
+  <div class="cdb-head">
+    <h2>業務案件總覽</h2>
+    <button class="btn ghost" onclick="showAdminDash()">← 管理後台</button>
+  </div>
+  <div class="adm-filters">
+    <input class="t" id="acaseQ" placeholder="搜尋客戶/車身碼/業務…" oninput="renderAdminCases()" style="max-width:220px">
+    <select class="t" id="acaseSales" onchange="renderAdminCases()" style="max-width:180px"><option value="all">全部業務</option></select>
+    <select class="t" id="acaseStatus" onchange="renderAdminCases()" style="max-width:150px"><option value="all">全部狀態</option><option value="quote">報價中</option><option value="quoted">已報價</option><option value="contract_generated">合約已產生</option><option value="deal_won">已成交</option><option value="deal_lost">未成交</option><option value="deposit_pending">訂金待確認</option><option value="deposit_confirmed">訂金已確認</option><option value="ordered">已下定</option></select>
+    <input class="t" id="acaseFrom" type="date" onchange="renderAdminCases()" title="起" style="max-width:150px">
+    <input class="t" id="acaseTo" type="date" onchange="renderAdminCases()" title="迄" style="max-width:150px">
+  </div>
+  <div class="adm-tablewrap"><table class="adm"><thead id="acaseHead"></thead><tbody id="acaseBody"></tbody></table></div>
 </div>
 
 <!-- ===== 業務工作台 ===== -->
@@ -3370,11 +3398,12 @@ function viewContract(dealId){
   }catch(e){ window.open(c.data,"_blank"); }
 }
 function dealToggleDeposit(dealId){ const a=getDeals(); const d=a.find(x=>x.id===dealId); if(d){ d.depositPaid=!d.depositPaid; saveDeals(a); var m; if((m=document.getElementById("dealBg"))&&m.style.display!=="none") renderDeals(); if((m=document.getElementById("perfBg"))&&m.style.display!=="none") renderPerf(); } }
-function perfToggleDeposit(qid){ const d=perfEnsureDeal(qid); if(!d)return; const a=getDeals(); const x=a.find(z=>z.quoteId===qid); x.depositPaid=!x.depositPaid; saveDeals(a); renderPerf(); }
+function perfToggleDeposit(qid){ if(!(role==="admin"||role==="acct")){ toast("僅限管理後台/會計"); return; } const d=perfEnsureDeal(qid); if(!d)return; const a=getDeals(); const x=a.find(z=>z.quoteId===qid); x.depositPaid=!x.depositPaid; x.depositStatus=x.depositPaid?"confirmed":"unpaid"; if(x.depositPaid){ x.depositConfirmedAt=Date.now(); x.depositConfirmedBy=(role==="acct"?"會計":"管理後台"); } else { x.depositConfirmedAt=null; } saveDeals(a); renderPerf(); }
 function perfToggleOrdered(qid){
+  if(!(role==="admin"||role==="acct")){ toast("僅限管理後台/會計"); return; }
   const d=perfEnsureDeal(qid); if(!d)return; const a=getDeals(); const x=a.find(z=>z.quoteId===qid);
-  if(!x.ordered && !(x.depositPaid && x.hasContract)){ toast("需先『已付訂金』且『已上傳合約』才能下定"); return; }
-  x.ordered=!x.ordered; saveDeals(a); renderPerf();
+  if(!x.ordered && !((x.depositStatus==="confirmed"||x.depositConfirmedAt) && x.hasContract)){ toast("需先『訂金已確認』且『已上傳簽名合約』才能下定"); return; }
+  x.ordered=!x.ordered; x.orderStatus=x.ordered?"ordered":"not_ordered"; if(x.ordered) x.orderedAt=Date.now(); saveDeals(a); renderPerf();
 }
 function delDeal(id){
   const d=getDeals().find(x=>x.id===id);
@@ -4465,7 +4494,7 @@ function showDashboard(){
 /* ===================== 管理後台 Dashboard + 車型資料庫 + 報價預覽 ===================== */
 function showAdminDash(){
   if(role!=="admin") return;
-  ["dashView","casesView","carDbView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  ["dashView","casesView","carDbView","adminCasesView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var d=document.getElementById("adminDashView"); if(d) d.style.display="block";
   window.scrollTo(0,0);
@@ -4473,6 +4502,7 @@ function showAdminDash(){
 function hideAdminDash(){
   var d=document.getElementById("adminDashView"); if(d) d.style.display="none";
   var c=document.getElementById("carDbView"); if(c) c.style.display="none";
+  var ac=document.getElementById("adminCasesView"); if(ac) ac.style.display="none";
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="";
 }
 function openOptMgrFromDash(){
@@ -4661,6 +4691,154 @@ var _caseAutoT=null;
 function findCase(id){ return getDeals().find(function(d){return d.id===id;}); }
 function _subCarName(s){ var c=(typeof CARS!=="undefined")&&CARS.find(function(x){return x.id===s.carId;}); return c?(c.brand+" "+c.name):(s.carName||""); }
 
+/* ===================== Stage 2：客戶案件狀態層（疊加、不覆蓋舊資料） ===================== */
+function nowTs(){ return Date.now(); }
+function _actor(){
+  if(role==="admin") return {id:"__admin", name:"管理後台", role:"admin"};
+  if(role==="acct") return {id:"__acct", name:"會計", role:"acct"};
+  if(role==="cashier") return {id:"__cashier", name:"出納", role:"cashier"};
+  if(typeof currentSales!=="undefined" && currentSales) return {id:currentSales.u, name:([currentSales.title,currentSales.name].filter(Boolean).join(" ")||currentSales.u), role:"sales"};
+  return {id:"?", name:"?", role:role||"?"};
+}
+function isFinanceRole(){ return role==="admin" || role==="acct"; }
+function salesNameOf(code){ if(!code) return ""; try{ var s=getAccounts().sales.find(function(x){return x.u===code;}); return s?([s.title,s.name].filter(Boolean).join(" ")+"（"+code+"）"):code; }catch(e){ return code; } }
+function logActivity(dealId, action, note){
+  var deals=getDeals(); var d=deals.find(function(x){return x.id===dealId;}); if(!d) return;
+  if(!d.activityLog) d.activityLog=[];
+  var a=_actor();
+  d.activityLog.push({action:action, userId:a.id, userName:a.name, role:a.role, timestamp:nowTs(), note:note||""});
+  d.updatedAt=nowTs(); saveDeals(deals);
+}
+/* 轉接層：把一筆 deal 讀成完整案件檢視（新欄位優先，否則由舊旗標推導，不覆蓋原資料） */
+function normalizeCase(d){
+  if(!d) return null;
+  var c={raw:d, id:d.id, caseId:d.id, createdAt:d.createdAt||d.ts, updatedAt:d.updatedAt||d.ts};
+  c.orderStatus = d.orderStatus || (d.ordered ? "ordered" : "not_ordered");
+  c.depositStatus = d.depositStatus || (d.depositConfirmedAt ? "confirmed" : (d.depositPaid ? "sales_marked_paid" : "unpaid"));
+  c.contractStatus = d.contractStatus || (d.hasContract ? "signed_uploaded" : (d.contractGeneratedAt ? "generated" : "not_generated"));
+  c.quoteStatus = d.quoteStatus || (d.pdfDone ? "generated" : "not_generated");
+  if(d.dealStatus) c.dealStatus=d.dealStatus;
+  else if(d.status==="lost") c.dealStatus="deal_lost";
+  else if(d.status==="done") c.dealStatus="deal_won";
+  else if(c.contractStatus!=="not_generated") c.dealStatus="contract_generated";
+  else if(c.quoteStatus==="generated") c.dealStatus="quoted";
+  else c.dealStatus="quote";
+  c.salesId=d.sales||""; c.salesName=d.salesName||salesNameOf(d.sales);
+  c.customerName=d.customerName||d.cust||""; c.customerPhone=d.customerPhone||""; c.customerEmail=d.customerEmail||"";
+  c.car=d.car||""; c.vin=d.vin||""; c.variant=d.variant||"";
+  c.quoteTotal=(d.quoteTotal!=null?d.quoteTotal:d.quote)||0;
+  c.dealPrice=d.dealPrice||""; c.depositAmount=d.depositAmount||"";
+  c.balanceAmount=(d.balanceAmount!=null)?d.balanceAmount:((+d.dealPrice||0)-(+d.depositAmount||0));
+  c.hasSignedContract=!!d.hasContract;
+  return c;
+}
+function dealStatusLabel(s){ return ({quote:"報價中",quoted:"已報價",contract_generated:"合約已產生",deal_won:"已成交",deal_lost:"未成交"})[s]||s; }
+function depositStatusLabel(s){ return ({unpaid:"未付訂金",sales_marked_paid:"業務標記·待確認",confirmed:"訂金已確認"})[s]||s; }
+function contractStatusLabel(s){ return ({not_generated:"尚未產生",generated:"合約單已產生·待簽名",signed_uploaded:"已上傳簽名合約"})[s]||s; }
+function _caseRefresh(){
+  if(typeof renderCases==="function"){ var cv=document.getElementById("casesView"); if(cv && cv.style.display!=="none") renderCases(); }
+  if(typeof renderAdminCases==="function"){ var av=document.getElementById("adminCasesView"); if(av && av.style.display!=="none") renderAdminCases(); }
+}
+/* 訂金：業務標記已付＝待確認 / 管理後台·會計確認 */
+function caseConfirmDeposit(id){ if(!isFinanceRole()){ toast("僅限管理後台/會計確認訂金"); return; } var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; d.depositStatus="confirmed"; d.depositPaid=true; d.depositConfirmedAt=nowTs(); d.depositConfirmedBy=_actor().name; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"管理後台確認訂金",""); _caseRefresh(); toast("已確認訂金收款"); }
+function caseCancelDepositConfirm(id){ if(!isFinanceRole()){ toast("僅限管理後台/會計"); return; } var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; d.depositStatus="sales_marked_paid"; d.depositConfirmedAt=null; d.depositConfirmedBy=null; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"取消訂金確認",""); _caseRefresh(); toast("已取消訂金確認"); }
+function caseCancelOrdered(id){ if(!isFinanceRole()){ toast("僅限管理後台/會計"); return; } var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; d.orderStatus="not_ordered"; d.ordered=false; d.orderedAt=null; d.orderedBy=null; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"取消已下定",""); _caseRefresh(); toast("已取消下定"); }
+function caseMarkLost(id){ var reason=prompt("未成交原因（可留空）"); if(reason===null) return; var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; d.dealStatus="deal_lost"; d.status="lost"; d.dealLostReason=reason||""; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"標記未成交",reason||""); _caseRefresh(); toast("已標記未成交"); }
+/* 產生合約單（用現有 openContract/printContract 模板，記狀態） */
+var _contractCaseId=null;
+function caseGenerateContract(type,id){ if(editingCaseRef && editingCaseRef.id===id && cur && variant){ _caseDoContract(id); } else { caseOpen(type,id); setTimeout(function(){ _caseDoContract(id); }, 600); } }
+function _caseDoContract(id){
+  if(!cur||!variant){ toast("此案件缺少可產生合約的內容"); return; }
+  if(typeof configError==="function" && configError()){ toast(configError()); return; }
+  var dealId=_promoteToDeal()||id;
+  _contractCaseId=dealId;
+  if(typeof openContract==="function") openContract();
+  var d=findCase(dealId);
+  if(d && d.contractFields){ Object.keys(d.contractFields).forEach(function(k){ var el=document.getElementById(k); if(el && d.contractFields[k]) el.value=d.contractFields[k]; }); }
+  if(typeof toast==="function") toast("填好合約欄位後按「列印合約書」，系統會記錄為『合約單已產生』");
+}
+function _afterContractPrint(){
+  if(!_contractCaseId) return;
+  var id=_contractCaseId; _contractCaseId=null;
+  var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return;
+  var fields={}; ["k_name","k_id","k_phone","k_email","k_birth","k_addr","k_regname","k_regid","k_vin","k_origin","k_color","k_fuel","k_pay","k_deliver","k_review","k_court","k_note","k_dep1","k_dep2"].forEach(function(k){ var el=document.getElementById(k); if(el) fields[k]=el.value; });
+  d.contractFields=fields;
+  if(d.contractStatus!=="signed_uploaded"){ d.contractStatus="generated"; if(d.dealStatus==="quoted"||d.dealStatus==="quote"||!d.dealStatus) d.dealStatus="contract_generated"; }
+  d.contractGeneratedAt=nowTs(); d.contractGeneratedBy=_actor().name;
+  d.updatedAt=nowTs(); saveDeals(deals);
+  logActivity(id,"產生合約單","");
+  _caseRefresh();
+}
+function caseDownloadQuote(type,id){ caseGeneratePDF(type,id); }
+function caseDownloadContract(type,id){ caseGenerateContract(type,id); }
+
+/* ===================== 業務案件總覽（管理後台/會計）===================== */
+function openAdminCases(){
+  if(role!=="admin" && role!=="acct"){ toast("僅限管理後台/會計"); return; }
+  ["adminDashView","dashView","casesView","carDbView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
+  var v=document.getElementById("adminCasesView"); if(v) v.style.display="block";
+  try{ var sel=document.getElementById("acaseSales"); if(sel && sel.options.length<=1){ getAccounts().sales.forEach(function(s){ var o=document.createElement("option"); o.value=s.u; o.textContent=([s.title,s.name].filter(Boolean).join(" ")||s.u); sel.appendChild(o); }); } }catch(e){}
+  renderAdminCases(); window.scrollTo(0,0);
+}
+function _acaseDownloads(c){
+  var d=c.raw, out=[];
+  out.push(c.quoteStatus==="generated" ? '<button class="btn ghost" onclick="caseGeneratePDF(\'deal\',\''+d.id+'\')">報價單</button>' : '<span class="hint">尚未產生</span>');
+  out.push(d.contractGeneratedAt ? '<button class="btn ghost" onclick="caseGenerateContract(\'deal\',\''+d.id+'\')">合約單</button>' : '<span class="hint">尚未產生</span>');
+  out.push(c.hasSignedContract ? '<button class="btn ghost" onclick="viewContract(\''+d.id+'\')">簽名合約</button>' : '<span class="hint">尚未上傳</span>');
+  return out.join(" ");
+}
+function _acaseActions(c){
+  if(!isFinanceRole()) return '<span class="hint">—</span>';
+  var d=c.raw, out=[];
+  if(c.depositStatus==="sales_marked_paid") out.push('<button class="btn primary" onclick="caseConfirmDeposit(\''+d.id+'\')">確認訂金</button>');
+  else if(c.depositStatus==="confirmed") out.push('<button class="btn ghost" onclick="caseCancelDepositConfirm(\''+d.id+'\')">取消確認</button>');
+  if(c.orderStatus==="ordered") out.push('<button class="btn ghost" onclick="caseCancelOrdered(\''+d.id+'\')">取消下定</button>');
+  else if(c.dealStatus==="deal_won" && c.depositStatus==="confirmed" && c.contractStatus==="signed_uploaded") out.push('<button class="btn primary" onclick="caseMarkOrdered(\''+d.id+'\')">標記下定</button>');
+  return out.length?out.join(" "):'<span class="hint">—</span>';
+}
+function renderAdminCases(){
+  var q=((document.getElementById("acaseQ")||{}).value||"").trim().toLowerCase();
+  var fs=(document.getElementById("acaseSales")||{}).value||"all";
+  var fk=(document.getElementById("acaseStatus")||{}).value||"all";
+  var from=(document.getElementById("acaseFrom")||{}).value, to=(document.getElementById("acaseTo")||{}).value;
+  var fromTs=from?new Date(from+"T00:00:00").getTime():0, toTs=to?new Date(to+"T23:59:59").getTime():Infinity;
+  var rows=getDeals().map(normalizeCase).filter(function(c){
+    if(fs!=="all" && c.salesId!==fs) return false;
+    var t=c.createdAt||0; if(t<fromTs||t>toTs) return false;
+    if(q){ var hay=((c.customerName||"")+" "+(c.vin||"")+" "+(c.car||"")+" "+(c.salesName||"")).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+    if(fk!=="all"){
+      if(fk==="deposit_pending"){ if(c.depositStatus!=="sales_marked_paid") return false; }
+      else if(fk==="deposit_confirmed"){ if(c.depositStatus!=="confirmed") return false; }
+      else if(fk==="ordered"){ if(c.orderStatus!=="ordered") return false; }
+      else if(c.dealStatus!==fk) return false;
+    }
+    return true;
+  });
+  rows.sort(function(a,b){ return (b.updatedAt||0)-(a.updatedAt||0); });
+  document.getElementById("acaseHead").innerHTML='<tr><th>建立</th><th>更新</th><th>業務</th><th>客戶</th><th>電話</th><th>車型</th><th>版本</th><th>報價 NT$</th><th>成交 NT$</th><th>成交狀態</th><th>合約狀態</th><th>訂金狀態</th><th>下定</th><th>下載</th><th>操作</th></tr>';
+  var body=document.getElementById("acaseBody");
+  if(!rows.length){ body.innerHTML='<tr><td colspan="15" class="hint" style="padding:20px">目前沒有符合的案件。</td></tr>'; return; }
+  body.innerHTML=rows.map(function(c){
+    return '<tr>'
+      +'<td>'+fmtDT(c.createdAt)+'</td><td>'+fmtDT(c.updatedAt)+'</td>'
+      +'<td>'+(c.salesName||"—")+'</td>'
+      +'<td>'+(c.customerName||"—")+'</td><td>'+(c.customerPhone||"—")+'</td>'
+      +'<td>'+(c.car||"—")+'</td><td>'+(c.variant||"—")+'</td>'
+      +'<td>'+((c.quoteTotal||0).toLocaleString("en-US"))+'</td>'
+      +'<td>'+(c.dealPrice?(+c.dealPrice).toLocaleString("en-US"):"—")+'</td>'
+      +'<td><span class="adm-badge">'+dealStatusLabel(c.dealStatus)+'</span></td>'
+      +'<td><span class="adm-badge">'+contractStatusLabel(c.contractStatus)+'</span></td>'
+      +'<td><span class="adm-badge">'+depositStatusLabel(c.depositStatus)+'</span></td>'
+      +'<td>'+(c.orderStatus==="ordered"?'<span class="adm-badge">已下定</span>':'未下定')+'</td>'
+      +'<td><div class="adm-act">'+_acaseDownloads(c)+'</div></td>'
+      +'<td><div class="adm-act">'+_acaseActions(c)+'</div></td>'
+      +'</tr>';
+  }).join("");
+}
+
+
+
 function _caseItems(){
   var deals=getDeals().filter(function(d){ return !currentSales || d.sales===currentSales.u; });
   var subs=getSubs().filter(function(s){ return (!currentSales || s.salesCode===currentSales.u) && s.status!=="done"; });
@@ -4672,46 +4850,63 @@ function _caseItems(){
 }
 function caseStageKey(it){
   if(it.type==='sub') return "submitted";
-  var d=it._raw;
-  if(d.ordered) return "ordered";
-  if(d.status==="done") return (d.depositPaid && d.hasContract) ? "ready" : "dealt";
-  if(d.pdfDone) return "quoted";
+  var c=normalizeCase(it._raw);
+  if(c.orderStatus==="ordered") return "ordered";
+  if(c.dealStatus==="deal_lost") return "lost";
+  if(c.dealStatus==="deal_won"){ return (c.depositStatus==="confirmed" && c.contractStatus==="signed_uploaded") ? "ready" : "dealt"; }
+  if(c.dealStatus==="contract_generated") return "contract";
+  if(c.dealStatus==="quoted") return "quoted";
   return "draft";
 }
-function caseStageLabel(k){ return ({submitted:"客戶已送出", draft:"待報價", quoted:"已報價", dealt:"已成交", ready:"等待公司下定", ordered:"已下定"})[k]||k; }
+function caseStageLabel(k){ return ({submitted:"客戶已送出", draft:"待報價", quoted:"已報價", contract:"合約已產生", dealt:"已成交", ready:"等待公司下定", lost:"未成交", ordered:"已下定"})[k]||k; }
 function caseStats(){
   var deals=getDeals().filter(function(d){return !currentSales||d.sales===currentSales.u;});
   var subs=getSubs().filter(function(s){return (!currentSales||s.salesCode===currentSales.u)&&s.status!=="done";});
   var st={submitted:subs.length, quoted:0, dealt:0, contract:0, ready:0};
-  deals.forEach(function(d){
-    if(d.ordered) return;
-    if(d.status==="done"){ var rdy=d.depositPaid&&d.hasContract; if(rdy) st.ready++; else st.dealt++; if(!d.hasContract) st.contract++; }
-    else if(d.pdfDone) st.quoted++;
+  deals.forEach(function(d){ var c=normalizeCase(d);
+    if(c.orderStatus==="ordered" || c.dealStatus==="deal_lost") return;
+    if(c.dealStatus==="deal_won"){ if(c.depositStatus==="confirmed" && c.contractStatus==="signed_uploaded") st.ready++; else st.dealt++; if(c.contractStatus!=="signed_uploaded") st.contract++; }
+    else if(c.dealStatus==="quoted" || c.dealStatus==="contract_generated") st.quoted++;
   });
   return st;
 }
 function caseButtonsHTML(it){
-  var k=caseStageKey(it), d=it._raw, b=[];
+  var k=caseStageKey(it), b=[];
+  var idq="'"+it.id+"'";
   var openA='onclick="caseOpen(\''+it.type+'\',\''+it.id+'\')"';
   var pdfA='onclick="caseGeneratePDF(\''+it.type+'\',\''+it.id+'\')"';
+  var conA='onclick="caseGenerateContract(\''+it.type+'\',\''+it.id+'\')"';
+  var upl='<label class="btn ghost" style="cursor:pointer">上傳已簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+it.id+'\',this)"></label>';
   if(k==="submitted" || k==="draft"){
     b.push('<button class="btn ghost" '+openA+'>查看 / 修改</button>');
     b.push('<button class="btn primary" '+pdfA+'>產生報價單</button>');
   } else if(k==="quoted"){
     b.push('<button class="btn ghost" '+pdfA+'>下載報價單</button>');
-    b.push('<button class="btn ghost" '+openA+'>修改</button>');
-    b.push('<button class="btn primary" onclick="caseMarkDeal(\''+it.id+'\')">標記成交</button>');
+    b.push('<button class="btn ghost" '+openA+'>重新產生 / 修改</button>');
+    b.push('<button class="btn primary" '+conA+'>產生合約單</button>');
+    b.push('<button class="btn ghost" onclick="caseMarkLost('+idq+')">標記未成交</button>');
+  } else if(k==="contract"){
+    b.push('<button class="btn ghost" '+conA+'>下載 / 重新產生合約單</button>');
+    b.push(upl);
+    b.push('<button class="btn primary" onclick="caseMarkDeal('+idq+')">標記成交</button>');
+    b.push('<button class="btn ghost" onclick="caseMarkLost('+idq+')">標記未成交</button>');
+    b.push('<div class="case-note" style="width:100%;margin-top:8px;line-height:1.6">產生合約單只是產生給客戶簽名的文件，不代表已成交。請在客戶簽名後上傳已簽名合約，並完成成交與訂金流程。</div>');
   } else if(k==="dealt"){
-    if(!d.depositPaid) b.push('<button class="btn primary" onclick="caseToggleDeposit(\''+it.id+'\')">標記訂金已付</button>');
-    if(!d.hasContract) b.push('<label class="btn ghost" style="cursor:pointer">上傳合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+it.id+'\',this)"></label>');
-    if(d.hasContract) b.push('<button class="btn ghost" onclick="viewContract(\''+it.id+'\')">檢視合約</button>');
+    var c=normalizeCase(it._raw);
+    if(c.depositStatus==="unpaid") b.push('<button class="btn primary" onclick="caseToggleDeposit('+idq+')">標記訂金已付</button>');
+    else if(c.depositStatus==="sales_marked_paid") b.push('<span class="case-badge cb-dealt">訂金待管理後台確認</span>');
+    if(c.contractStatus!=="signed_uploaded") b.push(upl);
+    if(c.contractStatus==="signed_uploaded") b.push('<button class="btn ghost" onclick="viewContract('+idq+')">檢視簽名合約</button>');
+    b.push('<button class="btn ghost" onclick="caseMarkDeal('+idq+')">修改成交金額</button>');
   } else if(k==="ready"){
-    b.push('<span class="case-badge cb-ready">✅ 資料齊全，等待公司下定</span>');
-    if(d.hasContract) b.push('<button class="btn ghost" onclick="viewContract(\''+it.id+'\')">檢視合約</button>');
-    if(VIEW==="admin") b.push('<button class="btn primary" onclick="caseMarkOrdered(\''+it.id+'\')">標記已下定</button>');
+    b.push('<span class="case-badge cb-ready">✅ 訂金已確認・合約已簽，等待管理後台下定</span>');
+    b.push('<button class="btn ghost" onclick="viewContract('+idq+')">檢視簽名合約</button>');
+    if(isFinanceRole()) b.push('<button class="btn primary" onclick="caseMarkOrdered('+idq+')">標記已下定</button>');
+  } else if(k==="lost"){
+    b.push('<span class="case-badge cb-submitted">已標記未成交</span>');
   } else if(k==="ordered"){
     b.push('<span class="case-badge cb-ordered">✓ 已完成（已下定）</span>');
-    if(d.hasContract) b.push('<button class="btn ghost" onclick="viewContract(\''+it.id+'\')">檢視合約</button>');
+    if(normalizeCase(it._raw).hasSignedContract) b.push('<button class="btn ghost" onclick="viewContract('+idq+')">檢視簽名合約</button>');
   }
   return b.join(" ");
 }
@@ -4734,17 +4929,20 @@ function renderCases(){
   if(!body) return;
   if(!items.length){ body.innerHTML='<div class="hint" style="padding:20px 2px">目前沒有符合的案件。客戶從 VIP 區送單、或按「＋ 新增案件」都會出現在這裡。</div>'; return; }
   body.innerHTML=items.map(function(it){
-    var k=caseStageKey(it), d=it._raw;
-    var badgeCls=({submitted:"cb-submitted",draft:"cb-submitted",quoted:"cb-quoted",dealt:"cb-dealt",ready:"cb-ready",ordered:"cb-ordered"})[k]||"cb-submitted";
-    var money="";
+    var k=caseStageKey(it);
+    var badgeCls=({submitted:"cb-submitted",draft:"cb-submitted",quoted:"cb-quoted",contract:"cb-quoted",dealt:"cb-dealt",ready:"cb-ready",lost:"cb-submitted",ordered:"cb-ordered"})[k]||"cb-submitted";
+    var money="", statusLine="";
     if(it.type==='deal'){
-      money='報價 NT$'+((d.quote||0).toLocaleString("en-US"));
-      if(d.status==="done"&&d.dealPrice) money+=' ・ 成交 NT$'+((+d.dealPrice).toLocaleString("en-US"));
-      if(d.depositPaid) money+=' ・ 訂金'+(d.depositAmount?(' NT$'+(+d.depositAmount).toLocaleString("en-US")):'已付');
+      var c=normalizeCase(it._raw);
+      money='報價 NT$'+((c.quoteTotal||0).toLocaleString("en-US"));
+      if(c.dealStatus==="deal_won"&&c.dealPrice) money+=' ・ 成交 NT$'+((+c.dealPrice).toLocaleString("en-US"));
+      if(c.depositAmount) money+=' ・ 訂金 NT$'+((+c.depositAmount).toLocaleString("en-US"));
+      statusLine='<div class="case-note" style="margin-top:4px">合約：'+contractStatusLabel(c.contractStatus)+'　訂金：'+depositStatusLabel(c.depositStatus)+'</div>';
     }
     return '<div class="case-card">'
       +'<div class="cc-top"><div><div class="cc-cust">'+it.cust+'</div><div class="cc-sub">'+(it.car||"—")+(it.vin?(" · 車身碼 "+it.vin):"")+" · "+fmtDT(it.updatedAt||it.ts)+'</div></div><span class="case-badge '+badgeCls+'">'+caseStageLabel(k)+'</span></div>'
       +(money?'<div class="case-money">'+money+'</div>':'')
+      +statusLine
       +(it.notes?'<div class="case-note">備註：'+it.notes+'</div>':'')
       +'<div class="case-actions">'+caseButtonsHTML(it)+'</div>'
       +'</div>';
@@ -4758,6 +4956,7 @@ function showQuoteEditor(){
 }
 function openCases(){
   editingCaseRef=null; _caseMode=null;
+  ["adminDashView","carDbView","adminCasesView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var d=document.getElementById("dashView"); if(d) d.style.display="none";
   var c=document.getElementById("casesView"); if(c) c.style.display="block";
@@ -4805,7 +5004,7 @@ function _caseDoPDF(type,id){
   if(!cur||!variant){ toast("此案件缺少可產生報價的內容"); return; }
   if(typeof configError==="function" && configError()){ toast(configError()); return; }
   var dealId=_promoteToDeal();
-  if(dealId){ var deals=getDeals(); var d=deals.find(function(x){return x.id===dealId;}); if(d){ d.pdfDone=true; d.updatedAt=Date.now(); saveDeals(deals); } }
+  if(dealId){ var deals=getDeals(); var d=deals.find(function(x){return x.id===dealId;}); if(d){ d.pdfDone=true; d.quoteStatus="generated"; d.quoteGeneratedAt=nowTs(); d.quoteGeneratedBy=_actor().name; d.quoteVersion=(d.quoteVersion||0)+1; if(!d.dealStatus||d.dealStatus==="quote") d.dealStatus="quoted"; d.updatedAt=nowTs(); saveDeals(deals); logActivity(dealId,"產生報價單","v"+((d.quoteVersion)||1)); } }
   if(type==='sub'){ var subs=getSubs(); var s=subs.find(function(x){return x.id===id;}); if(s){ s.status="done"; saveSubs(subs); } }
   if(typeof printQuote==="function") printQuote();
 }
@@ -4820,16 +5019,19 @@ function closeDealPop(){ document.getElementById("dealPopBg").style.display="non
 function caseConfirmDeal(){
   var deals=getDeals(); var x=deals.find(function(z){return z.id===_caseDealPopId;});
   if(!x){ closeDealPop(); return; }
-  x.status="done";
+  x.status="done"; x.dealStatus="deal_won";
   x.dealPrice=+document.getElementById("dp_price").value||0;
   x.depositAmount=+document.getElementById("dp_deposit").value||0;
+  x.balanceAmount=(+x.dealPrice||0)-(+x.depositAmount||0);
   var nt=document.getElementById("dp_notes").value; if(nt!=null) x.notes=nt;
-  x.updatedAt=Date.now(); saveDeals(deals);
-  closeDealPop(); renderCases(); toast("已標記成交");
+  if(!x.dealMarkedAt){ x.dealMarkedAt=nowTs(); x.dealMarkedBy=_actor().name; }
+  x.updatedAt=nowTs(); saveDeals(deals);
+  logActivity(x.id,"標記成交","成交價 "+x.dealPrice);
+  closeDealPop(); _caseRefresh(); toast("已標記成交");
 }
-function caseToggleDeposit(id){ var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(d){ d.depositPaid=true; d.updatedAt=Date.now(); saveDeals(deals); renderCases(); toast("已標記訂金已付"); } }
-function caseUploadContract(id,input){ if(typeof dealUploadContract==="function") dealUploadContract(id,input); setTimeout(function(){ var d=findCase(id); if(d){ d.updatedAt=Date.now(); saveDeals(getDeals()); } renderCases(); }, 500); }
-function caseMarkOrdered(id){ if(VIEW!=="admin"){ toast("僅限管理者可標記下定"); return; } var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; if(!(d.depositPaid&&d.hasContract)){ toast("需訂金已付且合約已上傳"); return; } d.ordered=true; d.updatedAt=Date.now(); saveDeals(deals); renderCases(); toast("已標記下定"); }
+function caseToggleDeposit(id){ var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; d.depositStatus="sales_marked_paid"; d.depositPaid=true; d.depositMarkedBySalesAt=nowTs(); d.depositMarkedBySalesBy=_actor().name; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"業務標記訂金已付",""); _caseRefresh(); toast("已標記訂金已付，待管理後台/會計確認"); }
+function caseUploadContract(id,input){ if(typeof dealUploadContract==="function") dealUploadContract(id,input); setTimeout(function(){ var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(d && d.hasContract){ d.contractStatus="signed_uploaded"; d.signedContractUploadedAt=nowTs(); d.signedContractUploadedBy=_actor().name; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"上傳已簽名合約",d.contractName||""); } _caseRefresh(); }, 600); }
+function caseMarkOrdered(id){ if(!isFinanceRole()){ toast("僅限管理後台/會計標記下定"); return; } var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; var c=normalizeCase(d); if(!(c.depositStatus==="confirmed" && c.contractStatus==="signed_uploaded")){ toast("需『訂金已確認』且『已上傳簽名合約』才能下定"); return; } d.orderStatus="ordered"; d.ordered=true; d.orderedAt=nowTs(); d.orderedBy=_actor().name; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"管理後台標記已下定",""); _caseRefresh(); toast("已標記下定"); }
 function onCaseConfigChanged(){ if(!editingCaseRef) return; if(_caseAutoT) clearTimeout(_caseAutoT); _caseAutoT=setTimeout(caseAutosave,900); }
 function caseAutosave(){
   _caseAutoT=null;
@@ -5334,7 +5536,7 @@ function renderAdminMenu(){
   const admin=role==="admin", sales=role==="sales";
   let items=[], label="管理 ▾";
   if(admin && VIEW==="admin"){
-    items=[["管理後台","showAdminDash"],["報價明細","openPerf"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
+    items=[["管理後台","showAdminDash"],["報價明細","openPerf"],["業務案件總覽","openAdminCases"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
     label="管理 ▾";
   } else if((admin && VIEW==="sales") || sales){
     const n=(typeof inboxCount==="function")?inboxCount():0;
@@ -6205,6 +6407,7 @@ function printContract(){
     <div class="p-cno-foot">合約編號：${cno}</div>
   `;
   closeContract();
+  if(typeof _afterContractPrint==="function"){ try{ _afterContractPrint(); }catch(e){} }
   setTimeout(function(){ window.print(); }, 50);
 }
 function printQuote(){
