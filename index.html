@@ -513,6 +513,64 @@
   #print-root .p-bottom{margin-top:auto;padding-top:28px}
 .so.wgt{border-top:1px dashed var(--line);margin-top:6px;padding-top:6px;font-weight:700;color:var(--ink)}.so.wgt .wq{font-weight:600;color:var(--red);font-size:11px}
 </style>
+<style>
+/* ===== 業務工作台 Dashboard ===== */
+#dashView{ display:none; max-width:1180px; margin:0 auto; padding:34px 22px 90px; }
+.dash-hi{ font-size:22px; font-weight:800; color:var(--ink,#1a1a18); margin:0 0 4px; }
+.dash-sub{ color:#8a857c; font-size:14px; margin:0 0 26px; }
+.dash-cards{ display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+@media(max-width:760px){ .dash-cards{ grid-template-columns:1fr; } }
+.dash-card{ position:relative; text-align:left; border:1px solid var(--line,#d9d6ce); border-radius:16px; padding:24px 22px; background:#fff; cursor:pointer; transition:transform .12s, box-shadow .2s, border-color .2s; display:flex; align-items:center; gap:16px; }
+.dash-card:hover{ transform:translateY(-2px); box-shadow:0 12px 30px rgba(0,0,0,.1); border-color:#111; }
+.dash-ic{ width:54px; height:54px; flex:none; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:26px; background:#f4f2ec; }
+.dash-card .dc-t{ font-size:18px; font-weight:800; color:#1a1a18; margin:0 0 3px; }
+.dash-card .dc-d{ font-size:13px; color:#8a857c; line-height:1.4; }
+.dash-card .dc-badge{ position:absolute; top:14px; right:16px; min-width:24px; height:24px; padding:0 7px; border-radius:12px; background:#b23b2e; color:#fff; font-size:13px; font-weight:800; display:none; align-items:center; justify-content:center; }
+.dash-card .dc-badge.on{ display:flex; }
+.dash-foot{ display:flex; gap:10px; margin-top:26px; }
+/* ===== 三步驟精靈 ===== */
+.wzbar{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+.wzsteps{ display:flex; gap:8px; flex-wrap:wrap; }
+.wzstep-ind{ font-size:13px; font-weight:700; color:#8a857c; background:#f1efe9; border:1px solid var(--line,#d9d6ce); border-radius:999px; padding:6px 14px; cursor:pointer; white-space:nowrap; }
+.wzstep-ind.active{ color:#fff; background:#171717; border-color:#171717; }
+.wznav{ display:flex; align-items:center; gap:10px; margin:2px 0 8px; }
+.wznav .spacer{ flex:1; }
+/* ===== 我的客戶代碼 ===== */
+.code-box{ text-align:center; background:#f7f5ef; border:1px dashed #c9a24b; border-radius:14px; padding:20px 16px; margin:14px 0; }
+.code-box .cb-lbl{ font-size:12px; letter-spacing:.1em; color:#8a857c; }
+.code-box .cb-code{ font-size:30px; font-weight:800; letter-spacing:.03em; color:#111; margin:6px 0 0; user-select:all; word-break:break-all; }
+.code-actions{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+@media(max-width:520px){ .code-actions{ grid-template-columns:1fr; } }
+</style>
+<style>
+/* 客戶案件 */
+#casesView{ display:none; max-width:1180px; margin:0 auto; padding:24px 22px 90px; }
+.cases-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+.cases-head h2{ margin:0; font-size:22px; }
+.case-stats, .dash-stats{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px; }
+@media(max-width:760px){ .case-stats, .dash-stats{ grid-template-columns:repeat(2,1fr); } }
+.cstat{ background:#fff; border:1px solid var(--line,#d9d6ce); border-radius:14px; padding:13px 15px; }
+.cstat .n{ font-size:26px; font-weight:800; color:#111; line-height:1; }
+.cstat .l{ font-size:12px; color:#8a857c; margin-top:5px; }
+.case-filters{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+.case-card{ background:#fff; border:1px solid var(--line,#d9d6ce); border-radius:16px; padding:18px 20px; margin-bottom:14px; }
+.case-card .cc-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.case-card .cc-cust{ font-size:17px; font-weight:800; color:#1a1a18; }
+.case-card .cc-sub{ font-size:13px; color:#8a857c; margin-top:3px; }
+.case-badge{ font-size:12px; font-weight:800; padding:5px 12px; border-radius:999px; white-space:nowrap; }
+.cb-submitted{ background:#eef1ff; color:#3a4bb3; }
+.cb-quoted{ background:#e6f2ff; color:#1f6fb2; }
+.cb-dealt{ background:#fff2e0; color:#b5701a; }
+.cb-ready{ background:#eafaf0; color:#1b7e42; }
+.cb-ordered{ background:#e7ffe7; color:#137a13; }
+.case-money{ font-size:14px; font-weight:700; color:#222; margin:10px 0 0; }
+.case-note{ font-size:12px; color:#8a857c; margin-top:6px; white-space:pre-wrap; }
+.case-actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px; padding-top:12px; border-top:1px dashed var(--line,#e5e2da); }
+#dealPopBg{ display:none; position:fixed; inset:0; z-index:2147483000; background:rgba(0,0,0,.5); align-items:center; justify-content:center; padding:20px; }
+#dealPopBg .modal-card{ max-width:420px; width:100%; }
+.dp-field{ margin-bottom:12px; }
+.dp-field label{ display:block; font-size:13px; color:#555; margin-bottom:6px; font-weight:600; }
+</style>
 </head>
 <body>
 
@@ -538,10 +596,94 @@
   </div>
 </header>
 
-<div class="wrap">
+<!-- ===== 業務工作台 ===== -->
+<div id="dashView">
+  <div class="dash-hi" id="dashHi">工作台</div>
+  <div class="dash-sub">請選擇要進行的作業</div>
+  <div class="dash-stats" id="dashStats"></div>
+  <div class="dash-cards">
+    <div class="dash-card" onclick="caseNew()">
+      <div class="dash-ic">📝</div>
+      <div><div class="dc-t">新增案件</div><div class="dc-d">現場報價：選車 → 選配 → 客戶</div></div>
+    </div>
+    <div class="dash-card" onclick="openCases()">
+      <div class="dash-ic">🗂️</div>
+      <div><div class="dc-t">客戶案件</div><div class="dc-d">所有案件一路到底：報價・成交・合約</div></div>
+      <span class="dc-badge" id="dashSubBadge">0</span>
+    </div>
+    <div class="dash-card" onclick="openMyCode()">
+      <div class="dash-ic">🔑</div>
+      <div><div class="dc-t">我的客戶代碼</div><div class="dc-d">給客戶的登入代碼與連結</div></div>
+    </div>
+  </div>
+  <div class="dash-foot">
+    <button class="btn ghost" onclick="openChangePw('sales-self')">帳號設定</button>
+    <button class="btn ghost" onclick="logout()">登出</button>
+  </div>
+</div>
+
+<!-- ===== 我的客戶代碼 modal ===== -->
+<div id="codeBg" class="modal-bg" style="display:none">
+  <div class="modal-card" style="max-width:460px">
+    <button class="modal-x" onclick="closeMyCode()">✕</button>
+    <h3 style="margin:0 0 10px">我的客戶代碼</h3>
+    <div id="codeBody"></div>
+  </div>
+</div>
+
+<!-- ===== 客戶案件 ===== -->
+<div id="casesView">
+  <div class="cases-head">
+    <h2>客戶案件</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost" onclick="showDashboard()">← 工作台</button>
+      <button class="btn primary" onclick="caseNew()">＋ 新增案件</button>
+    </div>
+  </div>
+  <div class="case-stats" id="caseStats"></div>
+  <div class="case-filters">
+    <input class="t" id="caseSearch" placeholder="搜尋客戶 / 車身碼 / 車型…" oninput="renderCases()" style="max-width:300px">
+    <select class="t" id="caseStageFilter" onchange="renderCases()" style="max-width:170px">
+      <option value="all">全部狀態</option>
+      <option value="submitted">客戶已送出</option>
+      <option value="quoted">已報價</option>
+      <option value="dealt">已成交</option>
+      <option value="contract">待上傳合約</option>
+      <option value="ready">待公司下定</option>
+      <option value="ordered">已下定</option>
+    </select>
+  </div>
+  <div id="casesBody"></div>
+</div>
+
+<!-- ===== 標記成交 popup ===== -->
+<div id="dealPopBg">
+  <div class="modal-card">
+    <button class="modal-x" onclick="closeDealPop()">✕</button>
+    <h3 style="margin:0 0 14px">標記成交</h3>
+    <div class="dp-field"><label>成交金額 NT$</label><input class="t" id="dp_price" type="number" placeholder="實際成交金額"></div>
+    <div class="dp-field"><label>訂金金額 NT$</label><input class="t" id="dp_deposit" type="number" placeholder="收取的訂金"></div>
+    <div class="dp-field"><label>備註</label><textarea class="t" id="dp_notes" rows="2" placeholder="議價、交車安排…"></textarea></div>
+    <button class="btn primary" style="width:100%" onclick="caseConfirmDeal()">確認成交</button>
+  </div>
+</div>
+
+
+<div class="wrap" id="quoteWrap">
 
   <!-- LEFT -->
   <div class="col-main">
+
+    <div class="wzbar">
+      <button class="mini" id="wzBack" onclick="showDashboard()" style="border-color:#555;background:#222;color:#fff;display:none">← 工作台</button>
+      <div class="wzsteps">
+        <span class="wzstep-ind active" data-s="1" onclick="goStep(1)">1 · 選車</span>
+        <span class="wzstep-ind" data-s="2" onclick="goStep(2)">2 · 配備 / 顏色 / 貼紙</span>
+        <span class="wzstep-ind" data-s="3" onclick="goStep(3)">3 · 客戶 / 報價</span>
+      </div>
+    </div>
+
+    <div class="wzstep" id="wzStep1">
 
     <div class="panel">
       <h2><span class="n">1</span> 選擇品牌 & 車型 <button class="mini" id="hidToggleBtn" style="border-color:#555;background:#222;color:#fff;display:none;float:right" onclick="toggleStaffHidden()">顯示隱藏車款</button></h2>
@@ -554,6 +696,11 @@
         <div id="cliffNotes"></div>
       </div>
     </div>
+
+      <div class="wznav"><span class="spacer"></span><button class="btn primary" onclick="goStep(2)">下一步：配備・顏色 →</button></div>
+    </div><!--/wzStep1-->
+
+    <div class="wzstep" id="wzStep2" style="display:none">
 
     <div class="panel" id="inclPanel" style="display:none">
       <h2><span class="n">2</span> 標準配備（已內含）</h2>
@@ -585,6 +732,11 @@
       <div id="sigOptBody"></div>
     </div>
 
+      <div class="wznav"><button class="btn ghost" onclick="goStep(1)">← 上一步</button><span class="spacer"></span><button class="btn primary" onclick="goStep(3)">下一步：客戶資料 →</button></div>
+    </div><!--/wzStep2-->
+
+    <div class="wzstep" id="wzStep3" style="display:none">
+
     <div class="panel" id="custPanel" style="display:none">
       <h2><span class="n">8</span> <span id="custHeadTxt">客戶資料</span></h2>
       <div class="body">
@@ -605,6 +757,9 @@
         <div class="field" style="margin-top:12px"><label class="f" id="custNotesLbl">備註 / Bespoke 需求</label><textarea class="t" id="c_notes" placeholder="特殊需求、Bespoke（POA）、交車安排、想諮詢的問題…"></textarea></div>
       </div>
     </div>
+
+      <div class="wznav"><button class="btn ghost" onclick="goStep(2)">← 上一步</button><span class="spacer"></span></div>
+    </div><!--/wzStep3-->
 
 
   </div>
@@ -642,8 +797,8 @@
             <textarea id="sumNotes" rows="2" placeholder="想跟業務說的話、特殊需求…" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;resize:vertical;background:#fff;color:var(--ink)"></textarea>
           </div>
           <div class="btns">
-            <button class="btn red" id="btnPrint" onclick="printQuote()">列印報價單</button>
-            <button class="btn" id="btnContract" onclick="printContractDirect()" style="border-color:#111">📄 列印合約書</button>
+            <button class="btn red" id="btnPrint" onclick="printQuote()">產生報價單</button>
+            <button class="btn primary" id="btnCaseDone" style="display:none" onclick="caseFinish()">✓ 完成</button>
             <div class="row2" id="btnSaveRow">
               <button class="btn primary" onclick="saveQuote()">儲存報價</button>
               <button class="btn" onclick="resetQuote()">新報價</button>
@@ -1055,7 +1210,7 @@
 <div id="inboxBg" class="modal-bg" style="display:none">
   <div class="modal-card" style="max-width:560px;max-height:82vh;overflow:auto">
     <button class="modal-x" onclick="closeInbox()">✕</button>
-    <h3 style="margin:0 0 4px">客戶送單</h3>
+    <h3 style="margin:0 0 4px">客戶送來的單</h3>
     <p class="hint" style="margin:0 0 14px">客戶自選後送出的清單，可載入成報價。</p>
     <div class="filterbar">
       <input class="t" id="inboxSearch" placeholder="搜尋名字或車身碼…" oninput="renderInbox()">
@@ -1592,7 +1747,7 @@ function cliffCats(model,trim){
       ["Maxi 底盤 4,250kg 180hp 8速自排（HD）",{STD:is640?5669.72:"na"},60],
       ["全 LED 頭燈（含 LED 日行燈、動態方向燈）",{STD:812.71},0],
       ["胎壓偵測",{STD:S},0.8],
-      ["拖車電路預接",{STD:272.87},0],
+      ["拖車電路預接",{STD:S},0],
       ["備胎（含固定架與千斤頂，取代 Fix & Go）",{STD:221.11},30],
       ["90 公升油箱",{STD:S},23],
     ]],
@@ -2663,6 +2818,7 @@ CARS.forEach(c=>{
   let bake=0;
   if(has("胎壓偵測")) bake += 210.76;
   if(has("90 公升油箱")) bake += 36.24;
+  if(has("拖車電路預接")) bake += 272.87;
   if(bake>0){
     if(c.variants&&c.variants.STD&&typeof c.variants.STD.base==="number") c.variants.STD.base += bake;
     if(typeof c.dpp==="number") c.dpp += bake;
@@ -3077,7 +3233,7 @@ function changeRolePass(kind){
   a[field]=String(np).trim(); setAccounts(a); toast(name+"密碼已更新");
 }
 function openDeal(){
-  document.getElementById("dealTitle").textContent="我的成交管理"+(currentSales?`（${currentSales.u}）`:"");
+  document.getElementById("dealTitle").textContent="成交 / 訂金 / 合約"+(currentSales?`（${currentSales.u}）`:"");
   fillYearSel(document.getElementById("dealYear"), getDeals().filter(d=>!currentSales||d.sales===currentSales.u).map(d=>d.ts));
   document.getElementById("dealSearch").value=""; document.getElementById("dealMonth").value="all";
   renderDeals();
@@ -3117,6 +3273,7 @@ function renderDeals(){
         <button class="btn ${d.depositPaid?'':'ghost'}" style="padding:4px 12px;${d.depositPaid?'background:#1b6e3a;border-color:#1b6e3a;color:#fff':''}" onclick="dealToggleDeposit('${d.id}')">${d.depositPaid?'✓ 已付訂金':'標記已付訂金'}</button>
         <label class="btn ghost" style="padding:4px 12px;cursor:pointer">${d.hasContract?'重新上傳合約':'上傳合約'}<input type="file" accept="application/pdf,image/*" style="display:none" onchange="dealUploadContract('${d.id}',this)"></label>
         ${d.hasContract?`<button class="btn ghost" style="padding:4px 12px" onclick="viewContract('${d.id}')">檢視合約</button><span class="hint">${d.contractName||''}</span>`:'<span class="hint">尚未上傳合約</span>'}
+        <button class="btn ghost" style="padding:4px 12px" onclick="printDealContract('${d.quoteId||''}')">🖨 列印合約書</button>
         ${d.ordered?'<span class="qr-st done">已下定</span>':''}
       </div>
     </div>`;
@@ -3179,10 +3336,13 @@ function delDeal(id){
 function updateSummaryActions(){
   const vip=role==="vip";
   const p=document.getElementById("btnPrint"), sr=document.getElementById("btnSaveRow"), vs=document.getElementById("btnVipSubmit"), kb=document.getElementById("btnContract");
+  const done=document.getElementById("btnCaseDone");
+  const caseMode = !vip && (editingCaseRef || _caseMode==="new");
   if(p) p.style.display=vip?"none":"";
-  if(sr) sr.style.display=vip?"none":"";
-  if(kb) kb.style.display=vip?"none":"";
+  if(kb) kb.style.display="none";                          // 合約書已移到案件頁
   if(vs) vs.style.display=vip?"":"none";
+  if(sr) sr.style.display=(vip||caseMode)?"none":"";       // 案件流程隱藏「儲存/新報價」（自動儲存）
+  if(done){ done.style.display=caseMode?"":"none"; done.textContent = editingCaseRef ? "✓ 完成（回案件）" : "✓ 建立案件"; }
 }
 
 function init(){
@@ -4011,6 +4171,7 @@ function updateSummary(){
   if(_w.has) optHtml += `<div class="so wgt"><span>選配附加重量 Added weight</span><span>${_w.sum>=0?"+":""}${_w.sum.toFixed(1)} kg${_w.unknown?' <small class="wq">＋待定項</small>':""}</span></div>`;
   sumOpts.innerHTML = optHtml;
   sumTotal.textContent = sales ? ntfmtRaw(total) : (CURSYM+Math.round(total).toLocaleString("en-GB"));
+  if(typeof onCaseConfigChanged==="function") onCaseConfigChanged();
   { const wb=document.getElementById("carWeightBox");   // 本車定價：只在「管理後台檢視」顯示
     if(wb){ if(VIEW==="admin" && cur){ wb.style.display=""; syncPriceCfgInputs(cur.id); }
       else wb.style.display="none"; } }
@@ -4180,6 +4341,11 @@ function logout(){
   stopAutoLogout();
   role=null; currentSales=null; vipSales=null; customerName=""; VIEW="sales";
   { const _a=document.getElementById("acctBg"); if(_a) _a.style.display="none"; const _c=document.getElementById("cashierBg"); if(_c) _c.style.display="none"; }
+  if(typeof hideDashboard==="function") hideDashboard();   // 登出後清掉工作台，換人登入不會看到殘留
+  { const _cv=document.getElementById("casesView"); if(_cv) _cv.style.display="none"; }
+  editingCaseRef=null; _caseMode=null;
+  { const _wb=document.getElementById("wzBack"); if(_wb) _wb.style.display="none"; }
+  { const _cb=document.getElementById("codeBg"); if(_cb) _cb.style.display="none"; }
   resetSelectionUI();
   updateUserBadge();
   renderAdminMenu(); closeAdminMenu();
@@ -4214,7 +4380,7 @@ function doLogin(){
   if(acc && pass===acc.p){
     role="sales";
     currentSales={u:acc.u,name:acc.name||"",title:acc.title,phone:acc.phone||"",email:acc.email||"",line:acc.line||""};
-    closeLogin(); applyView("sales");
+    closeLogin(); applyView("sales"); showDashboard();
     if(document.getElementById("c_sales")) c_sales.value=[acc.title,acc.name].filter(Boolean).join(" ")+`（${acc.u}）`;
     toast(`已登入：${acc.u}`);
   } else { err.textContent="密碼錯誤"; err.style.display=""; }
@@ -4226,13 +4392,288 @@ function openChangePw(target){
         oldRow=document.getElementById("pwOldRow"), err=document.getElementById("pwErr");
   err.style.display="none"; document.getElementById("pwOld").value=""; document.getElementById("pwNew").value="";
   if(target==="admin"){ title.textContent="修改管理後台密碼"; userRow.style.display="none"; oldRow.style.display=""; }
-  else if(target==="sales-self"){ title.textContent=`修改密碼 · ${currentSales.u}`; userRow.style.display="none"; oldRow.style.display=""; }
+  else if(target==="sales-self"){ title.textContent=`帳號設定 · ${currentSales.u}`; userRow.style.display="none"; oldRow.style.display=""; }
   else { title.textContent="重設業務密碼（管理後台）"; userRow.style.display=""; oldRow.style.display="none";
     document.getElementById("pwUser").innerHTML=a.sales.map(s=>`<option value="${s.u}">${s.u}（${s.title}）</option>`).join(""); }
   document.getElementById("pwBg").style.display="flex";
 }
 function openSalesPwAdmin(){ openChangePw("sales-admin"); }
 function closePw(){ document.getElementById("pwBg").style.display="none"; }
+
+/* ===== 業務工作台 Dashboard ===== */
+function showDashboard(){
+  if(role!=="sales") return;
+  editingCaseRef=null; _caseMode=null;
+  var c=document.getElementById("casesView"); if(c) c.style.display="none";
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
+  var d=document.getElementById("dashView"); if(d) d.style.display="block";
+  var b=document.getElementById("wzBack"); if(b) b.style.display="";
+  refreshDash(); window.scrollTo(0,0);
+}
+function hideDashboard(){
+  var d=document.getElementById("dashView"); if(d) d.style.display="none";
+  var c=document.getElementById("casesView"); if(c) c.style.display="none";
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="";
+}
+function refreshDash(){
+  try{
+    var hi=document.getElementById("dashHi");
+    if(hi) hi.textContent = currentSales ? ("Hi，"+([currentSales.title,currentSales.name].filter(Boolean).join(" ")||currentSales.u)) : "工作台";
+    var st=(typeof caseStats==="function")?caseStats():{submitted:0,quoted:0,dealt:0,contract:0,ready:0};
+    var badge=document.getElementById("dashSubBadge");
+    if(badge){ badge.textContent=st.submitted; badge.classList.toggle("on", st.submitted>0); }
+    var ds=document.getElementById("dashStats");
+    if(ds){ var defs=[["客戶已送出",st.submitted],["已報價",st.quoted],["已成交",st.dealt],["待上傳合約",st.contract],["待公司下定",st.ready]];
+      ds.innerHTML=defs.map(function(d){return '<div class="cstat"><div class="n">'+d[1]+'</div><div class="l">'+d[0]+'</div></div>';}).join(""); }
+  }catch(e){}
+}
+function dashNewQuote(){ hideDashboard(); if(typeof goStep==="function") goStep(1); window.scrollTo(0,0); }
+/* ===== 三步驟精靈 ===== */
+function goStep(n){
+  [1,2,3].forEach(function(i){ var el=document.getElementById("wzStep"+i); if(el) el.style.display=(i===n)?"":"none"; });
+  var inds=document.querySelectorAll(".wzstep-ind");
+  for(var j=0;j<inds.length;j++){ inds[j].classList.toggle("active", (+inds[j].getAttribute("data-s"))===n); }
+  window.scrollTo(0,0);
+}
+/* ===== 我的客戶代碼 ===== */
+var VIP_ENTRY_URL="https://oma2026.github.io/vipentry/";
+function copyFallback(txt){ try{ var ta=document.createElement("textarea"); ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }catch(e){} }
+function copyText(txt, okMsg){
+  function done(){ if(typeof toast==="function") toast(okMsg||"已複製"); }
+  try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, function(){ copyFallback(txt); done(); }); return; } }catch(e){}
+  copyFallback(txt); done();
+}
+function openMyCode(){
+  var s=currentSales; if(!s){ if(typeof toast==="function") toast("請先以業務身分登入"); return; }
+  var code=(typeof effectiveVip==="function")?effectiveVip(s):((typeof getVipPrefix==="function"?getVipPrefix():"2026")+s.u);
+  var who=[s.title,s.name].filter(Boolean).join(" ")||s.u;
+  var body=document.getElementById("codeBody");
+  if(body){
+    body.innerHTML=
+      '<div class="hint" style="margin-bottom:2px">業務姓名</div>'
+      +'<div style="font-size:17px;font-weight:800;color:#1a1a18">'+who+'（'+s.u+'）</div>'
+      +'<div class="code-box"><div class="cb-lbl">客戶登入代碼</div><div class="cb-code" id="myCodeVal">'+code+'</div></div>'
+      +'<div class="code-actions">'
+      +'<button class="btn primary" onclick="copyText(document.getElementById(\'myCodeVal\').textContent,\'已複製代碼\')">複製代碼</button>'
+      +'<button class="btn" onclick="copyText(VIP_ENTRY_URL,\'已複製客戶登入連結\')">複製客戶登入連結</button>'
+      +'</div>'
+      +'<div class="hint" style="margin-top:16px;line-height:1.7">把這組代碼給您的客戶。客戶到登入連結 <b>'+VIP_ENTRY_URL+'</b> 輸入後，送出的單就會進到您的「客戶送來的單」。</div>';
+  }
+  document.getElementById("codeBg").style.display="flex";
+}
+function closeMyCode(){ document.getElementById("codeBg").style.display="none"; }
+
+/* ===================== 客戶案件（統一流程） ===================== */
+var editingCaseRef=null;   // {type:'sub'|'deal', id}
+var _caseMode=null;        // 'new' | 'edit' | null
+var _caseDealPopId=null;
+var _caseAutoT=null;
+
+function findCase(id){ return getDeals().find(function(d){return d.id===id;}); }
+function _subCarName(s){ var c=(typeof CARS!=="undefined")&&CARS.find(function(x){return x.id===s.carId;}); return c?(c.brand+" "+c.name):(s.carName||""); }
+
+function _caseItems(){
+  var deals=getDeals().filter(function(d){ return !currentSales || d.sales===currentSales.u; });
+  var subs=getSubs().filter(function(s){ return (!currentSales || s.salesCode===currentSales.u) && s.status!=="done"; });
+  var out=[];
+  subs.forEach(function(s){ out.push({type:'sub', id:s.id, ts:s.ts, updatedAt:s.ts, cust:(s.customer&&s.customer!=="（未填）")?s.customer:(s.customer||"（未填客戶）"), vin:s.vin||"", car:_subCarName(s), notes:s.notes||"", _raw:s}); });
+  deals.forEach(function(d){ out.push({type:'deal', id:d.id, ts:d.ts, updatedAt:d.updatedAt||d.ts, cust:d.cust||"（未填客戶）", vin:d.vin||"", car:d.car||"", notes:d.notes||"", _raw:d}); });
+  out.sort(function(a,b){ return (b.updatedAt||b.ts||0)-(a.updatedAt||a.ts||0); });
+  return out;
+}
+function caseStageKey(it){
+  if(it.type==='sub') return "submitted";
+  var d=it._raw;
+  if(d.ordered) return "ordered";
+  if(d.status==="done") return (d.depositPaid && d.hasContract) ? "ready" : "dealt";
+  if(d.pdfDone) return "quoted";
+  return "draft";
+}
+function caseStageLabel(k){ return ({submitted:"客戶已送出", draft:"待報價", quoted:"已報價", dealt:"已成交", ready:"等待公司下定", ordered:"已下定"})[k]||k; }
+function caseStats(){
+  var deals=getDeals().filter(function(d){return !currentSales||d.sales===currentSales.u;});
+  var subs=getSubs().filter(function(s){return (!currentSales||s.salesCode===currentSales.u)&&s.status!=="done";});
+  var st={submitted:subs.length, quoted:0, dealt:0, contract:0, ready:0};
+  deals.forEach(function(d){
+    if(d.ordered) return;
+    if(d.status==="done"){ var rdy=d.depositPaid&&d.hasContract; if(rdy) st.ready++; else st.dealt++; if(!d.hasContract) st.contract++; }
+    else if(d.pdfDone) st.quoted++;
+  });
+  return st;
+}
+function caseButtonsHTML(it){
+  var k=caseStageKey(it), d=it._raw, b=[];
+  var openA='onclick="caseOpen(\''+it.type+'\',\''+it.id+'\')"';
+  var pdfA='onclick="caseGeneratePDF(\''+it.type+'\',\''+it.id+'\')"';
+  if(k==="submitted" || k==="draft"){
+    b.push('<button class="btn ghost" '+openA+'>查看 / 修改</button>');
+    b.push('<button class="btn primary" '+pdfA+'>產生報價單</button>');
+  } else if(k==="quoted"){
+    b.push('<button class="btn ghost" '+pdfA+'>下載報價單</button>');
+    b.push('<button class="btn ghost" '+openA+'>修改</button>');
+    b.push('<button class="btn primary" onclick="caseMarkDeal(\''+it.id+'\')">標記成交</button>');
+  } else if(k==="dealt"){
+    if(!d.depositPaid) b.push('<button class="btn primary" onclick="caseToggleDeposit(\''+it.id+'\')">標記訂金已付</button>');
+    if(!d.hasContract) b.push('<label class="btn ghost" style="cursor:pointer">上傳合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+it.id+'\',this)"></label>');
+    if(d.hasContract) b.push('<button class="btn ghost" onclick="viewContract(\''+it.id+'\')">檢視合約</button>');
+  } else if(k==="ready"){
+    b.push('<span class="case-badge cb-ready">✅ 資料齊全，等待公司下定</span>');
+    if(d.hasContract) b.push('<button class="btn ghost" onclick="viewContract(\''+it.id+'\')">檢視合約</button>');
+    if(VIEW==="admin") b.push('<button class="btn primary" onclick="caseMarkOrdered(\''+it.id+'\')">標記已下定</button>');
+  } else if(k==="ordered"){
+    b.push('<span class="case-badge cb-ordered">✓ 已完成（已下定）</span>');
+    if(d.hasContract) b.push('<button class="btn ghost" onclick="viewContract(\''+it.id+'\')">檢視合約</button>');
+  }
+  return b.join(" ");
+}
+function renderCases(){
+  var st=caseStats();
+  var sd=[["submitted","客戶已送出",st.submitted],["quoted","已報價",st.quoted],["dealt","已成交",st.dealt],["contract","待上傳合約",st.contract],["ready","待公司下定",st.ready]];
+  var se=document.getElementById("caseStats");
+  if(se) se.innerHTML=sd.map(function(s){return '<div class="cstat"><div class="n">'+s[2]+'</div><div class="l">'+s[1]+'</div></div>';}).join("");
+  var q=((document.getElementById("caseSearch")||{}).value||"").trim().toLowerCase();
+  var fk=(document.getElementById("caseStageFilter")||{}).value||"all";
+  var items=_caseItems().filter(function(it){
+    if(q){ var hay=((it.cust||"")+" "+(it.vin||"")+" "+(it.car||"")).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+    if(fk!=="all"){ var k=caseStageKey(it), d=it._raw;
+      if(fk==="contract"){ if(!(it.type==='deal'&&d.status==="done"&&!d.hasContract&&!d.ordered)) return false; }
+      else if(k!==fk) return false;
+    }
+    return true;
+  });
+  var body=document.getElementById("casesBody");
+  if(!body) return;
+  if(!items.length){ body.innerHTML='<div class="hint" style="padding:20px 2px">目前沒有符合的案件。客戶從 VIP 區送單、或按「＋ 新增案件」都會出現在這裡。</div>'; return; }
+  body.innerHTML=items.map(function(it){
+    var k=caseStageKey(it), d=it._raw;
+    var badgeCls=({submitted:"cb-submitted",draft:"cb-submitted",quoted:"cb-quoted",dealt:"cb-dealt",ready:"cb-ready",ordered:"cb-ordered"})[k]||"cb-submitted";
+    var money="";
+    if(it.type==='deal'){
+      money='報價 NT$'+((d.quote||0).toLocaleString("en-US"));
+      if(d.status==="done"&&d.dealPrice) money+=' ・ 成交 NT$'+((+d.dealPrice).toLocaleString("en-US"));
+      if(d.depositPaid) money+=' ・ 訂金'+(d.depositAmount?(' NT$'+(+d.depositAmount).toLocaleString("en-US")):'已付');
+    }
+    return '<div class="case-card">'
+      +'<div class="cc-top"><div><div class="cc-cust">'+it.cust+'</div><div class="cc-sub">'+(it.car||"—")+(it.vin?(" · 車身碼 "+it.vin):"")+" · "+fmtDT(it.updatedAt||it.ts)+'</div></div><span class="case-badge '+badgeCls+'">'+caseStageLabel(k)+'</span></div>'
+      +(money?'<div class="case-money">'+money+'</div>':'')
+      +(it.notes?'<div class="case-note">備註：'+it.notes+'</div>':'')
+      +'<div class="case-actions">'+caseButtonsHTML(it)+'</div>'
+      +'</div>';
+  }).join("");
+}
+function showQuoteEditor(){
+  var c=document.getElementById("casesView"); if(c) c.style.display="none";
+  var d=document.getElementById("dashView"); if(d) d.style.display="none";
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="";
+  var b=document.getElementById("wzBack"); if(b) b.style.display=(role==="sales")?"":"none";
+}
+function openCases(){
+  editingCaseRef=null; _caseMode=null;
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
+  var d=document.getElementById("dashView"); if(d) d.style.display="none";
+  var c=document.getElementById("casesView"); if(c) c.style.display="block";
+  if(typeof updateSummaryActions==="function") updateSummaryActions();
+  renderCases(); window.scrollTo(0,0);
+}
+function closeCases(){ var c=document.getElementById("casesView"); if(c) c.style.display="none"; }
+function caseNew(){
+  editingCaseRef=null; _caseMode="new";
+  if(typeof resetSelectionUI==="function") resetSelectionUI();
+  showQuoteEditor(); if(typeof goStep==="function") goStep(1);
+  if(typeof updateSummary==="function") updateSummary();
+  if(typeof updateSummaryActions==="function") updateSummaryActions();
+  window.scrollTo(0,0);
+}
+function caseOpen(type,id){
+  editingCaseRef={type:type,id:id}; _caseMode="edit";
+  if(type==='sub'){ loadSub(id); }
+  else {
+    var d=findCase(id); if(!d){ toast("找不到案件"); editingCaseRef=null; return; }
+    if(d.quoteId && getQuotes().find(function(x){return x.id===d.quoteId;})){ loadQuote(d.quoteId); }
+    else if(d.carId){
+      pickCar(d.carId); pickVariant(d.variant);
+      selected=JSON.parse(JSON.stringify(d.sel||{})); sigOptSel=JSON.parse(JSON.stringify(d.sigSel||{}));
+      if(document.getElementById("c_name"))c_name.value=d.cust||""; if(document.getElementById("c_vin"))c_vin.value=d.vin||""; if(document.getElementById("c_notes"))c_notes.value=d.notes||"";
+      if(typeof renderOptions==="function") renderOptions(); if(typeof renderSigOpts==="function") renderSigOpts(); if(typeof updateSummary==="function") updateSummary();
+    } else { toast("此為舊資料，無法載入完整內容；仍可標記成交 / 上傳合約"); }
+  }
+  showQuoteEditor(); if(typeof goStep==="function") goStep(1);
+  if(typeof updateSummaryActions==="function") updateSummaryActions();
+  window.scrollTo(0,0);
+}
+function _promoteToDeal(){
+  saveQuote(true);                          // 靜默：建立/更新報價 + 同步成交管理（案件）
+  var qid=editingId;
+  var d=getDeals().find(function(x){return x.quoteId===qid;});
+  if(d){ if(!d.source) d.source=(editingCaseRef&&editingCaseRef.type==='sub')?"submission":"onsite"; d.updatedAt=Date.now(); saveDeals(getDeals()); editingCaseRef={type:'deal',id:d.id}; return d.id; }
+  return null;
+}
+function caseGeneratePDF(type,id){
+  if(editingCaseRef && editingCaseRef.id===id && cur && variant){ _caseDoPDF(type,id); }
+  else { caseOpen(type,id); setTimeout(function(){ _caseDoPDF(type,id); }, 550); }
+}
+function _caseDoPDF(type,id){
+  if(!cur||!variant){ toast("此案件缺少可產生報價的內容"); return; }
+  if(typeof configError==="function" && configError()){ toast(configError()); return; }
+  var dealId=_promoteToDeal();
+  if(dealId){ var deals=getDeals(); var d=deals.find(function(x){return x.id===dealId;}); if(d){ d.pdfDone=true; d.updatedAt=Date.now(); saveDeals(deals); } }
+  if(type==='sub'){ var subs=getSubs(); var s=subs.find(function(x){return x.id===id;}); if(s){ s.status="done"; saveSubs(subs); } }
+  if(typeof printQuote==="function") printQuote();
+}
+function caseMarkDeal(id){
+  _caseDealPopId=id; var d=findCase(id);
+  document.getElementById("dp_price").value=(d&&d.dealPrice)||"";
+  document.getElementById("dp_deposit").value=(d&&d.depositAmount)||"";
+  document.getElementById("dp_notes").value=(d&&d.notes)||"";
+  document.getElementById("dealPopBg").style.display="flex";
+}
+function closeDealPop(){ document.getElementById("dealPopBg").style.display="none"; _caseDealPopId=null; }
+function caseConfirmDeal(){
+  var deals=getDeals(); var x=deals.find(function(z){return z.id===_caseDealPopId;});
+  if(!x){ closeDealPop(); return; }
+  x.status="done";
+  x.dealPrice=+document.getElementById("dp_price").value||0;
+  x.depositAmount=+document.getElementById("dp_deposit").value||0;
+  var nt=document.getElementById("dp_notes").value; if(nt!=null) x.notes=nt;
+  x.updatedAt=Date.now(); saveDeals(deals);
+  closeDealPop(); renderCases(); toast("已標記成交");
+}
+function caseToggleDeposit(id){ var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(d){ d.depositPaid=true; d.updatedAt=Date.now(); saveDeals(deals); renderCases(); toast("已標記訂金已付"); } }
+function caseUploadContract(id,input){ if(typeof dealUploadContract==="function") dealUploadContract(id,input); setTimeout(function(){ var d=findCase(id); if(d){ d.updatedAt=Date.now(); saveDeals(getDeals()); } renderCases(); }, 500); }
+function caseMarkOrdered(id){ if(VIEW!=="admin"){ toast("僅限管理者可標記下定"); return; } var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; if(!(d.depositPaid&&d.hasContract)){ toast("需訂金已付且合約已上傳"); return; } d.ordered=true; d.updatedAt=Date.now(); saveDeals(deals); renderCases(); toast("已標記下定"); }
+function onCaseConfigChanged(){ if(!editingCaseRef) return; if(_caseAutoT) clearTimeout(_caseAutoT); _caseAutoT=setTimeout(caseAutosave,900); }
+function caseAutosave(){
+  _caseAutoT=null;
+  if(!editingCaseRef || !cur || !variant) return;
+  if(typeof configError==="function" && configError()) return;
+  if(editingCaseRef.type==='sub'){
+    var subs=getSubs(); var s=subs.find(function(x){return x.id===editingCaseRef.id;});
+    if(s){ s.sel=JSON.parse(JSON.stringify(selected)); s.sigSel=JSON.parse(JSON.stringify(sigOptSel)); s.carId=cur.id; s.variant=variant;
+      if(document.getElementById("c_name")&&c_name.value) s.customer=c_name.value;
+      if(document.getElementById("c_vin")) s.vin=c_vin.value||s.vin;
+      if(document.getElementById("c_notes")) s.notes=c_notes.value;
+      saveSubs(subs); }
+  } else { _promoteToDeal(); }
+}
+function caseFinish(){
+  if(cur&&variant && !(typeof configError==="function" && configError())){
+    if(editingCaseRef && editingCaseRef.type==='sub'){ caseAutosave(); }
+    else { _promoteToDeal(); }
+  }
+  editingCaseRef=null; _caseMode=null;
+  openCases();
+}
+
+/* ===== 從成交頁列印合約書 ===== */
+function printDealContract(quoteId){
+  if(!quoteId){ if(typeof toast==="function") toast("此筆沒有可開啟的報價，無法列印合約（請重做一份並儲存）"); return; }
+  if(typeof getQuotes==="function" && !getQuotes().find(function(x){return x.id===quoteId;})){ if(typeof toast==="function") toast("找不到報價資料"); return; }
+  if(typeof closeDeal==="function") closeDeal();
+  if(typeof hideDashboard==="function") hideDashboard();
+  if(typeof loadQuote==="function") loadQuote(quoteId);
+  setTimeout(function(){ try{ printContractDirect(); }catch(e){} }, 350);
+}
+
 let perfExpanded={};
 // ===== 車型管理（隱藏既有車型 / 新增自訂車型，存本機）=====
 const LS_CUSTOMCARS="ctm_customcars_v1", LS_HIDDENCARS="ctm_hiddencars_v1";
@@ -4625,7 +5066,7 @@ function renderAdminMenu(){
     label="管理 ▾";
   } else if((admin && VIEW==="sales") || sales){
     const n=(typeof inboxCount==="function")?inboxCount():0;
-    items=[[`客戶送單（${n}）`,"openInbox"],["成交登錄","openDeal"],["客戶登入","openLogins"],["改密碼","__pwself"]];
+    items=[[`客戶案件（${n}）`,"openCases"],["我的客戶代碼","openMyCode"],["帳號設定","__pwself"]];
     label = n>0 ? `選單 (${n}) ▾` : "選單 ▾";
   }
   if(btn) btn.textContent=label;
@@ -5178,7 +5619,7 @@ function syncDealFromQuote(rec, items, quote){
   }
   saveDeals(deals);
 }
-function saveQuote(){
+function saveQuote(silent){
   if(!cur||!variant){toast("請先選擇車型");return;}
   { const _de=configError(); if(_de){ toast(_de); return; } }
   const q=getQuotes();
@@ -5210,7 +5651,7 @@ function saveQuote(){
   if(idx>=0)q[idx]=rec; else q.unshift(rec);
   setQuotes(q);editingId=rec.id;renderSaved();
   syncDealFromQuote(rec, 1+perfItems.length, totalNT);
-  toast(idx>=0?"報價已更新（成交管理已同步）":"報價已儲存（已同步到成交管理）");
+  if(!silent) toast(idx>=0?"報價已更新":"報價已儲存");
 }
 function quoteItemNames(r){
   if(r.itemNames&&r.itemNames.length) return r.itemNames;
