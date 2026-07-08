@@ -5188,6 +5188,30 @@ function _afterContractPrint(){
 }
 function caseDownloadQuote(type,id){ caseGeneratePDF(type,id); }
 function caseDownloadContract(type,id){ caseGenerateContract(type,id); }
+/* 直接列印合約（略過「合約書資料」表單，只問成交價，買方欄位留空給客戶手寫） */
+function caseGenerateContractDirect(type,id){ if(editingCaseRef && editingCaseRef.id===id && cur && variant){ _caseDoContractDirect(id); } else { caseOpen(type,id); setTimeout(function(){ _caseDoContractDirect(id); }, 600); } }
+function _caseDoContractDirect(id){
+  if(!cur||!variant){ toast("此案件缺少可產生合約的內容"); return; }
+  if(typeof configError==="function" && configError()){ toast(configError()); return; }
+  var dealId=_promoteToDeal()||id;
+  _contractCaseId=dealId;
+  if(typeof printContractDirect==="function") printContractDirect();
+  else if(typeof openContract==="function") openContract();
+}
+/* 業務端：刪除案件（送單或成交案件皆可，含其報價與已上傳合約檔） */
+function caseDelete(type,id){
+  if(!confirm("確定刪除這筆案件？此動作無法復原（會一併移除該案件的報價與已上傳合約）。")) return;
+  if(type==="sub"){ saveSubs(getSubs().filter(function(x){return x.id!==id;})); }
+  else {
+    var d=getDeals().find(function(x){return x.id===id;});
+    if(d&&d.quoteId){ try{ setQuotes(getQuotes().filter(function(q){return q.id!==d.quoteId;})); }catch(e){} }
+    saveDeals(getDeals().filter(function(x){return x.id!==id;}));
+    try{ localStorage.removeItem("ctm_contract_"+id); }catch(e){}
+  }
+  try{ if(editingCaseRef && editingCaseRef.id===id) editingCaseRef=null; }catch(e){}
+  if(typeof _caseRefresh==="function") _caseRefresh(); else if(typeof renderCases==="function") renderCases();
+  toast("已刪除案件");
+}
 
 /* ===================== 業務案件總覽（管理後台/會計）===================== */
 function openAdminCases(){
@@ -5293,6 +5317,7 @@ function caseButtonsHTML(it){
   var openA='onclick="caseOpen(\''+it.type+'\',\''+it.id+'\')"';
   var pdfA='onclick="caseGeneratePDF(\''+it.type+'\',\''+it.id+'\')"';
   var conA='onclick="caseGenerateContract(\''+it.type+'\',\''+it.id+'\')"';
+  var conDirA='onclick="caseGenerateContractDirect(\''+it.type+'\',\''+it.id+'\')"';
   var upl='<label class="btn ghost" style="cursor:pointer">上傳已簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+it.id+'\',this)"></label>';
   if(k==="submitted" || k==="draft"){
     b.push('<button class="btn ghost" '+openA+'>查看 / 修改</button>');
@@ -5300,10 +5325,12 @@ function caseButtonsHTML(it){
   } else if(k==="quoted"){
     b.push('<button class="btn ghost" '+pdfA+'>下載報價單</button>');
     b.push('<button class="btn ghost" '+openA+'>重新產生 / 修改</button>');
-    b.push('<button class="btn primary" '+conA+'>產生合約單</button>');
+    b.push('<button class="btn primary" '+conDirA+'>產生合約單（買方手寫）</button>');
+    b.push('<button class="btn ghost" '+conA+'>填買方資料再印</button>');
     b.push('<button class="btn ghost" onclick="caseMarkLost('+idq+')">標記未成交</button>');
   } else if(k==="contract"){
-    b.push('<button class="btn ghost" '+conA+'>下載 / 重新產生合約單</button>');
+    b.push('<button class="btn ghost" '+conDirA+'>下載 / 重新列印合約（買方手寫）</button>');
+    b.push('<button class="btn ghost" '+conA+'>填買方資料</button>');
     b.push(upl);
     b.push('<button class="btn primary" onclick="caseMarkDeal('+idq+')">標記成交</button>');
     b.push('<button class="btn ghost" onclick="caseMarkLost('+idq+')">標記未成交</button>');
@@ -5362,6 +5389,7 @@ function renderCases(){
       +statusLine
       +(it.notes?'<div class="case-note">備註：'+it.notes+'</div>':'')
       +'<div class="case-actions">'+caseButtonsHTML(it)+'</div>'
+      +'<div class="case-del" style="text-align:right;margin-top:6px"><button class="btn ghost" style="font-size:12px;padding:3px 10px;color:#b4451f" onclick="caseDelete(\''+it.type+'\',\''+it.id+'\')">🗑 刪除案件</button></div>'
       +'</div>';
   }).join("");
 }
