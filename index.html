@@ -604,6 +604,41 @@ table.adm .adm-act{ display:flex; gap:5px; flex-wrap:wrap; }
 table.adm .btn{ padding:3px 9px; font-size:12px; }
 .adm-badge{ font-size:11px; padding:2px 8px; border-radius:8px; background:#eee; color:#555; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style id="imp-css">
+#importView{ display:none; max-width:1120px; margin:0 auto; padding:24px 22px 90px; }
+.imp-bar{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+.imp-empty{ padding:26px; text-align:center; color:#888; border:1px dashed var(--line,#d9d6ce); border-radius:12px; background:#fff; }
+.imp-head{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+.imp-title{ font-weight:700; }
+.imp-steps{ display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 16px; font-size:12px; color:#999; }
+.imp-steps b{ color:#8a6d3b; }
+.imp-step{ border:1px solid var(--line,#e4e1d9); border-radius:12px; background:#fff; padding:16px 16px 18px; margin-bottom:14px; }
+.imp-step-t{ font-weight:700; margin-bottom:8px; }
+.imp-ta{ width:100%; box-sizing:border-box; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px; line-height:1.5; border:1px solid var(--line,#d9d6ce); border-radius:8px; padding:9px 10px; background:#fbfaf7; resize:vertical; }
+.imp-msg{ font-size:12px; color:#666; margin-top:8px; min-height:16px; }
+.imp-warn{ color:#b4451f; font-weight:600; }
+.imp-rev-sec{ border:1px solid var(--line,#e4e1d9); border-radius:12px; background:#fff; padding:14px 14px 16px; margin-bottom:12px; }
+.imp-rev-h{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.imp-rev-h h4{ margin:0; font-size:14px; }
+.imp-grid2{ display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; }
+.imp-f label{ display:block; font-size:11px; color:#888; margin-bottom:2px; }
+.imp-f input,.imp-f select{ width:100%; box-sizing:border-box; padding:6px 8px; border:1px solid var(--line,#d9d6ce); border-radius:7px; font-size:13px; }
+.imp-itbl{ width:100%; border-collapse:collapse; font-size:12px; }
+.imp-itbl th,.imp-itbl td{ padding:5px 6px; border-bottom:1px solid var(--line,#eee); text-align:left; vertical-align:top; }
+.imp-itbl th{ background:#f7f5ef; color:#666; font-size:11px; }
+.imp-itbl input,.imp-itbl select{ width:100%; box-sizing:border-box; padding:4px 6px; border:1px solid var(--line,#ddd); border-radius:6px; font-size:12px; }
+.imp-itbl .imp-act{ display:flex; gap:3px; flex-wrap:wrap; white-space:nowrap; }
+.imp-itbl .btn{ padding:2px 7px; font-size:11px; }
+.imp-conf{ font-size:11px; padding:1px 6px; border-radius:7px; }
+.conf-hi{ background:#e7f3ea; color:#2f7d46; }
+.conf-mid{ background:#fbf1d6; color:#8a6d1b; }
+.conf-lo{ background:#f7dad2; color:#b4451f; }
+.imp-finalbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+.imp-warnbox{ background:#fbf1d6; border:1px solid #ecd9a3; border-radius:10px; padding:10px 12px; font-size:12px; color:#7a5b12; margin-bottom:12px; }
+.imp-warnbox ul{ margin:6px 0 0; padding-left:18px; }
+@media(max-width:640px){ .imp-grid2{ grid-template-columns:1fr; } }
+</style>
 </head>
 <body>
 
@@ -640,6 +675,7 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     <div class="dash-card" onclick="openCarDb('copy')"><div class="dash-ic">📋</div><div><div class="dc-t">複製車型</div><div class="dc-d">把某年份複製成新年份</div></div></div>
     <div class="dash-card" onclick="openQuotePreview()"><div class="dash-ic">👁️</div><div><div class="dc-t">報價預覽</div><div class="dc-d">用業務端視角預覽車輛報價</div></div></div>
     <div class="dash-card" onclick="openAdminCases()"><div class="dash-ic">📇</div><div><div class="dc-t">業務案件總覽</div><div class="dc-d">所有業務案件・下載・確認訂金/下定</div></div></div>
+    <div class="dash-card" onclick="openImport()"><div class="dash-ic">📥</div><div><div class="dc-t">PDF 匯入車型</div><div class="dc-d">上傳原廠 PDF・AI 解析・人工確認・匯入新車</div></div></div>
   </div>
 </div>
 
@@ -670,6 +706,16 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     <input class="t" id="acaseTo" type="date" onchange="renderAdminCases()" title="迄" style="max-width:150px">
   </div>
   <div class="adm-tablewrap"><table class="adm"><thead id="acaseHead"></thead><tbody id="acaseBody"></tbody></table></div>
+</div>
+
+<!-- ===== PDF 匯入車型（管理後台）===== -->
+<div id="importView">
+  <div class="cdb-head">
+    <h2>PDF 匯入車型</h2>
+    <button class="btn ghost" onclick="showAdminDash()">← 管理後台</button>
+  </div>
+  <div id="impJobsPane"></div>
+  <div id="impWizardPane" style="display:none"></div>
 </div>
 
 <!-- ===== 業務工作台 ===== -->
@@ -4494,7 +4540,7 @@ function showDashboard(){
 /* ===================== 管理後台 Dashboard + 車型資料庫 + 報價預覽 ===================== */
 function showAdminDash(){
   if(role!=="admin") return;
-  ["dashView","casesView","carDbView","adminCasesView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  ["dashView","casesView","carDbView","adminCasesView","importView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var d=document.getElementById("adminDashView"); if(d) d.style.display="block";
   window.scrollTo(0,0);
@@ -4503,6 +4549,7 @@ function hideAdminDash(){
   var d=document.getElementById("adminDashView"); if(d) d.style.display="none";
   var c=document.getElementById("carDbView"); if(c) c.style.display="none";
   var ac=document.getElementById("adminCasesView"); if(ac) ac.style.display="none";
+  var iv=document.getElementById("importView"); if(iv) iv.style.display="none";
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="";
 }
 function openOptMgrFromDash(){
@@ -4693,6 +4740,376 @@ function _subCarName(s){ var c=(typeof CARS!=="undefined")&&CARS.find(function(x
 
 /* ===================== Stage 2：客戶案件狀態層（疊加、不覆蓋舊資料） ===================== */
 function nowTs(){ return Date.now(); }
+
+/* ===================== Stage 3：PDF 匯入車型（貼上式 AI 解析・僅管理員）===================== */
+var LS_IMPJOBS="ctm_importjobs_v1", LS_IMPDRAFTS="ctm_importdrafts_v1";
+var impCurJob=null, impForceAi=false;
+function getImportJobs(){ try{return JSON.parse(localStorage.getItem(LS_IMPJOBS))||[];}catch(e){return[];} }
+function setImportJobs(a){ try{localStorage.setItem(LS_IMPJOBS,JSON.stringify(a));}catch(e){} }
+function getImportDrafts(){ try{return JSON.parse(localStorage.getItem(LS_IMPDRAFTS))||[];}catch(e){return[];} }
+function setImportDrafts(a){ try{localStorage.setItem(LS_IMPDRAFTS,JSON.stringify(a));}catch(e){} }
+function _impJob(id){ return getImportJobs().find(function(j){return j.importJobId===id;}); }
+function _impDraftByJob(jid){ return getImportDrafts().find(function(d){return d.importJobId===jid;}); }
+function _impSaveJob(j){ var a=getImportJobs(); var i=a.findIndex(function(x){return x.importJobId===j.importJobId;}); j.updatedAt=nowTs(); if(i<0)a.push(j); else a[i]=j; setImportJobs(a); }
+function _impSaveDraftObj(d){ var a=getImportDrafts(); var i=a.findIndex(function(x){return x.importDraftId===d.importDraftId;}); d.updatedAt=nowTs(); if(i<0)a.push(d); else a[i]=d; setImportDrafts(a); }
+function impStatusLabel(s){ return ({uploaded:"已建立",text_extracted:"已擷取文字",awaiting_ai:"待貼上 AI",review_required:"待審核",imported:"已匯入",failed:"失敗"})[s]||s; }
+function impQClass(q){ return q<50?"conf-lo":(q<75?"conf-mid":"conf-hi"); }
+function impConfBadge(c){ if(c===""||c==null) return '<span class="imp-conf">—</span>'; c=+c; if(isNaN(c)) return '<span class="imp-conf">—</span>'; var cl=c<0.5?"conf-lo":(c<0.75?"conf-mid":"conf-hi"); return '<span class="imp-conf '+cl+'">'+Math.round(c*100)+'%</span>'; }
+function impConfWrap(q){ if(q==null) return "—"; var cl=q<50?"conf-lo":(q<75?"conf-mid":"conf-hi"); return '<span class="imp-conf '+cl+'">'+q+'</span>'; }
+
+var AI_IMPORT_PROMPT=[
+'你是一個「汽車 / 露營車報價資料解析器」。以下是從原廠 PDF 擷取出的文字。',
+'請把它整理成「一種車型」的結構化資料，並且「只輸出一個 JSON 物件」，前後不要有任何說明文字或 markdown。',
+'',
+'規則：',
+'1. 只輸出 JSON，不要輸出解釋文字。',
+'2. 不要臆造價格或重量；PDF 沒寫的就填空字串 "" 或 null，並在 warnings 說明。',
+'3. 不確定的項目把 confidence 調低（0~1），並在 warnings 說明原因。',
+'4. 保留原始幣別，不要換算成新台幣 NT$。currency 用 "£" 或 "€"（或原始幣別字串）。',
+'5. 每個項目盡量填 originalText（PDF 原文片段），方便人工核對。',
+'6. 標準配備放 standardEquipment、需加價選配放 optionalEquipment、車色放 colors、套件包放 packages。',
+'',
+'請完全照這個結構輸出（欄位不夠就留空、不要新增結構）：',
+'{',
+'  "brand": "品牌，例如 Caterham 或 Sunlight",',
+'  "modelName": "車型名稱",',
+'  "modelYear": "年份或年式",',
+'  "currency": "£",',
+'  "basePrice": 0,',
+'  "variants": [ { "variantName": "版本名", "basePrice": 0, "currency": "£", "originalText": "", "confidence": 0.9, "note": "" } ],',
+'  "standardEquipment": [ { "name": "配備名稱", "category": "分類", "originalText": "", "confidence": 0.9, "note": "" } ],',
+'  "optionalEquipment": [ { "name": "選配名稱", "category": "分類", "price": 0, "currency": "£", "weight": null, "originalText": "", "confidence": 0.8, "note": "" } ],',
+'  "colors": [ { "name": "顏色名稱", "price": 0, "currency": "£", "originalText": "", "confidence": 0.8, "note": "" } ],',
+'  "packages": [ { "name": "套件包名稱", "price": 0, "currency": "£", "originalText": "", "confidence": 0.8, "note": "" } ],',
+'  "notes": [ "其他備註" ],',
+'  "warnings": [ "不確定或需人工確認的地方" ]',
+'}'
+].join("\n");
+
+function buildAIText(j){ return AI_IMPORT_PROMPT + "\n\n=== PDF 文字開始 ===\n" + ((j.sourcePdfText||"").trim() || "（尚無文字，請先上傳 PDF 或手動貼上文字）") + "\n=== PDF 文字結束 ==="; }
+
+/* ---- 進出視圖 ---- */
+function openImport(){
+  if(role!=="admin"){ toast("僅限管理員"); return; }
+  ["adminDashView","dashView","casesView","carDbView","adminCasesView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
+  var v=document.getElementById("importView"); if(v) v.style.display="block";
+  impShowJobs(); window.scrollTo(0,0);
+}
+function impShowJobs(){ impCurJob=null; impForceAi=false; var w=document.getElementById("impWizardPane"); if(w) w.style.display="none"; var p=document.getElementById("impJobsPane"); if(p){ p.style.display="block"; } renderImportJobs(); }
+
+function renderImportJobs(){
+  var jobs=getImportJobs().slice().sort(function(a,b){return (b.updatedAt||0)-(a.updatedAt||0);});
+  var h='<div class="imp-bar"><button class="btn primary" onclick="importNewJob()">＋ 新增匯入</button><span class="hint">上傳原廠 PDF → 交給 Claude 解析 → 人工確認 → 正式匯入（新車預設未上架，不影響既有車型）</span></div>';
+  if(!jobs.length){ h+='<div class="imp-empty">目前沒有匯入工作。按「＋ 新增匯入」開始。</div>'; document.getElementById("impJobsPane").innerHTML=h; return; }
+  h+='<div class="adm-tablewrap"><table class="adm"><thead><tr><th>建立</th><th>檔名</th><th>狀態</th><th>品質</th><th>操作</th></tr></thead><tbody>';
+  jobs.forEach(function(j){
+    var dr=_impDraftByJob(j.importJobId);
+    var qs=(dr&&dr.qualityScore!=null)?dr.qualityScore:null;
+    h+='<tr><td>'+fmtDT(j.createdAt)+'</td><td>'+_esc(j.sourcePdfName||"（貼上文字）")+'</td>'
+      +'<td><span class="adm-badge">'+impStatusLabel(j.status)+'</span></td>'
+      +'<td>'+(qs==null?"—":('<span class="imp-conf '+impQClass(qs)+'">'+qs+'</span>'))+'</td>'
+      +'<td class="adm-act"><button class="btn ghost" onclick="importOpenJob(\''+j.importJobId+'\')">'+(j.status==="imported"?"檢視":"繼續")+'</button>'
+      +'<button class="btn ghost" onclick="importDeleteJob(\''+j.importJobId+'\')">刪除</button></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  document.getElementById("impJobsPane").innerHTML=h;
+}
+function importNewJob(){
+  if(role!=="admin"){ toast("僅限管理員"); return; }
+  var a=_actor();
+  var j={ importJobId:"job"+nowTs(), createdAt:nowTs(), updatedAt:nowTs(), createdBy:a.id, createdByName:a.name, status:"uploaded", mode:"create_new_model", sourcePdfName:"", sourcePdfSize:0, sourcePdfText:"", aiProvider:"claude", aiModel:"claude-opus-4-8", errorMessage:"" };
+  _impSaveJob(j); importOpenJob(j.importJobId);
+}
+function importDeleteJob(id){
+  if(role!=="admin"){ toast("僅限管理員"); return; }
+  if(!confirm("確定刪除這筆匯入工作？（不影響已匯入的車型）")) return;
+  setImportJobs(getImportJobs().filter(function(j){return j.importJobId!==id;}));
+  setImportDrafts(getImportDrafts().filter(function(d){return d.importJobId!==id;}));
+  impShowJobs();
+}
+function importOpenJob(id){
+  var j=_impJob(id); if(!j){ toast("找不到工作"); return; }
+  impCurJob=id; impForceAi=false;
+  document.getElementById("impJobsPane").style.display="none";
+  var w=document.getElementById("impWizardPane"); w.style.display="block";
+  renderImportWizard(); window.scrollTo(0,0);
+}
+
+/* ---- 精靈 ---- */
+function impStepsBar(j){
+  var cur = j.status==="imported"?4:( _impDraftByJob(j.importJobId)?3:( ((j.sourcePdfText||"").length)?2:1 ));
+  var st=["1. 上傳/貼上文字","2. 交給 AI","3. 人工確認","4. 正式匯入"];
+  return '<div class="imp-steps">'+st.map(function(s,i){ return (i+1)===cur?("<b>"+s+"</b>"):s; }).join("　›　")+'</div>';
+}
+function renderImportWizard(){
+  var j=_impJob(impCurJob); if(!j){ impShowJobs(); return; }
+  var dr=_impDraftByJob(j.importJobId);
+  var h='<div class="imp-head"><button class="btn ghost" onclick="impShowJobs()">← 匯入清單</button><span class="imp-title">'+_esc(j.sourcePdfName||"（貼上文字）")+'</span><span class="adm-badge">'+impStatusLabel(j.status)+'</span></div>';
+  h+=impStepsBar(j);
+  if(j.errorMessage){ h+='<div class="imp-warnbox"><b class="imp-warn">上次匯入失敗</b>：'+_esc(j.errorMessage)+'</div>'; }
+  if(j.status==="imported"){ h+=impImportedView(j,dr); }
+  else if(dr && !impForceAi){ h+=impReviewHTML(j,dr); }
+  else { h+=impUploadHTML(j)+impAiHTML(j); }
+  document.getElementById("impWizardPane").innerHTML=h;
+}
+function impUploadHTML(j){
+  var info=((j.sourcePdfText||"").length)?('已擷取 '+j.sourcePdfText.length+' 字'):'尚未擷取文字';
+  return '<div class="imp-step"><div class="imp-step-t">① 上傳 PDF（文字型）</div>'
+    +'<input type="file" accept="application/pdf" id="impFile" onchange="importExtractText(this)">'
+    +'<div class="hint" style="margin-top:6px">第一版僅支援文字型 PDF，不支援掃描圖片 / OCR。檔案上限 20MB。</div>'
+    +'<div id="impExtractMsg" class="imp-msg">'+_esc(info)+'</div>'
+    +'<details style="margin-top:8px"><summary style="cursor:pointer">或手動貼上 / 編輯 PDF 文字（擷取效果不好時用）</summary>'
+    +'<textarea id="impTextArea" class="imp-ta" rows="6" placeholder="把 PDF 文字貼在這裡…">'+_esc(j.sourcePdfText||"")+'</textarea>'
+    +'<button class="btn ghost" style="margin-top:6px" onclick="importSaveText()">儲存文字</button></details></div>';
+}
+function impAiHTML(j){
+  return '<div class="imp-step"><div class="imp-step-t">② 交給 AI 解析（貼上式・金鑰不進系統）</div>'
+    +'<div class="hint">複製下面整段，貼到 Claude（建議 claude-opus-4-8），再把它回覆的 JSON 整段複製回來。</div>'
+    +'<textarea id="impPrompt" class="imp-ta" rows="7" readonly>'+_esc(buildAIText(j))+'</textarea>'
+    +'<button class="btn primary" style="margin-top:6px" onclick="importCopyPrompt()">📋 複製 指令+文字</button>'
+    +'<div class="imp-step-t" style="margin-top:16px">③ 貼上 AI 回傳的 JSON</div>'
+    +'<textarea id="impJsonIn" class="imp-ta" rows="7" placeholder="把 Claude 回的 JSON 整段貼在這裡…"></textarea>'
+    +'<button class="btn primary" style="margin-top:6px" onclick="importParseAI()">解析 JSON → 建立草稿</button>'
+    +'<div id="impParseMsg" class="imp-msg"></div></div>';
+}
+function importSaveText(){
+  var j=_impJob(impCurJob); if(!j) return;
+  var t=(document.getElementById("impTextArea")||{}).value||"";
+  j.sourcePdfText=t; if(t.trim().length>0 && j.status==="uploaded") j.status="text_extracted"; _impSaveJob(j);
+  toast("已儲存文字（"+t.length+" 字）"); renderImportWizard();
+}
+function importExtractText(input){
+  var f=input && input.files && input.files[0]; if(!f) return;
+  if(f.type!=="application/pdf" && !/\.pdf$/i.test(f.name)){ toast("請選擇 PDF 檔"); return; }
+  if(f.size>20*1024*1024){ toast("檔案超過 20MB，請改用較小的 PDF"); return; }
+  var j=_impJob(impCurJob); if(!j) return;
+  j.sourcePdfName=f.name; j.sourcePdfSize=f.size; _impSaveJob(j);
+  var msg=document.getElementById("impExtractMsg"); if(msg) msg.textContent="讀取中…";
+  if(typeof pdfjsLib==="undefined"){ if(msg) msg.innerHTML='<span class="imp-warn">PDF 元件尚未載入（可能網路較慢）。請稍候重試，或用下方「手動貼上文字」。</span>'; return; }
+  try{ pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }catch(e){}
+  var fr=new FileReader();
+  fr.onload=function(){
+    try{
+      var data=new Uint8Array(fr.result);
+      pdfjsLib.getDocument({data:data}).promise.then(function(pdf){
+        var n=pdf.numPages, txt=[], chain=Promise.resolve();
+        for(var i=1;i<=n;i++){ (function(pg){ chain=chain.then(function(){ return pdf.getPage(pg).then(function(page){ return page.getTextContent().then(function(tc){ txt[pg-1]=tc.items.map(function(it){return it.str;}).join(" "); }); }); }); })(i); }
+        chain.then(function(){
+          var all=txt.join("\n").replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n").trim();
+          var jj=_impJob(impCurJob); if(!jj) return; jj.sourcePdfText=all; jj.status="text_extracted"; _impSaveJob(jj);
+          if(all.length<120){ if(msg) msg.innerHTML='<span class="imp-warn">看起來像掃描圖片 PDF（只抽到 '+all.length+' 字）。第一版不支援掃描 / OCR，請改用文字型 PDF，或用下方手動貼上文字。</span>'; }
+          else { if(msg) msg.textContent="已擷取 "+all.length+" 字（共 "+n+" 頁）。請往下複製指令交給 AI。"; }
+          renderImportWizard();
+        }).catch(function(e){ if(msg) msg.textContent="解析 PDF 失敗："+((e&&e.message)||e); });
+      }).catch(function(e){ if(msg) msg.textContent="開啟 PDF 失敗："+((e&&e.message)||e); });
+    }catch(e){ if(msg) msg.textContent="處理 PDF 發生錯誤："+((e&&e.message)||e); }
+  };
+  fr.onerror=function(){ if(msg) msg.textContent="讀取檔案失敗。"; };
+  fr.readAsArrayBuffer(f);
+}
+function _impCopy(text){
+  try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text); return true; } }catch(e){}
+  try{ var ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.left="-9999px"; document.body.appendChild(ta); ta.select(); var ok=document.execCommand("copy"); document.body.removeChild(ta); return ok; }catch(e){ return false; }
+}
+function importCopyPrompt(){ var j=_impJob(impCurJob); if(!j) return; var ok=_impCopy(buildAIText(j)); toast(ok?"已複製，請貼到 Claude":"複製失敗，請手動選取複製"); }
+
+/* ---- 解析 / 驗證 / 品質分數 ---- */
+function _impExtractJson(raw){
+  if(!raw) return null;
+  var s=String(raw).trim();
+  if(s.indexOf("```")>=0){ var parts=s.split("```"); var best=""; parts.forEach(function(p){ var q=p.replace(/^json/i,""); if(q.indexOf("{")>=0 && q.length>best.length) best=q; }); if(best) s=best; }
+  var i=s.indexOf("{"), j=s.lastIndexOf("}");
+  if(i<0||j<0||j<i) return null;
+  s=s.slice(i,j+1);
+  try{ return JSON.parse(s); }catch(e){ return null; }
+}
+function _impValidate(o){
+  if(!o || typeof o!=="object") return {fatal:"JSON 格式不正確。"};
+  if(!(o.modelName||o.model)) return {fatal:"缺少必要欄位 modelName（車型名稱）。請確認 AI 有輸出完整 JSON。"};
+  var w=[]; var vs=o.variants||[];
+  if(!vs.length && o.basePrice==null) w.push("沒有任何版本或基本價，匯入後需自行補上價格。");
+  return {fatal:null, warnings:w};
+}
+function _impNItem(e){
+  if(typeof e==="string") e={name:e};
+  e=e||{};
+  return { name:e.name||e.originalName||"", category:e.category||"", price:(e.price!=null?e.price:""), currency:e.currency||"", weight:(e.weight!=null?e.weight:""), confidence:(e.confidence!=null?e.confidence:1), originalText:e.originalText||"", note:e.note||"" };
+}
+function _impNormalizeParsed(o){
+  function arr(x){ return Array.isArray(x)?x:[]; }
+  return {
+    brand:o.brand||o.brandName||"",
+    modelName:o.modelName||o.model||"",
+    modelYear:o.modelYear||o.year||"",
+    currency:o.currency||"",
+    basePrice:(o.basePrice!=null?o.basePrice:""),
+    variants:arr(o.variants).map(function(v){ v=v||{}; return {variantName:v.variantName||v.name||"", basePrice:(v.basePrice!=null?v.basePrice:(v.price!=null?v.price:"")), currency:v.currency||o.currency||"", confidence:(v.confidence!=null?v.confidence:1), originalText:v.originalText||"", note:v.note||""}; }),
+    standardEquipment:arr(o.standardEquipment).map(_impNItem),
+    optionalEquipment:arr(o.optionalEquipment).map(_impNItem),
+    colors:arr(o.colors).map(_impNItem),
+    packages:arr(o.packages).map(_impNItem),
+    notes:arr(o.notes),
+    warnings:arr(o.warnings)
+  };
+}
+function computeQualityScore(rd){
+  var s=100;
+  if(!rd.variants.length && (rd.basePrice===""||rd.basePrice==null)) s-=20;
+  if(!rd.modelName) s-=15;
+  var lowConf=0;
+  [].concat(rd.variants,rd.optionalEquipment,rd.colors,rd.packages,rd.standardEquipment).forEach(function(it){ if((+it.confidence||1)<0.5) lowConf++; });
+  var missPrice=0; rd.optionalEquipment.forEach(function(it){ if(it.price===""||it.price==null) missPrice++; });
+  s-=Math.min(30, lowConf*3);
+  s-=Math.min(15, missPrice*1);
+  s-=Math.min(16, (rd.warnings.length||0)*2);
+  return Math.max(0, Math.min(100, Math.round(s)));
+}
+function importParseAI(){
+  if(role!=="admin"){ toast("僅限管理員"); return; }
+  var j=_impJob(impCurJob); if(!j) return;
+  var raw=(document.getElementById("impJsonIn")||{}).value||"";
+  var msg=document.getElementById("impParseMsg");
+  var obj=_impExtractJson(raw);
+  if(!obj){ if(msg) msg.innerHTML='<span class="imp-warn">無法解析 JSON。請確認整段 JSON 都貼上了（可含 ```json 圍欄，我會自動處理）。</span>'; return; }
+  var v=_impValidate(obj);
+  if(v.fatal){ if(msg) msg.innerHTML='<span class="imp-warn">'+_esc(v.fatal)+'</span>'; return; }
+  var rd=_impNormalizeParsed(obj);
+  rd.warnings=(rd.warnings||[]).concat(v.warnings||[]);
+  var qs=computeQualityScore(rd);
+  var a=_actor();
+  var dr=_impDraftByJob(j.importJobId);
+  if(!dr){ dr={ importDraftId:"drf"+nowTs(), importJobId:j.importJobId, createdAt:nowTs() }; }
+  dr.parsedData=obj; dr.reviewData=rd; dr.qualityScore=qs; dr.warnings=rd.warnings; dr.reviewedBy=a.id; dr.importStatus="draft";
+  _impSaveDraftObj(dr);
+  j.status="review_required"; j.errorMessage=""; _impSaveJob(j);
+  impForceAi=false;
+  toast("已建立草稿（品質分數 "+qs+"），請人工確認"); renderImportWizard();
+}
+function impBackToAi(){ impForceAi=true; renderImportWizard(); }
+
+/* ---- 人工確認頁 ---- */
+function impF(label,field,val){ return '<div class="imp-f"><label>'+label+'</label><input value="'+_esc(val==null?"":val)+'" onchange="impEditBasic(\''+field+'\',this)"></div>'; }
+function impCurF(val){
+  var v=(val==="£"||val==="€")?val:"other";
+  function sel(x){ return v===x?" selected":""; }
+  return '<div class="imp-f"><label>幣別</label><select onchange="impEditBasic(\'currency\',this)"><option value="£"'+sel("£")+'>£ 英鎊</option><option value="€"'+sel("€")+'>€ 歐元</option><option value=""'+(v==="other"?" selected":"")+'>其他 / 未定</option></select></div>';
+}
+function impSec(title,sec,list,cols,rowFn){
+  list=list||[];
+  var h='<div class="imp-rev-sec"><div class="imp-rev-h"><h4>'+title+'（'+list.length+'）</h4><button class="btn ghost" onclick="impAddItem(\''+sec+'\')">＋ 新增</button></div>';
+  if(!list.length){ h+='<div class="hint">（無）</div></div>'; return h; }
+  h+='<div class="adm-tablewrap"><table class="imp-itbl"><thead><tr>'+cols.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>';
+  list.forEach(function(it,i){ h+='<tr>'+rowFn(it,i)+'</tr>'; });
+  h+='</tbody></table></div></div>';
+  return h;
+}
+function impReviewHTML(j,dr){
+  var rd=dr.reviewData||{};
+  var h='<div class="imp-finalbar" style="margin:0 0 12px"><button class="btn ghost" onclick="impBackToAi()">↻ 重新貼上 AI JSON</button><span class="hint">品質分數 '+impConfWrap(dr.qualityScore)+'（僅供參考，仍請人工確認）</span></div>';
+  var warns=(rd.warnings||[]).concat(rd.notes||[]);
+  if(warns.length){ h+='<div class="imp-warnbox"><b>AI 提醒 / 備註</b><ul>'+warns.map(function(w){return '<li>'+_esc(w)+'</li>';}).join('')+'</ul></div>'; }
+  h+='<div class="imp-rev-sec"><div class="imp-rev-h"><h4>車型基本資料</h4></div><div class="imp-grid2">'
+    +impF("品牌","brand",rd.brand)+impF("車型名稱","modelName",rd.modelName)+impF("年份","modelYear",rd.modelYear)+impCurF(rd.currency)+impF("基本價","basePrice",rd.basePrice)+'</div></div>';
+  h+=impSec("版本 Variants","variants",rd.variants,['版本名稱','基本價','幣別','把握度','操作'],function(it,i){
+    return '<td><input value="'+_esc(it.variantName)+'" onchange="impEditItem(\'variants\','+i+',\'variantName\',this)"></td>'
+      +'<td><input value="'+_esc(it.basePrice)+'" onchange="impEditItem(\'variants\','+i+',\'basePrice\',this)"></td>'
+      +'<td><input value="'+_esc(it.currency)+'" style="max-width:56px" onchange="impEditItem(\'variants\','+i+',\'currency\',this)"></td>'
+      +'<td>'+impConfBadge(it.confidence)+'</td>'
+      +'<td class="imp-act"><button class="btn ghost" onclick="impDelItem(\'variants\','+i+')">刪</button></td>'; });
+  h+=impSec("標準配備 Standard","standardEquipment",rd.standardEquipment,['名稱','分類','把握度','操作'],function(it,i){
+    return '<td><input value="'+_esc(it.name)+'" onchange="impEditItem(\'standardEquipment\','+i+',\'name\',this)"></td>'
+      +'<td><input value="'+_esc(it.category)+'" onchange="impEditItem(\'standardEquipment\','+i+',\'category\',this)"></td>'
+      +'<td>'+impConfBadge(it.confidence)+'</td>'
+      +'<td class="imp-act"><button class="btn ghost" onclick="impMoveItem(\'standardEquipment\','+i+',\'optionalEquipment\')">轉選配</button><button class="btn ghost" onclick="impDelItem(\'standardEquipment\','+i+')">刪</button></td>'; });
+  h+=impSec("選配備 Options","optionalEquipment",rd.optionalEquipment,['名稱','分類','加價','重量kg','把握度','操作'],function(it,i){
+    return '<td><input value="'+_esc(it.name)+'" onchange="impEditItem(\'optionalEquipment\','+i+',\'name\',this)"></td>'
+      +'<td><input value="'+_esc(it.category)+'" onchange="impEditItem(\'optionalEquipment\','+i+',\'category\',this)"></td>'
+      +'<td><input value="'+_esc(it.price)+'" style="max-width:90px" onchange="impEditItem(\'optionalEquipment\','+i+',\'price\',this)"></td>'
+      +'<td><input value="'+_esc(it.weight)+'" style="max-width:64px" onchange="impEditItem(\'optionalEquipment\','+i+',\'weight\',this)"></td>'
+      +'<td>'+impConfBadge(it.confidence)+'</td>'
+      +'<td class="imp-act"><button class="btn ghost" onclick="impMoveItem(\'optionalEquipment\','+i+',\'standardEquipment\')">轉標準</button><button class="btn ghost" onclick="impMoveItem(\'optionalEquipment\','+i+',\'colors\')">顏色</button><button class="btn ghost" onclick="impMoveItem(\'optionalEquipment\','+i+',\'packages\')">套件</button><button class="btn ghost" onclick="impDelItem(\'optionalEquipment\','+i+')">刪</button></td>'; });
+  h+=impSec("車色 Colours","colors",rd.colors,['名稱','加價','把握度','操作'],function(it,i){
+    return '<td><input value="'+_esc(it.name)+'" onchange="impEditItem(\'colors\','+i+',\'name\',this)"></td>'
+      +'<td><input value="'+_esc(it.price)+'" style="max-width:90px" onchange="impEditItem(\'colors\','+i+',\'price\',this)"></td>'
+      +'<td>'+impConfBadge(it.confidence)+'</td>'
+      +'<td class="imp-act"><button class="btn ghost" onclick="impMoveItem(\'colors\','+i+',\'optionalEquipment\')">轉選配</button><button class="btn ghost" onclick="impDelItem(\'colors\','+i+')">刪</button></td>'; });
+  h+=impSec("套件包 Packages","packages",rd.packages,['名稱','加價','把握度','操作'],function(it,i){
+    return '<td><input value="'+_esc(it.name)+'" onchange="impEditItem(\'packages\','+i+',\'name\',this)"></td>'
+      +'<td><input value="'+_esc(it.price)+'" style="max-width:90px" onchange="impEditItem(\'packages\','+i+',\'price\',this)"></td>'
+      +'<td>'+impConfBadge(it.confidence)+'</td>'
+      +'<td class="imp-act"><button class="btn ghost" onclick="impMoveItem(\'packages\','+i+',\'optionalEquipment\')">轉選配</button><button class="btn ghost" onclick="impDelItem(\'packages\','+i+')">刪</button></td>'; });
+  h+='<div class="imp-finalbar"><button class="btn ghost" onclick="importSaveDraft()">儲存草稿</button><button class="btn primary" onclick="importFinalize()">✔ 正式匯入（新車預設未上架）</button><span class="hint">匯入後請到「車型資料庫」確認並上架。</span></div>';
+  return h;
+}
+function impEditBasic(field,el){ var dr=_impDraftByJob(impCurJob); if(!dr||!dr.reviewData) return; dr.reviewData[field]=el.value; _impSaveDraftObj(dr); }
+function impEditItem(sec,idx,field,el){ var dr=_impDraftByJob(impCurJob); if(!dr||!dr.reviewData) return; var arr=dr.reviewData[sec]; if(!arr||!arr[idx]) return; var v=el.value; if(field==="basePrice"||field==="price"||field==="weight"){ if(String(v).trim()===""){ v=""; } else { var num=+v; v=isNaN(num)?el.value:num; } } arr[idx][field]=v; _impSaveDraftObj(dr); }
+function impMoveItem(fromSec,idx,toSec){ var dr=_impDraftByJob(impCurJob); if(!dr||!dr.reviewData) return; var a=dr.reviewData[fromSec]; if(!a||!a[idx]) return; var it=a.splice(idx,1)[0]; dr.reviewData[toSec]=dr.reviewData[toSec]||[]; if(toSec==="variants"){ it={variantName:it.name||it.variantName||"", basePrice:(it.price!=null?it.price:""), currency:it.currency||"", confidence:it.confidence, originalText:it.originalText||"", note:it.note||""}; } else if(fromSec==="variants"){ it={name:it.variantName||"", category:"", price:(it.basePrice!=null?it.basePrice:""), currency:it.currency||"", weight:"", confidence:it.confidence, originalText:it.originalText||"", note:it.note||""}; } dr.reviewData[toSec].push(it); _impSaveDraftObj(dr); renderImportWizard(); }
+function impDelItem(sec,idx){ var dr=_impDraftByJob(impCurJob); if(!dr||!dr.reviewData) return; var a=dr.reviewData[sec]; if(!a) return; a.splice(idx,1); _impSaveDraftObj(dr); renderImportWizard(); }
+function impAddItem(sec){ var dr=_impDraftByJob(impCurJob); if(!dr||!dr.reviewData) return; dr.reviewData[sec]=dr.reviewData[sec]||[]; var it; if(sec==="variants") it={variantName:"",basePrice:"",currency:dr.reviewData.currency||"",confidence:1,originalText:"",note:""}; else it={name:"",category:"",price:"",currency:dr.reviewData.currency||"",weight:"",confidence:1,originalText:"",note:""}; dr.reviewData[sec].push(it); _impSaveDraftObj(dr); renderImportWizard(); }
+function importSaveDraft(){ var dr=_impDraftByJob(impCurJob); if(!dr){ return; } dr.qualityScore=computeQualityScore(dr.reviewData); dr.reviewedAt=nowTs(); dr.reviewedBy=_actor().id; _impSaveDraftObj(dr); toast("草稿已儲存（品質 "+dr.qualityScore+"）"); renderImportWizard(); }
+
+/* ---- 正式匯入（沿用 copyCar 套路，落地成未上架新車） ---- */
+function _impCurSym(cur){ var s=String(cur||"").trim().toLowerCase(); if(cur==="£"||s==="gbp"||s.indexOf("pound")>=0||s.indexOf("英")>=0) return "£"; if(cur==="€"||s==="eur"||s.indexOf("euro")>=0||s.indexOf("歐")>=0) return "€"; return null; }
+function _impBrandId(bstr){ var s=String(bstr||"").trim().toLowerCase(); if(!s) return null; if(s.indexOf("sunlight")>=0||s.indexOf("陽光")>=0) return "sunlight"; if(s.indexOf("caterham")>=0||s.indexOf("卡特")>=0) return "caterham"; return null; }
+function importFinalize(){
+  if(role!=="admin"){ toast("僅限管理員"); return; }
+  var j=_impJob(impCurJob); var dr=_impDraftByJob(impCurJob);
+  if(!j||!dr||!dr.reviewData){ toast("找不到草稿"); return; }
+  var rd=dr.reviewData;
+  if(!rd.modelName){ toast("請先填車型名稱再匯入"); return; }
+  if(!confirm("確定正式匯入為一台新車型？（預設未上架，不影響既有車型）")) return;
+  try{
+    dr.importStatus="importing"; _impSaveDraftObj(dr);
+    var bstr=(rd.brand||"").trim();
+    var bid=_impBrandId(bstr);
+    var sym=_impCurSym(rd.currency) || (bid==="sunlight"?"€":"£");
+    if(!bid){
+      if(bstr){ var bslug="b_imp"+nowTs(); var cbs=getCustomBrands(); cbs.push({id:bslug,label:bstr,sub:"",cur:sym}); setCustomBrands(cbs); if(typeof loadCustomBrands==="function") loadCustomBrands(); bid=bslug; }
+      else { bid="caterham"; }
+    }
+    var vs=(rd.variants&&rd.variants.length)?rd.variants:[{variantName:(rd.modelName||"標準"), basePrice:rd.basePrice}];
+    var specVars=vs.map(function(v){ return {label:(v.variantName||"標準"), base:(+v.basePrice||+rd.basePrice||0)}; });
+    var vks=(specVars.length===1)?["STD"]:specVars.map(function(_,i){return "V"+i;});
+    var nid="imp"+nowTs();
+    var spec={ id:nid, brandId:bid, name:(rd.modelName||"未命名"), year:(rd.modelYear||""), variants:specVars };
+    if(bid==="sunlight"){ spec.line="cliff"; spec.my="both"; }
+    var cc=getCustomCars(); cc.push(spec); setCustomCars(cc);
+    setCarMetaField(nid,"modelGroup",(rd.modelName||"匯入車型"));
+    if(sym==="£"||sym==="€") setCarMetaField(nid,"currency",sym);
+    specVars.forEach(function(v,i){ setCarMetaBase(nid, vks[i], v.base); });
+    setCarMetaField(nid,"notes","PDF 匯入 "+fmtDT(nowTs())+(bstr?("・原始品牌："+bstr):""));
+    setCarMetaField(nid,"isActive",false);
+    var hc=getHiddenCars(); if(hc.indexOf(nid)<0){ hc.push(nid); setHiddenCars(hc); }
+    var ov=getOptOverrides();
+    var stdItems=(rd.standardEquipment||[]).map(function(e){ return {name:(e.name||""), group:(e.category||"標準配備 Standard")}; }).filter(function(x){return x.name;});
+    if(stdItems.length){ ov.std=ov.std||{}; ov.std[nid]={}; vks.forEach(function(vk){ ov.std[nid][vk]={added:JSON.parse(JSON.stringify(stdItems)), hidden:[], rename:{}}; }); }
+    var addOpts=[];
+    (rd.optionalEquipment||[]).forEach(function(e){ if(!e.name) return; addOpts.push({name:e.name, cat:(e.category||"選配 Options"), price:(+e.price||0), wt:((e.weight===""||e.weight==null)?"":(+e.weight||0))}); });
+    (rd.colors||[]).forEach(function(e){ if(!e.name) return; addOpts.push({name:e.name, cat:"車色 Colour", price:(+e.price||0), wt:""}); });
+    (rd.packages||[]).forEach(function(e){ if(!e.name) return; addOpts.push({name:e.name, cat:"套件包 Package", price:(+e.price||0), wt:""}); });
+    if(addOpts.length){ ov.added=ov.added||{}; ov.added[nid]=addOpts; }
+    setOptOverrides(ov);
+    if(typeof loadCustomBrands==="function") loadCustomBrands();
+    if(typeof loadCustomCars==="function") loadCustomCars();
+    var a=_actor();
+    j.status="imported"; j.importedAt=nowTs(); j.importedBy=a.id; j.importedCarId=nid; j.errorMessage=""; _impSaveJob(j);
+    dr.importStatus="imported"; dr.importedCarId=nid; dr.reviewedAt=nowTs(); _impSaveDraftObj(dr);
+    toast("已匯入為新車型（未上架）"); impForceAi=false; renderImportWizard();
+  }catch(e){
+    var jj=_impJob(impCurJob); if(jj){ jj.errorMessage=((e&&e.message)||String(e)); _impSaveJob(jj); }
+    var dd=_impDraftByJob(impCurJob); if(dd){ dd.importStatus="failed"; _impSaveDraftObj(dd); }
+    toast("匯入失敗："+((e&&e.message)||e)); renderImportWizard();
+  }
+}
+function impImportedView(j,dr){
+  var nm=(dr&&dr.reviewData&&dr.reviewData.modelName)||"新車型";
+  return '<div class="imp-rev-sec"><div class="imp-rev-h"><h4>✔ 已匯入</h4></div>'
+    +'<p>已把「'+_esc(nm)+'」匯入為一台<b>新車型</b>，且<b>預設未上架</b>（車型代碼：'+_esc(j.importedCarId||"")+'）。</p>'
+    +'<p class="hint">請到「車型資料庫」確認資料、價格與配備，確認無誤後再上架。系統不會自動上架，也不會影響任何既有車型。</p>'
+    +'<div class="imp-finalbar"><button class="btn primary" onclick="openCarDb()">前往車型資料庫</button><button class="btn ghost" onclick="impShowJobs()">回匯入清單</button></div></div>';
+}
+
 function _actor(){
   if(role==="admin") return {id:"__admin", name:"管理後台", role:"admin"};
   if(role==="acct") return {id:"__acct", name:"會計", role:"acct"};
@@ -4956,7 +5373,7 @@ function showQuoteEditor(){
 }
 function openCases(){
   editingCaseRef=null; _caseMode=null;
-  ["adminDashView","carDbView","adminCasesView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  ["adminDashView","carDbView","adminCasesView","importView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var d=document.getElementById("dashView"); if(d) d.style.display="none";
   var c=document.getElementById("casesView"); if(c) c.style.display="block";
@@ -5536,7 +5953,7 @@ function renderAdminMenu(){
   const admin=role==="admin", sales=role==="sales";
   let items=[], label="管理 ▾";
   if(admin && VIEW==="admin"){
-    items=[["管理後台","showAdminDash"],["報價明細","openPerf"],["業務案件總覽","openAdminCases"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
+    items=[["管理後台","showAdminDash"],["報價明細","openPerf"],["業務案件總覽","openAdminCases"],["PDF 匯入車型","openImport"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
     label="管理 ▾";
   } else if((admin && VIEW==="sales") || sales){
     const n=(typeof inboxCount==="function")?inboxCount():0;
