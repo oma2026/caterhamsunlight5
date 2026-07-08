@@ -1576,7 +1576,7 @@ function cliffCats(model,trim){
     ["隔熱加熱廢水箱",{STD:442.96},10.5],
     ["自行車架（2 台，黑）",{STD:405.98},10.5],
   ];
-  if(trim==="adv") conv.push(["Framed 車窗",{STD:487.33},5]);
+  if(trim==="adv") conv.push(["氣密窗",{STD:487.33},5]);
   conv.push(["CLIFF RT-Pack 車頂床（含 RT 貼紙）",{STD:4214.39},160]);
   return [
     ["底盤 & 動力 Base vehicle / Engine",[
@@ -1593,15 +1593,15 @@ function cliffCats(model,trim){
       ["90 公升油箱",{STD:S},23],
     ]],
     ["外觀塗裝 Painting",[
-      ["底盤色：金屬黑 Black metallic",{STD:698.82},2.5],
-      ["Lanzarote 灰",{STD:583.46},0],
-      ["Campovolo",{STD:583.46},0],
+      ["黑色金屬",{STD:698.82},2.5],
+      ["Lanzarote Grey（深灰）",{STD:583.46},0],
+      ["Expedition Grey（卡其灰）",{STD:583.46},0],
     ]],
     ["車體改裝 Conversion",conv],
     ["舒適 Comfort",[
-      ["起居區床舖套件（橫向客床）",{STD:258.08},5],
-      ["淋浴踏板（木製）",{STD:65.82},2],
-      ["可摺疊遮光簾",{STD:487.33},7.5],
+      ["轉換床",{STD:258.08},5],
+      ["浴室木地板隔扇",{STD:65.82},2],
+      ["百褶聯",{STD:487.33},7.5],
     ]],
     ["電力 Installations",[
       ["第二顆 AGM 輔助電池 95Ah",{STD:243.29},27],
@@ -1610,24 +1610,24 @@ function cliffCats(model,trim){
       ["倒車顯影預接線",{STD:124.97},1],
       ["太陽能預接線",{STD:124.97},2],
       ["太陽能板 100W（含 MPPT 控制器）",{STD:516.91},null],
-      ["燈軌 USB 埠",{STD:43.63},0],
+      ["燈軌內 USB 插頭",{STD:43.63},0],
     ]],
     ["暖氣 / 瓦斯 Heating",[
       ["Combi 4 柴油暖氣（含高度感測 + 數位面板）",{STD:is601?"std":561.28},1.1],
       ["Combi 6 E 暖氣（含電熱、數位面板）",{STD:is601?"na":524.30},2],
-      ["Caramatic SafeDrive PLUS 雙瓶瓦斯系統",{STD:221.11},3.5],
+      ["Caramatic SafeDrive PLUS（雙鋼瓶系統，含瓦斯壓力調節器與撞擊感測器）",{STD:221.11},3.5],
     ]],
     ["布材 Soft furnishing（選色）",[
-      ["Performance Grey",{STD:161.95},0],
-      ["Green Trail",{STD:161.95},0],
+      ["Performance Grey 性能灰",{STD:161.95},0],
+      ["Green Trail 綠色小徑",{STD:161.95},0],
     ]],
     ["套件 Packs",[
       ["黑色鋁圈套件 Black alloy wheels Pack",{STD:0},8,["真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 消光黑鋁圈"]],
       ["Chassis Package 底盤套件",{STD:1349.58},-8.3,["電動收折後視鏡","後方停車雷達","盲點偵測輔助","電子手煞車"]],
       ["Digital Package 數位套件",{STD:2399.66},4,["駕駛艙自動空調","無線手機充電","10吋 收音機 & 導航 DAB+","7吋 TFT 彩色數位儀表","動態軌跡倒車顯影"]],
       ["Safety Pack 安全套件",{STD:797.92},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助"]],
-      ["Safety Pack + ACC 安全套件 + 主動車距",{STD:1249.01},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
-      ["Co-Driver Package 副駕套件",{STD:1748.91},null,["ACC 含 Stop & Go","車道置中","塞車輔助","煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助"]],
+      ["安全包 + ACC",{STD:1249.01},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
+      ["副駕駛包（安全包 + ACC PLUS）",{STD:1748.91},null,["ACC 含 Stop & Go","車道置中","塞車輔助","煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助"]],
     ]],
   ];
 }
@@ -1643,7 +1643,7 @@ const CLIFF_FOOTNOTES=[
   {t:"適用 Sunlight GmbH 的滲水保固條款。 The water ingress warranty conditions of Sunlight GmbH apply."},
   {t:"搭配 Maxi 底盤時，彩繪保桿與黑色 skidplate 無法選配。 In combination with Maxi Chassis the painted bumper and black skidplate are not available."},
   {t:"無法與太陽能預接線同時選配。 Not possible in conjunction with pre-cabling for solar system."},
-  {t:"選配「起居區床舖套件」時：為確保逃生通道暢通，不可同時使用上掀式車頂與起居區床舖。 When ordering \"bed conversion for seating area\", the pop-top roof and bed conversion cannot be used at the same time so escape routes remain clear."},
+  {t:"選配「轉換床」時：為確保逃生通道暢通，不可同時使用上掀式車頂與起居區床舖。 When ordering \"bed conversion for seating area\", the pop-top roof and bed conversion cannot be used at the same time so escape routes remain clear."},
   {t:"CLIFF 540 無法與 CLIFF-RT 套件同時選配。 For CLIFF 540, not possible in conjunction with CLIFF-RT package."},
   {t:"無法與 CLIFF-RT 套件同時選配。 Not possible in conjunction with CLIFF-RT package."},
   {t:"無法與 Maxi 底盤及／或自排同時選配。 Not in conjunction with Maxi Chassis and/or automatic."},
@@ -1651,9 +1651,9 @@ const CLIFF_FOOTNOTES=[
 ];
 const CLIFF_FN_MARK={
   "Maxi 底盤 140hp 6速手排":"⁴⁾","Maxi 底盤 140hp 8速自排":"⁴⁾","Maxi 底盤 180hp 8速自排":"⁴⁾",
-  "CLIFF RT-Pack 車頂床（含 RT 貼紙）":"⁵⁾","起居區床舖套件（橫向客床）":"⁶⁾",
+  "CLIFF RT-Pack 車頂床（含 RT 貼紙）":"⁵⁾","轉換床":"⁶⁾",
   "太陽能預接線":"⁷⁾","太陽能板 100W（含 MPPT 控制器）":"⁵⁾⁷⁾",
-  "黑色鋁圈套件 Black alloy wheels Pack":"⁸⁾","Safety Pack + ACC 安全套件 + 主動車距":"⁹⁾","Co-Driver Package 副駕套件":"¹⁰⁾"
+  "黑色鋁圈套件 Black alloy wheels Pack":"⁸⁾","安全包 + ACC":"⁹⁾","副駕駛包（安全包 + ACC PLUS）":"¹⁰⁾"
 };
 function cfMark(label){
   if(typeof cur==="undefined"||!cur||cur.line!=="cliff") return "";
@@ -1779,14 +1779,14 @@ function cliffTechX(model){
     ["瓦斯瓶置放（填充重）Gas cylinders","2 x 11kg"],
   ];
 }
-// Cliff X 標準配備（依原廠 CLIFF-X Standard specification；比 Adventure 多 Skyview / Framed 車窗 / Variobath / 頂置櫃）
+// Cliff X 標準配備（依原廠 CLIFF-X Standard specification；比 Adventure 多 Skyview / 氣密窗 / Variobath / 頂置櫃）
 function cliffStdX(){
   return [
     ["CLIFF X 配備 CLIFF X Equipment",[
       "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6",
       "Fiat 原廠白車身 Fiat white","Adventure 車身貼紙 Adventure Decals","Adventure 布材套組 Soft furnishing",
       "頂置櫃 LED 照明 LED lighting for overhead lockers","後方環繞頂置櫃 Overhead locker all around rear",
-      "Skyview 天窗","Framed 車窗 Framed windows","Variobath 衛浴",
+      "Skyview 天窗","氣密窗","Variobath 衛浴",
       "遮陽篷（黑）Awning (black)","Basic-Pack ²⁾","彩繪前保桿 Painted front bumper","雙色鋁圈套件 Two-colour alloy wheels"
     ]],
     ["基礎車輛 Fiat Base vehicle Fiat",[
@@ -1803,7 +1803,7 @@ function cliffStdX(){
     ]],
     ["外觀塗裝 Painting",[ "Fiat 原廠白 Fiat white" ]],
     ["車體改裝 Conversion",[
-      "7 年滲水保固 7-year water ingress warranty ³⁾","Skyview 天窗","Framed 車窗 Framed windows",
+      "7 年滲水保固 7-year water ingress warranty ³⁾","Skyview 天窗","氣密窗",
       "雙層中空掀開式車窗（含卡匣遮光簾 + 紗窗）","兩側後門含掀開式車窗（含捲簾）","臥室 40×40cm 天窗（含紗窗 + 遮光簾）","後置物空間含 4 個整合式綁點"
     ]],
     ["舒適 Comfort",[
@@ -1853,7 +1853,6 @@ function tCats(code){
       ["全 LED 頭燈（含動態方向燈、LED 日行燈）",{STD:812.71},0],
     ]],
     ["增重 Weight Increase",[
-      ["增重至 3.65t（不改底盤）",{STD:184.13},0],
       ["Maxi 底盤 4,400kg 180hp 8速自排",{STD:maxi4400?6098.62:"na"},60],
     ]],
     ["外觀塗裝 Painting",[
@@ -1864,12 +1863,12 @@ function tCats(code){
       ["後方兩支車身撐腳",{STD:243.29},6],
     ]],
     ["舒適 Comfort",[
-      ["起居區床舖套件",{STD:bed},5],
+      ["轉換床",{STD:bed},5],
       ["下降式床（含 Clima-Plux 元件）",{STD:1182.45},44],
       ["側長椅第 5 座位（含安全帶）³⁾",{STD:fifth},15],
-      ["淋浴踏板（木製）",{STD:65.82},2],
+      ["浴室木地板隔扇",{STD:65.82},2],
       ["地毯",{STD:213.71},5],
-      ["可摺疊遮光簾",{STD:487.33},8],
+      ["百褶聯",{STD:487.33},8],
     ]],
     ["電力 Installations",[
       ["12V 電視預接線 + 平板電視架",{STD:161.95},3],
@@ -1882,25 +1881,23 @@ function tCats(code){
     ["暖氣 / 瓦斯 Heating",[
       ["地暖（起居區電暖）",{STD:369.01},6],
       ["Combi 6 E 暖氣（含電熱、數位面板）",{STD:combi6e},2],
-      ["Caramatic SafeDrive PLUS 雙瓶瓦斯系統",{STD:221.11},3.5],
+      ["Caramatic SafeDrive PLUS（雙鋼瓶系統，含瓦斯壓力調節器與撞擊感測器）",{STD:221.11},3.5],
     ]],
     ["廚房 Kitchen",[
       ["廚房烤箱",{STD:391.19},12],
     ]],
     ["布材 Soft furnishing（免費選色）",[
-      ["Performance Grey",{STD:0},0],
-      ["Green Trail",{STD:0},0],
+      ["Performance Grey 性能灰",{STD:0},0],
+      ["Green Trail 綠色小徑",{STD:0},0],
     ]],
     ["套件 Packs",[
       ["黑色鋁圈套件 Black alloy wheels Pack ⁵⁾",{STD:0},8,["真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 消光黑鋁圈"]],
       ["Digital Package 數位套件",{STD:2399.66},4,["駕駛艙自動空調","無線手機充電","10吋 收音機 & 導航 DAB+","7吋 TFT 彩色數位儀表","倒車顯影（無軌跡線）"]],
       ["Safety Pack 安全套件",{STD:797.92},0,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助"]],
-      ["Safety Pack + ACC 安全套件 + 主動車距",{STD:1249.01},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
+      ["安全包 + ACC",{STD:1249.01},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
       ["露營遮陽篷 "+awn[0]+"（黑）",{STD:awn[1]},awn[2]],
       ["Pack One（遮陽篷 "+awn[0]+" + 3 車自行車架）",{STD:packOne.p},packOne.w],
       ["Pack All-In-One（遮陽篷 "+awn[0]+" + 自行車架 + 更多配備）",{STD:allIn.p},allIn.w],
-      ["TV Pack（22\" Smart TV + Teleco Flatsat）",{STD:2217.75},null],
-      ["LTE Pack（22\" Smart TV + WiFi/LTE）",{STD:1300.77},null],
     ]],
   ];
 }
@@ -1956,7 +1953,7 @@ function tStd(code){
   return [
     ["Adventure 配備 Adventure Equipment", F([
       "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6","Fiat 原廠白 Fiat white","Adventure 車身貼紙 Adventure Decals","Adventure 布材套組",
-      "高位後燈組 High-level rear light cluster","駕駛艙天窗 Cab sunroof","Framed 車窗 Framed windows",
+      "高位後燈組 High-level rear light cluster","駕駛艙天窗 Cab sunroof","氣密窗",
       has2ndDoor && "第二外部置物門（尺寸依車型）2nd external storage door",
       seatBedStd && "起居區床舖轉換 Bed conversion for seating area",
       single2dbl && "單人床轉雙人床 Bed conversion single to double bed",
@@ -2095,22 +2092,22 @@ function cliffCatsPeu(model){
       ["露營遮陽篷 "+awn[0]+"（黑）",{STD:awn[1]},awn[2]],
     ]],
     ["舒適 Comfort",[
-      ["起居區床舖套件",{STD:258.08},5],
-      ["淋浴踏板（木製）",{STD:65.82},2],
-      ["可摺疊遮光簾",{STD:487.33},8],
+      ["轉換床",{STD:258.08},5],
+      ["浴室木地板隔扇",{STD:65.82},2],
+      ["百褶聯",{STD:487.33},8],
     ]],
     ["電力 Installations",[
       ["第二顆 AGM 輔助電池 95Ah",{STD:243.29},27],
       ["電視預接線 / 電視架",{STD:161.95},3],
       ["倒車顯影預接線",{STD:124.97},1],
       ["太陽能預接線",{STD:124.97},2],
-      ["燈軌 USB 埠",{STD:43.63},0],
+      ["燈軌內 USB 插頭",{STD:43.63},0],
     ]],
     ["暖氣 / 瓦斯 Heating",[
       ["Combi 6 E 暖氣（含電熱、數位面板）",{STD:524.30},2],
     ]],
     ["布材 Soft furnishing",[
-      ["Performance Grey",{STD:161.95},0],
+      ["Performance Grey 性能灰",{STD:161.95},0],
     ]],
     ["套件 Packs",[
       ["Basic-Pack 基本套件",{STD:664.81},31.4,["全景天窗 70×50 cm","淋浴設備","浴室窗戶","浴室掛衣桿","寬版入口踏階","座椅區餐桌延伸旋轉板"]],
@@ -2236,9 +2233,6 @@ function tCatsCit(code){
       ["電子手煞車 Electric Park Brake",{STD:450.35},-9.4],
       ["90 公升油箱",{STD:S},23],
     ]],
-    ["增重 Weight Increase",[
-      ["增重至 3.65t（不改底盤）",{STD:184.13},0],
-    ]],
     ["車體改裝 Conversion",[
       ["隔熱廢水箱",{STD:132.37},8],
       ["第二外部置物門（尺寸依車型）",{STD:door2nd},3],
@@ -2246,10 +2240,10 @@ function tCatsCit(code){
     ]],
     ["舒適 Comfort",[
       ["單人床轉雙人床",{STD:single2dbl},5],
-      ["起居區床舖套件",{STD:seatingBed},5],
+      ["轉換床",{STD:seatingBed},5],
       ["下降式床（含 Clima-Plux 元件）",{STD:1182.45},44],
       ["側長椅第 5 座位（含安全帶）⁴⁾",{STD:fifth},15],
-      ["淋浴踏板（木製）",{STD:65.82},2],
+      ["浴室木地板隔扇",{STD:65.82},2],
     ]],
     ["電力 Installations",[
       ["12V 電視預接線 + 平板電視架",{STD:161.95},3],
@@ -2259,25 +2253,23 @@ function tCatsCit(code){
       ["太陽能板 100W（含 MPPT 控制器）⁵⁾",{STD:516.91},null],
     ]],
     ["暖氣 / 瓦斯 Heating",[
-      ["Caramatic SafeDrive PLUS 雙瓶瓦斯系統",{STD:221.11},3.5],
+      ["Caramatic SafeDrive PLUS（雙鋼瓶系統，含瓦斯壓力調節器與撞擊感測器）",{STD:221.11},3.5],
     ]],
     ["廚房 Kitchen",[
       ["大型冰箱 156L（含獨立冷凍 29L）",{STD:fridge156},13],
     ]],
     ["布材 Soft furnishing（選色）",[
-      ["Green Trail",{STD:161.95},0],
-      ["Performance Grey",{STD:161.95},0],
+      ["Green Trail 綠色小徑",{STD:161.95},0],
+      ["Performance Grey 性能灰",{STD:161.95},0],
     ]],
     ["套件 Packs",[
       ["Basic Pack 基本套件",{STD:783.13},14.3,["Bridge Light","舒適入口門含車窗","一體式紗門","全景天窗 70×50 cm","透明天窗 40×40 cm"]],
       ["雙色鋁圈套件 Two-colour alloy wheels Pack",{STD:886.66},8,["真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 雙色鋁圈"]],
       ["Safety Pack 安全套件",{STD:797.92},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌 & 遠光燈辨識","駕駛疲勞偵測","智慧速度輔助"]],
-      ["Safety Pack + ACC 安全套件 + 主動車距",{STD:1647.60},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌 & 遠光燈辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
+      ["安全包 + ACC",{STD:1647.60},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌 & 遠光燈辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
       ["露營遮陽篷 "+awn[0]+"（黑）",{STD:awn[1]},awn[2]],
       ["Pack One（遮陽篷 "+awn[0]+" + 3 車自行車架）",{STD:packOne.p},packOne.w],
       ["Pack All-In-One（遮陽篷 "+awn[0]+" + 自行車架 + 22\" Smart TV + Teleco Flatsat）",{STD:allIn.p},allIn.w],
-      ["TV Pack（22\" Smart TV + Teleco Flatsat）",{STD:2217.75},null],
-      ["LTE Pack（22\" Smart TV + WiFi/LTE）",{STD:1300.77},null],
     ]],
   ];
 }
@@ -2383,9 +2375,6 @@ function tCatsCit25(code){
       ["電子手煞車 Electric Park Brake",{STD:450.35}],
       ["90 公升油箱",{STD:S}],
     ]],
-    ["增重 Weight Increase",[
-      ["增重至 3.65t（不改底盤）",{STD:184.13},0],
-    ]],
     ["車體改裝 Conversion",[
       ["隔熱廢水箱",{STD:132.37},8],
       ["第二外部置物門（尺寸依車型）",{STD:door2nd},3],
@@ -2393,23 +2382,23 @@ function tCatsCit25(code){
     ]],
     ["舒適 Comfort",[
       ["單人床轉雙人床",{STD:single2dbl},5],
-      ["起居區床舖套件",{STD:seatingBed},5],
+      ["轉換床",{STD:seatingBed},5],
       ["下降式床（含 Clima-Plux 元件）",{STD:pulldown},44],
       ["側長椅第 5 座位（含安全帶）⁴⁾",{STD:fifth},15],
-      ["淋浴踏板（木製）",{STD:65.82},2],
+      ["浴室木地板隔扇",{STD:65.82},2],
     ]],
     ["電力 Installations",[
       ["12V 電視預接線 + 平板電視架",{STD:161.95},3],
       ["太陽能預接線",{STD:124.97},2],
       ["倒車顯影預接線",{STD:124.97},1],
-      ["Caramatic SafeDrive PLUS 雙瓶瓦斯系統",{STD:221.11}],
+      ["Caramatic SafeDrive PLUS（雙鋼瓶系統，含瓦斯壓力調節器與撞擊感測器）",{STD:221.11}],
     ]],
     ["廚房 Kitchen",[
       ["大型冰箱 156L（含獨立冷凍 29L）",{STD:fridge156},13],
     ]],
     ["布材 Soft furnishing（選色）",[
-      ["Performance Grey",{STD:161.95},0],
-      ["Green Trail",{STD:161.95},0],
+      ["Performance Grey 性能灰",{STD:161.95},0],
+      ["Green Trail 綠色小徑",{STD:161.95},0],
     ]],
     ["套件 Packs",[
       ["Basic Pack 基本套件",{STD:783.13},undefined,["Bridge Light","舒適入口門含車窗","一體式紗門","全景天窗 70×50 cm","透明天窗 40×40 cm"]],
@@ -2419,7 +2408,6 @@ function tCatsCit25(code){
       ["露營遮陽篷 "+awn[0]+"（黑）Awning",{STD:awn[1]},awn[2]],
       ["Pack One（遮陽篷 "+awn[0]+" + 3 車自行車架）",{STD:packOne.p},packOne.w],
       ["Pack All-In-One（遮陽篷 "+awn[0]+" + 自行車架 + 22\" Smart TV + Teleco Flatsat Classic 65）",{STD:allIn.p},allIn.w],
-      ["TV Pack（22\" Smart TV + 支架、Teleco Flatsat Classic 65）",{STD:2217.75},17],
     ]],
   ];
 }
@@ -2487,7 +2475,7 @@ function tStd25(code){
   return [
     ["Adventure 配備 Adventure Equipment", F([
       "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6","Fiat 原廠白車身 Chassis colour white","Adventure 車身貼紙 Adventure Decals","Adventure 布材套組",
-      "高位後燈組 High-level rear light cluster","駕駛艙天窗 Cab sunroof","Framed 車窗 Framed windows",
+      "高位後燈組 High-level rear light cluster","駕駛艙天窗 Cab sunroof","氣密窗",
       has2ndDoor && "第二外部置物門（尺寸依車型）2nd external storage door",
       !isT58 && "大型冰箱 156L（含獨立冷凍 29L）Large 156 l fridge",
       seatBedStd && "起居區床舖轉換 Bed conversion for seating area",
@@ -2556,7 +2544,6 @@ function tCats25(code){
       ["全 LED 頭燈（含動態方向燈、LED 日行燈）",{STD:812.71},0],
     ]],
     ["增重 Weight Increase",[
-      ["增重至 3.65t（不改底盤）",{STD:184.13},0],
       ["Maxi 底盤 4,400kg 180hp 8速自排",{STD:maxi4400?6098.62:"na"},60],
     ]],
     ["車體改裝 Conversion",[
@@ -2564,12 +2551,12 @@ function tCats25(code){
       ["後方兩支車身撐腳",{STD:243.29},6],
     ]],
     ["舒適 Comfort",[
-      ["起居區床舖套件",{STD:seatingBed},5],
+      ["轉換床",{STD:seatingBed},5],
       ["下降式床（含 Clima-Plux 元件）",{STD:pulldown},44],
       ["側長椅第 5 座位（含安全帶）³⁾",{STD:fifth},15],
-      ["淋浴踏板（木製）",{STD:65.82},2],
+      ["浴室木地板隔扇",{STD:65.82},2],
       ["地毯",{STD:213.71},5],
-      ["可摺疊遮光簾",{STD:487.33},8],
+      ["百褶聯",{STD:487.33},8],
     ]],
     ["電力 Installations",[
       ["12V 電視預接線 + 平板電視架",{STD:161.95},3],
@@ -2578,22 +2565,19 @@ function tCats25(code){
       ["地暖（起居區電暖）",{STD:369.01},6],
       ["Combi 6 E 暖氣（含電熱、數位面板）",{STD:405.98},2],
       ["第二顆 AGM 電池 95Ah",{STD:243.29},27],
-      ["Caramatic SafeDrive PLUS 雙瓶瓦斯系統",{STD:221.11},3.5],
+      ["Caramatic SafeDrive PLUS（雙鋼瓶系統，含瓦斯壓力調節器與撞擊感測器）",{STD:221.11},3.5],
     ]],
     ["廚房 Kitchen",[
       ["廚房烤箱",{STD:391.19},12],
     ]],
     ["布材 Soft furnishing（選色）",[
-      ["Performance Grey",{STD:161.95},0],
-      ["Green Trail",{STD:161.95},0],
+      ["Performance Grey 性能灰",{STD:161.95},0],
+      ["Green Trail 綠色小徑",{STD:161.95},0],
     ]],
     ["套件 Packs",[
       ["黑色鋁圈套件 Black alloy wheels Pack ⁴⁾",{STD:0},8,["真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 消光黑鋁圈"]],
       ["Safety Pack 安全套件",{STD:797.92},0.5,["煞車輔助（行人 & 自行車偵測）","雨滴 / 黃昏感應器","車道維持輔助","交通標誌 & 遠光燈辨識","駕駛疲勞偵測","智慧速度輔助"]],
       ["Digital Package 數位套件",{STD:2399.66},4,["駕駛艙自動空調","無線手機充電","10吋 收音機 & 導航 DAB+","7吋 TFT 彩色數位儀表","倒車顯影（無軌跡線）"]],
-    ]],
-    ["內部選配與遮陽篷 Internal optional equipment",[
-      ["TV Pack（22\" Smart TV + 支架、Teleco Flatsat Classic 65）",{STD:2217.75},17],
     ]],
     ["其他 Others",[
       ["全險 All Risk Insurance Domestic（強制 · 已含）",{STD:S},0],
@@ -2678,6 +2662,20 @@ CARS.forEach(c=>{
   if(bake>0){
     if(c.variants&&c.variants.STD&&typeof c.variants.STD.base==="number") c.variants.STD.base += bake;
     if(typeof c.dpp==="number") c.dpp += bake;
+  }
+});
+/* 露營遮陽篷標配（所有 Sunlight 車）：讀出各車遮陽篷價（尺寸不同、價不同），灌進車身底價＋成本，再把選項改標配（S），對客戶隱藏價格。*/
+CARS.forEach(c=>{
+  if(c.brandId!=="sunlight" || !Array.isArray(c.cats)) return;
+  for(let i=0;i<c.cats.length;i++){ const arr=c.cats[i][1]; if(!Array.isArray(arr)) continue;
+    for(let j=0;j<arr.length;j++){ const o=arr[j];
+      if(o && typeof o[0]==="string" && o[0].indexOf("露營遮陽篷")===0 && o[1] && typeof o[1].STD==="number"){
+        const price=o[1].STD;
+        if(c.variants&&c.variants.STD&&typeof c.variants.STD.base==="number") c.variants.STD.base += price;
+        if(typeof c.dpp==="number") c.dpp += price;
+        o[1].STD = S;   // 改標配（S="std"）
+      }
+    }
   }
 });
 const CLIFF_ADV_LAYOUT={cliff540:"540",cliff600:"600",cliff601:"601",cliff602:"602",cliff640:"640",cliff540v:"540",cliff600j:"600"};
@@ -3445,7 +3443,7 @@ function seedXGroupsIfEmpty(){
   if(localStorage.getItem(LS_XG)) return;            // 已有互斥設定 → 絕不覆蓋
   if(window.CLOUD && !window.CLOUD.ready) return;     // 雲端尚在初次載入 → 延後種子，待雲端就緒後再種，避免把預設值推回雲端蓋掉既有互斥設定
   setXGroups({
-    "外觀塗裝 Painting":{"底盤色：金屬黑 Black metallic":"A","Lanzarote 灰":"A","Expedition 灰":"A"},
+    "外觀塗裝 Painting":{"黑色金屬":"A","Lanzarote Grey（深灰）":"A","Expedition Grey（卡其灰）":"A"},
     "暖氣 / 瓦斯 Heating":{"Combi 4 柴油暖氣（含高度感測 + 數位面板）":"A","Combi 6 E 暖氣（含電熱、數位面板）":"A"},
     "底盤 & 動力 Base vehicle / Engine":{"Maxi 底盤 140hp 6速手排":"A","Maxi 底盤 140hp 8速自排":"A","Maxi 底盤 180hp 8速自排":"A","Maxi 底盤 4,250kg 180hp 8速自排（HD）":"A"},
     "SIGNATURE 內裝選項":{"儀表板 – 木紋飾 Dash Wood effect":"A","儀表板 – 真皮 Dash Leather":"A","儀表板 – 黑色 Alcantara":"A","儀表板 – 烤漆 Dash Painted":"A","儀表板 – 620 樣式 Dash 620 style":"A"}
