@@ -268,7 +268,8 @@
   .lightbox img{max-width:94vw;max-height:90vh;background:#fff;border-radius:10px;padding:14px;box-shadow:0 24px 70px rgba(0,0,0,.55)}
 
   /* ---------- summary (sticky) ---------- */
-  .summary{position:sticky;top:86px}
+  .col-side{align-self:stretch}
+  .summary{position:sticky;top:86px;max-height:calc(100vh - 100px);overflow-y:auto;overflow-x:hidden}
   .sum-line{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:5px 0;color:var(--ink-2)}
   .sum-line b{color:var(--ink);font-family:"SF Mono",ui-monospace,monospace}
   .sum-opts{max-height:230px;overflow:auto;margin:6px 0 10px;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:8px 0}
