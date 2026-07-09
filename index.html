@@ -4729,7 +4729,7 @@ function refreshDash(){
     var badge=document.getElementById("dashSubBadge");
     if(badge){ badge.textContent=st.submitted; badge.classList.toggle("on", st.submitted>0); }
     var ds=document.getElementById("dashStats");
-    if(ds){ var defs=[["客戶已送出",st.submitted],["已報價",st.quoted],["已成交",st.dealt],["待上傳合約",st.contract],["待公司下定",st.ready]];
+    if(ds){ var defs=[["客戶已送出",st.submitted],["已報價",st.quoted],["待上傳合約",st.contract],["已成交",st.dealt],["待公司下定",st.ready]];
       ds.innerHTML=defs.map(function(d){return '<div class="cstat"><div class="n">'+d[1]+'</div><div class="l">'+d[0]+'</div></div>';}).join(""); }
   }catch(e){}
 }
@@ -5207,6 +5207,7 @@ function caseGenerateContract(type,id){ if(editingCaseRef && editingCaseRef.id==
 function _caseDoContract(id){
   if(!cur||!variant){ toast("此案件缺少可產生合約的內容"); return; }
   if(typeof configError==="function" && configError()){ toast(configError()); return; }
+  if(!_caseRequireName()) return;
   var dealId=_promoteToDeal()||id;
   _contractCaseId=dealId;
   if(typeof openContract==="function") openContract();
@@ -5244,6 +5245,7 @@ function caseGenerateContractDirect(type,id){ if(editingCaseRef && editingCaseRe
 function _caseDoContractDirect(id){
   if(!cur||!variant){ toast("此案件缺少可產生合約的內容"); return; }
   if(typeof configError==="function" && configError()){ toast(configError()); return; }
+  if(!_caseRequireName()) return;
   var dealId=_promoteToDeal()||id;
   _contractCaseId=dealId;
   if(typeof printContractDirect==="function") printContractDirect();
@@ -5409,8 +5411,11 @@ function caseStats(){
   var st={submitted:subs.length, quoted:0, dealt:0, contract:0, ready:0};
   deals.forEach(function(d){ var c=normalizeCase(d);
     if(c.orderStatus==="ordered" || c.dealStatus==="deal_lost") return;
-    if(c.dealStatus==="deal_won"){ if(c.depositStatus==="confirmed" && c.contractStatus==="signed_uploaded") st.ready++; else st.dealt++; if(c.contractStatus!=="signed_uploaded") st.contract++; }
-    else if(c.dealStatus==="quoted" || c.dealStatus==="contract_generated") st.quoted++;
+    var signed=(c.contractStatus==="signed_uploaded"||c.hasSignedContract);
+    var hasCon=(c.contractStatus==="generated"||c.dealStatus==="contract_generated"||!!(c.raw&&c.raw.contractGeneratedAt));
+    if(c.dealStatus==="deal_won"){ if(c.depositStatus==="confirmed" && signed) st.ready++; else st.dealt++; }
+    else if(hasCon && !signed){ st.contract++; }
+    else if(c.dealStatus==="quoted" || c.dealStatus==="contract_generated" || c.quoteStatus==="generated" || (c.raw&&c.raw.pdfDone)){ st.quoted++; }
   });
   return st;
 }
@@ -5447,19 +5452,19 @@ function caseButtonsHTML(it){
   row.push(db('📄 下載報價單', A_pdf, true));
   row.push(db('📄 '+(hasContract?'下載':'產生')+'簽約文件', A_con, hasContract||active));
   row.push(uplBtn);
-  row.push(db((isWon?'修改成交金額':'確認成交資料'), A_deal, hasContract&&active));
   var depLabel=(dep==="confirmed")?'訂金已確認':((dep==="sales_marked_paid")?'訂金待公司確認':'回報客戶已付訂金');
   row.push(db(depLabel, A_dep, isWon&&dep==="unpaid"&&active));
   var m=[ mi(A_qv,"查看客戶選擇 / 明細"), mi(A_open,"查看 / 修改案件") ];
   if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約"));
+  if(isWon && active) m.push(mi(A_deal,"修改成交金額"));
   if(active && t==="deal") m.push(mi(A_lost,"結案為未成交"));
   m.push('<button class="case-mi danger" onclick="'+A_del+'">刪除案件</button>');
-  var note=(hasContract&&!isSigned&&active)?'<div class="case-hint2">簽約文件只是產生給客戶簽名的文件，不代表已成交。請在客戶簽名後上傳已簽名合約，並完成成交資料與訂金流程。</div>':"";
+  var note=(hasContract&&!isSigned&&active)?'<div class="case-hint2">客戶簽名後，上傳「已簽名合約」即完成成交（系統會自動標記成交，成交金額預設為報價金額，可再修改）。</div>':"";
   return '<div class="case-actrow">'+row.join("")+'<details class="case-more"><summary>更多操作 ▾</summary><div class="case-menu">'+m.join("")+'</div></details></div>'+note;
 }
 function renderCases(){
   var st=caseStats();
-  var sd=[["submitted","客戶已送出",st.submitted],["quoted","已報價",st.quoted],["dealt","已成交",st.dealt],["contract","待上傳合約",st.contract],["ready","待公司下定",st.ready]];
+  var sd=[["submitted","客戶已送出",st.submitted],["quoted","已報價",st.quoted],["contract","待上傳合約",st.contract],["dealt","已成交",st.dealt],["ready","待公司下定",st.ready]];
   var se=document.getElementById("caseStats");
   if(se) se.innerHTML=sd.map(function(s){return '<div class="cstat"><div class="n">'+s[2]+'</div><div class="l">'+s[1]+'</div></div>';}).join("");
   var q=((document.getElementById("caseSearch")||{}).value||"").trim().toLowerCase();
@@ -5537,6 +5542,7 @@ function _promoteToDeal(){
   if(d){ if(!d.source) d.source=(editingCaseRef&&editingCaseRef.type==='sub')?"submission":"onsite"; d.updatedAt=Date.now(); saveDeals(getDeals()); editingCaseRef={type:'deal',id:d.id}; return d.id; }
   return null;
 }
+function _caseRequireName(){ var el=document.getElementById("c_name"); var nm=((el&&el.value)||"").trim(); if(nm) return true; toast("請先填寫客戶名字，再產生文件"); if(el){ try{ el.focus(); el.scrollIntoView({block:"center"}); }catch(e){} } return false; }
 function caseGeneratePDF(type,id){
   if(editingCaseRef && editingCaseRef.id===id && cur && variant){ _caseDoPDF(type,id); }
   else if(_caseLoadSilent(type,id)){ setTimeout(function(){ _caseDoPDF(type,id); }, 80); }
@@ -5544,6 +5550,7 @@ function caseGeneratePDF(type,id){
 function _caseDoPDF(type,id){
   if(!cur||!variant){ toast("此案件缺少可產生報價的內容"); return; }
   if(typeof configError==="function" && configError()){ toast(configError()); return; }
+  if(!_caseRequireName()) return;
   var dealId=_promoteToDeal();
   if(dealId){ var deals=getDeals(); var d=deals.find(function(x){return x.id===dealId;}); if(d){ d.pdfDone=true; d.quoteStatus="generated"; d.quoteGeneratedAt=nowTs(); d.quoteGeneratedBy=_actor().name; d.quoteVersion=(d.quoteVersion||0)+1; if(!d.dealStatus||d.dealStatus==="quote") d.dealStatus="quoted"; d.updatedAt=nowTs(); saveDeals(deals); logActivity(dealId,"產生報價單","v"+((d.quoteVersion)||1)); } }
   if(type==='sub'){ var subs=getSubs(); var s=subs.find(function(x){return x.id===id;}); if(s){ s.status="done"; saveSubs(subs); } }
@@ -5573,7 +5580,7 @@ function caseConfirmDeal(){
   closeDealPop(); _caseRefresh(); toast("已標記成交");
 }
 function caseToggleDeposit(id){ var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; d.depositStatus="sales_marked_paid"; d.depositPaid=true; d.depositMarkedBySalesAt=nowTs(); d.depositMarkedBySalesBy=_actor().name; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"業務標記訂金已付",""); _caseRefresh(); toast("已標記訂金已付，待管理後台/會計確認"); }
-function caseUploadContract(id,input){ if(typeof dealUploadContract==="function") dealUploadContract(id,input); setTimeout(function(){ var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(d && d.hasContract){ d.contractStatus="signed_uploaded"; d.signedContractUploadedAt=nowTs(); d.signedContractUploadedBy=_actor().name; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"上傳已簽名合約",d.contractName||""); } _caseRefresh(); }, 600); }
+function caseUploadContract(id,input){ if(typeof dealUploadContract==="function") dealUploadContract(id,input); setTimeout(function(){ var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(d && d.hasContract){ d.contractStatus="signed_uploaded"; d.signedContractUploadedAt=nowTs(); d.signedContractUploadedBy=_actor().name; var _wasWon=(d.dealStatus==="deal_won"); if(!_wasWon){ d.status="done"; d.dealStatus="deal_won"; if(!d.dealPrice){ var _c=normalizeCase(d); d.dealPrice=_c.quoteTotal||0; } d.balanceAmount=(+d.dealPrice||0)-(+d.depositAmount||0); if(!d.dealMarkedAt){ d.dealMarkedAt=nowTs(); d.dealMarkedBy=_actor().name; } } d.updatedAt=nowTs(); saveDeals(deals); logActivity(id, _wasWon?"上傳已簽名合約":"上傳簽名合約並成交", _wasWon?(d.contractName||""):("成交價 "+(d.dealPrice||0))); toast(_wasWon?"已上傳簽名合約":"已上傳簽名合約，並自動標記成交（成交金額預設＝報價金額，可在『更多操作 → 修改成交金額』調整）"); } _caseRefresh(); }, 600); }
 function caseMarkOrdered(id){ if(!isFinanceRole()){ toast("僅限管理後台/會計標記下定"); return; } var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; var c=normalizeCase(d); if(!(c.depositStatus==="confirmed" && c.contractStatus==="signed_uploaded")){ toast("需『訂金已確認』且『已上傳簽名合約』才能下定"); return; } d.orderStatus="ordered"; d.ordered=true; d.orderedAt=nowTs(); d.orderedBy=_actor().name; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"管理後台標記已下定",""); _caseRefresh(); toast("已標記下定"); }
 function onCaseConfigChanged(){ if(!editingCaseRef) return; if(_caseAutoT) clearTimeout(_caseAutoT); _caseAutoT=setTimeout(caseAutosave,900); }
 function caseAutosave(){
