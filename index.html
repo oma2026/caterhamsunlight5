@@ -724,7 +724,6 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     <div class="dash-card" onclick="openOptMgrFromDash()"><div class="dash-ic">🧩</div><div><div class="dc-t">配備管理</div><div class="dc-d">管理各車的選配項目</div></div></div>
     <div class="dash-card" onclick="openSettings()"><div class="dash-ic">💲</div><div><div class="dc-t">價格設定</div><div class="dc-d">係數・運輸費・訂金比例・匯率</div></div></div>
     <div class="dash-card" onclick="openCarDb('copy')"><div class="dash-ic">📋</div><div><div class="dc-t">複製車型</div><div class="dc-d">把某年份複製成新年份</div></div></div>
-    <div class="dash-card" onclick="openQuotePreview()"><div class="dash-ic">👁️</div><div><div class="dc-t">報價預覽</div><div class="dc-d">用業務端視角預覽車輛報價</div></div></div>
     <div class="dash-card" onclick="openAdminCases()"><div class="dash-ic">📇</div><div><div class="dc-t">業務案件總覽</div><div class="dc-d">所有業務案件・下載・確認訂金/下定</div></div></div>
     <div class="dash-card" onclick="openImport()"><div class="dash-ic">📥</div><div><div class="dc-t">PDF 匯入車型</div><div class="dc-d">上傳原廠 PDF・AI 解析・人工確認・匯入新車</div></div></div>
     <div class="dash-card" onclick="openFormula()"><div class="dash-ic">🧮</div><div><div class="dc-t">價格公式</div><div class="dc-d">看懂並調整算價的每個數字・即時預覽</div></div></div>
@@ -5416,7 +5415,7 @@ function renderFormula(){
   var lux=document.getElementById("fml_lux"); if(lux) lux.checked=(s.luxTax!==false);
   var sel=document.getElementById("fml_car");
   if(sel){
-    if(sel.options.length===0){ (typeof CARS!=="undefined"?CARS:[]).forEach(function(c){ var o=document.createElement("option"); o.value=c.id; o.textContent=(c.brand?c.brand+" ":"")+c.name; sel.appendChild(o); }); }
+    if(sel.options.length===0){ (typeof CARS!=="undefined"?CARS:[]).forEach(function(c){ var o=document.createElement("option"); o.value=c.id; var _yr=(c.my&&/^\d\d$/.test(c.my))?("MY20"+c.my):((c.year&&/^(MY)?\s*20\d\d$/.test(c.year))?c.year:""); o.textContent=(c.brand?c.brand+" ":"")+c.name+(_yr?("　"+_yr):""); sel.appendChild(o); }); }
     if(!_fmlCar && typeof CARS!=="undefined" && CARS.length){ _fmlCar=CARS[0].id; }
     if(_fmlCar) sel.value=_fmlCar;
   }
