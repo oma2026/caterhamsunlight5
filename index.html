@@ -3074,6 +3074,8 @@ CARS.forEach(c=>{
 });
 const CLIFF_ADV_LAYOUT={cliff540:"540",cliff600:"600",cliff601:"601",cliff602:"602",cliff640:"640",cliff540v:"540",cliff600j:"600"};
 CARS.forEach(c=>{ if(CLIFF_ADV_LAYOUT[c.id]){ const L=CLIFF_ADV_LAYOUT[c.id]; c.tech=cliffTech(L); c.included={STD:cliffStd(L)}; } });
+/* 暫時移除 Sunlight MY2025 系列（Darren 2026-07-09 要求；要復原就刪掉這一段） */
+for(var _rm25=CARS.length-1;_rm25>=0;_rm25--){ if(CARS[_rm25] && CARS[_rm25].brandId==="sunlight" && CARS[_rm25].my==="25"){ CARS.splice(_rm25,1); } }
 const CLIFF_X_LAYOUT={cliff600x:"600x",cliff640x:"640x"};
 CARS.forEach(c=>{ if(CLIFF_X_LAYOUT[c.id]){ c.tech=cliffTechX(CLIFF_X_LAYOUT[c.id]); c.included={STD:cliffStdX()}; } });
 const T_TECH_CODES=["T58","T66S","T67S","T67","T68","T68C","T69LC"];
