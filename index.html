@@ -721,9 +721,7 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
   <div class="dash-sub">請選擇要管理的項目</div>
   <div class="dash-cards">
     <div class="dash-card" onclick="openCarDb()"><div class="dash-ic">🚗</div><div><div class="dc-t">車型資料庫</div><div class="dc-d">品牌・車型・年份・版本・價格・上架</div></div></div>
-    <div class="dash-card" onclick="openOptMgrFromDash()"><div class="dash-ic">🧩</div><div><div class="dc-t">配備管理</div><div class="dc-d">管理各車的選配項目</div></div></div>
     <div class="dash-card" onclick="openSettings()"><div class="dash-ic">💲</div><div><div class="dc-t">價格設定</div><div class="dc-d">係數・運輸費・訂金比例・匯率</div></div></div>
-    <div class="dash-card" onclick="openCarDb('copy')"><div class="dash-ic">📋</div><div><div class="dc-t">複製車型</div><div class="dc-d">把某年份複製成新年份</div></div></div>
     <div class="dash-card" onclick="openAdminCases()"><div class="dash-ic">📇</div><div><div class="dc-t">業務案件總覽</div><div class="dc-d">所有業務案件・下載・確認訂金/下定</div></div></div>
     <div class="dash-card" onclick="openImport()"><div class="dash-ic">📥</div><div><div class="dc-t">PDF 匯入車型</div><div class="dc-d">上傳原廠 PDF・AI 解析・人工確認・匯入新車</div></div></div>
     <div class="dash-card" onclick="openFormula()"><div class="dash-ic">🧮</div><div><div class="dc-t">價格公式</div><div class="dc-d">看懂並調整算價的每個數字・即時預覽</div></div></div>
@@ -760,23 +758,25 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     </div>
     <div class="fml-col">
       <div class="fml-card">
-        <div class="fml-ct">試算預覽 · 選一台車看價格怎麼算出來</div>
+        <div class="fml-ct">試算預覽 · 選分類 → 設係數 → 儲存（套用整系列）</div>
+        <label class="fml-f">分類<select class="t" id="fml_cat" onchange="fmlPickCat(this.value)"></select></label>
+        <div class="fml-ct2">這個分類的係數（改這裡先「試算」・按「儲存」套用到整個分類全部的車・空白＝用預設值）</div>
+        <div class="fml-row2">
+          <label class="fml-f">車身係數<input class="t" id="fml_bc" type="number" step="0.05" min="0" style="text-align:right" oninput="renderFormulaPreview()"></label>
+          <label class="fml-f">配備係數<input class="t" id="fml_oc" type="number" step="0.05" min="0" style="text-align:right" oninput="renderFormulaPreview()"></label>
+          <label class="fml-f">運輸費 £/€<input class="t" id="fml_tr" type="number" step="50" min="0" style="text-align:right" oninput="renderFormulaPreview()"></label>
+          <label class="fml-f">總價加權 NT$<input class="t" id="fml_tw" type="number" step="1000" min="0" style="text-align:right" oninput="renderFormulaPreview()"></label>
+        </div>
+        <button class="btn primary" onclick="fmlSaveCat()" style="width:100%;margin:2px 0 14px">💾 儲存這個分類的係數（套用整系列）</button>
+        <div class="fml-ct2">預覽（選這個分類裡的一台看價格）</div>
         <div class="fml-row2">
           <label class="fml-f">車型<select class="t" id="fml_car" onchange="fmlPickCar(this.value)"></select></label>
           <label class="fml-f">版本<select class="t" id="fml_variant" onchange="fmlPickVariant(this.value)"></select></label>
         </div>
-        <div class="fml-ct2">這台車的係數（只影響這台・空白＝用預設值）</div>
-        <div class="fml-row2">
-          <label class="fml-f">車身係數<input class="t" id="fml_bc" type="number" step="0.05" min="0" style="text-align:right" onchange="fmlSetCar('bc',this.value)"></label>
-          <label class="fml-f">配備係數<input class="t" id="fml_oc" type="number" step="0.05" min="0" style="text-align:right" onchange="fmlSetCar('oc',this.value)"></label>
-          <label class="fml-f">運輸費 £/€<input class="t" id="fml_tr" type="number" step="50" min="0" style="text-align:right" onchange="fmlSetCar('tr',this.value)"></label>
-          <label class="fml-f">總價加權 NT$<input class="t" id="fml_tw" type="number" step="1000" min="0" style="text-align:right" onchange="fmlSetCar('tw',this.value)"></label>
-        </div>
         <div id="fml_preview"></div>
       </div>
       <div class="fml-card" id="fml_sunCard">
-        <div class="fml-ct">🆕 新公式試算 · Caterham & Sunlight（尚未生效・改這裡不會動到實際報價）</div>
-        <label class="fml-f">試算係數（只影響這個試算，不會存檔）<input class="t" id="fml_sunCoef" type="number" step="0.05" min="0" style="text-align:right" oninput="renderSunNew()"></label>
+        <div class="fml-ct">🆕 新公式試算 · Caterham & Sunlight（用上面「車身係數」試算・尚未生效）</div>
         <div id="fml_sunResult"></div>
       </div>
     </div>
@@ -4738,8 +4738,7 @@ function renderCarDb(){
   R.innerHTML='<h4>快速摘要</h4>'
     +'<div class="cdb-sum">品牌：'+_esc(car.brand)+'<br>車型：'+_esc(modelGroupOf(car))+'<br>年份：'+_esc(car.year||'—')+'<br>版本：'+Object.keys(car.variants).length+' 個<br>基本價：'+sym+Math.min.apply(null,bases).toLocaleString("en-GB")+' 起'+(car.custom?'<br><span class="mini-badge">自訂/複製車</span>':'')+'</div>'
     +'<div class="cdb-field" style="margin-top:14px"><label>上架狀態</label><div style="display:flex;align-items:center;gap:8px"><span class="case-badge '+(active?"cb-ready":"cb-submitted")+'">'+(active?"已上架":"未上架")+'</span><button class="btn ghost" onclick="cdbToggleActive(\''+car.id+'\')">'+(active?"下架":"上架")+'</button></div></div>'
-    +'<button class="btn primary" style="width:100%;margin-top:12px" onclick="cdbPreview(\''+car.id+'\')">👁️ 預覽（業務端）</button>'
-    +'<button class="btn" style="width:100%;margin-top:8px" onclick="cdbCopy(\''+car.id+'\')">📋 複製車型（→ 新年份）</button>';
+    +'<button class="btn primary" style="width:100%;margin-top:12px" onclick="cdbPreview(\''+car.id+'\')">👁️ 預覽（業務端）</button>';
 }
 function cdbApplyRefresh(carId){ var car=CARS.find(function(c){return c.id===carId;}); if(car) applyCarMeta(car); if(typeof cur!=="undefined" && cur && cur.id===carId){ applyCarMeta(cur); if(typeof updateSummary==="function") updateSummary(); } if(typeof renderCars==="function") renderCars(); renderCarDb(); }
 function cdbSetBase(carId,vk,val){ setCarMetaBase(carId,vk,val); cdbApplyRefresh(carId); }
@@ -5408,6 +5407,33 @@ function openFormula(){
   renderFormula(); window.scrollTo(0,0);
 }
 function _fmlCarObj(){ return (typeof CARS!=="undefined"?CARS:[]).find(function(c){return c.id===_fmlCar;}); }
+var _fmlCat=null;
+function _fmlCats(){ return [
+  {key:"cat170", label:"Caterham Seven 170", m:function(c){return c.brandId==="caterham" && /170/.test(c.name);}},
+  {key:"cat340", label:"Caterham Seven 340", m:function(c){return c.brandId==="caterham" && /340/.test(c.name) && !/rburgring/i.test(c.name);}},
+  {key:"catNur", label:"Caterham 340 Nurburgring", m:function(c){return c.brandId==="caterham" && /rburgring/i.test(c.name);}},
+  {key:"sunCliff", label:"Sunlight CLIFF 系列", m:function(c){return c.brandId==="sunlight" && (String(c.id).indexOf("cliff")===0 || /CLIFF/i.test(c.name));}},
+  {key:"sunT", label:"Sunlight T 系列", m:function(c){return c.brandId==="sunlight" && !(String(c.id).indexOf("cliff")===0 || /CLIFF/i.test(c.name));}}
+]; }
+function _fmlCarsInCat(key){ var cat=_fmlCats().filter(function(x){return x.key===key;})[0]; if(!cat) return []; return (typeof CARS!=="undefined"?CARS:[]).filter(cat.m); }
+function fmlPickCat(key){
+  _fmlCat=key;
+  var cars=_fmlCarsInCat(key);
+  var sel=document.getElementById("fml_car");
+  if(sel){ sel.innerHTML=""; cars.forEach(function(c){ var o=document.createElement("option"); o.value=c.id; var _yr=(c.my&&/^\d\d$/.test(c.my))?("MY20"+c.my):((c.year&&/^(MY)?\s*20\d\d$/.test(c.year))?c.year:""); o.textContent=c.name+(_yr?("　"+_yr):""); sel.appendChild(o); }); }
+  _fmlCar = cars.length?cars[0].id:null;
+  if(sel && _fmlCar) sel.value=_fmlCar;
+  _fmlVariant=null;
+  fmlSyncVariant(); fmlSyncCarKnobs(); renderFormulaPreview();
+}
+function fmlSaveCat(){
+  if(!_fmlCat){ toast("請先選分類"); return; }
+  var cars=_fmlCarsInCat(_fmlCat); if(!cars.length){ toast("這個分類沒有車"); return; }
+  cars.forEach(function(c){ ["bc","oc","tr","tw"].forEach(function(f){ var e=document.getElementById("fml_"+f); if(e) setPriceCfg(c.id, f, e.value); }); });
+  fmlSyncCarKnobs(); renderFormulaPreview();
+  var lbl=(_fmlCats().filter(function(x){return x.key===_fmlCat;})[0]||{}).label||"";
+  toast("已儲存「"+lbl+"」的係數，套用到 "+cars.length+" 台車");
+}
 function renderFormula(){
   var s=getSettings();
   var setV=function(id,val){ var e=document.getElementById(id); if(e) e.value=val; };
@@ -5415,15 +5441,13 @@ function renderFormula(){
   setV("fml_fxEUR", (s.fxEUR!=null?s.fxEUR:FX.EUR));
   setV("fml_dep", (s.depositPct!=null?s.depositPct:DEPOSIT_PCT));
   var lux=document.getElementById("fml_lux"); if(lux) lux.checked=(s.luxTax!==false);
-  var sel=document.getElementById("fml_car");
-  if(sel){
-    if(sel.options.length===0){ (typeof CARS!=="undefined"?CARS:[]).forEach(function(c){ var o=document.createElement("option"); o.value=c.id; var _yr=(c.my&&/^\d\d$/.test(c.my))?("MY20"+c.my):((c.year&&/^(MY)?\s*20\d\d$/.test(c.year))?c.year:""); o.textContent=(c.brand?c.brand+" ":"")+c.name+(_yr?("　"+_yr):""); sel.appendChild(o); }); }
-    if(!_fmlCar && typeof CARS!=="undefined" && CARS.length){ _fmlCar=CARS[0].id; }
-    if(_fmlCar) sel.value=_fmlCar;
-  }
-  fmlSyncVariant(); fmlSyncCarKnobs(); renderFormulaPreview();
+  var csel=document.getElementById("fml_cat");
+  if(csel && csel.options.length===0){ _fmlCats().forEach(function(ct){ var o=document.createElement("option"); o.value=ct.key; o.textContent=ct.label+"（"+_fmlCarsInCat(ct.key).length+" 台）"; csel.appendChild(o); }); }
+  if(!_fmlCat){ _fmlCat=_fmlCats()[0].key; }
+  if(csel) csel.value=_fmlCat;
+  fmlPickCat(_fmlCat);
 }
-function fmlPickCar(id){ _fmlCar=id; _fmlVariant=null; fmlSyncVariant(); fmlSyncCarKnobs(); renderFormulaPreview(); }
+function fmlPickCar(id){ _fmlCar=id; _fmlVariant=null; fmlSyncVariant(); renderFormulaPreview(); }
 function fmlPickVariant(vk){ _fmlVariant=vk; renderFormulaPreview(); }
 function fmlSyncVariant(){
   var car=_fmlCarObj(); var sel=document.getElementById("fml_variant"); if(!sel) return;
@@ -5438,7 +5462,6 @@ function fmlSyncCarKnobs(){
   var gTW=(typeof WEIGHT_MAP!=="undefined" && _fmlCar && WEIGHT_MAP[_fmlCar]!=null)?WEIGHT_MAP[_fmlCar]:WEIGHT;
   var setV=function(id,v,ph){ var e=document.getElementById(id); if(!e)return; e.value=(v!=null?v:""); e.placeholder="預設 "+ph; };
   setV("fml_bc", c.bc, COEF); setV("fml_oc", c.oc, COEF); setV("fml_tr", c.tr, TRANSPORT_DEFAULT); setV("fml_tw", c.tw, gTW);
-  var _sc=document.getElementById("fml_sunCoef"); if(_sc) _sc.value=bodyCoefFor(_fmlCar);
 }
 function renderSunNew(){
   var box=document.getElementById("fml_sunResult"); if(!box) return;
@@ -5449,8 +5472,7 @@ function renderSunNew(){
   var markup=(car.brandId==="sunlight")?1.61:1.545;
   var brandName=(car.brandId==="sunlight")?"Sunlight":"Caterham";
   var base=+car.variants[_fmlVariant].base||0;
-  var coef=parseFloat((document.getElementById("fml_sunCoef")||{}).value); if(isNaN(coef)||coef<0) coef=bodyCoefFor(car.id);
-  var weight=totalWeightFor(car.id), tr=transportFor(car.id);
+  var _k=_fmlKnobs(car.id); var coef=_k.bc, weight=_k.tw, tr=_k.tr;
   var chassisNT=base*coef*fx, transNT=tr*fx, optNT=0;
   var subtotal=chassisNT+weight+transNT+optNT;
   var preTax=subtotal*markup;
@@ -5474,7 +5496,7 @@ function renderSunNew(){
     ["＝ 含稅總價（新公式）", nt(grand), 2]
   ];
   box.innerHTML='<div style="font-size:12px;color:#888;margin-bottom:6px">品牌：'+brandName+'（倍率 '+markup+'）</div><table class="fml-tbl">'+rows.map(function(r){ return "<tr"+(r[2]?' class="fml-strong"':"")+"><td>"+r[0]+"</td><td class=\"fml-num\">"+r[1]+"</td></tr>"; }).join("")+"</table>"
-    +'<div class="hint" style="margin-top:8px">對照：這台<b>現在的實際報價（舊公式）＝ '+nt(oldPrice)+'</b>（你後台設的係數 '+bodyCoefFor(car.id)+'）。調上面「試算係數」讓新公式價格接近你要的。</div>';
+    +'<div class="hint" style="margin-top:8px">對照：這台<b>現在的實際報價（舊公式）＝ '+nt(oldPrice)+'</b>（你後台設的係數 '+bodyCoefFor(car.id)+'）。調上面「車身係數」讓新公式價格接近你要的，滿意後按「儲存」。</div>';
 }
 function fmlSetGlobal(field,val){
   var s=getSettings();
@@ -5484,6 +5506,8 @@ function fmlSetGlobal(field,val){
   if(typeof loadSettings==="function") loadSettings();
   renderFormulaPreview();
 }
+function _fmlKnobs(carId){ function num(id,fb){ var e=document.getElementById(id); var v=e?parseFloat(e.value):NaN; return (isNaN(v)||v<0)?fb:v; } var gTW=(typeof WEIGHT_MAP!=="undefined" && carId && WEIGHT_MAP[carId]!=null)?+WEIGHT_MAP[carId]:WEIGHT; return { bc:num("fml_bc",COEF), oc:num("fml_oc",COEF), tr:num("fml_tr",TRANSPORT_DEFAULT), tw:num("fml_tw",gTW) }; }
+function fmlSaveCar(){ if(!_fmlCar){ toast("請先選一台車"); return; } ["bc","oc","tr","tw"].forEach(function(f){ var e=document.getElementById("fml_"+f); if(e) setPriceCfg(_fmlCar, f, e.value); }); fmlSyncCarKnobs(); renderFormulaPreview(); toast("已儲存這台車的係數"); }
 function fmlSetCar(field,val){ if(!_fmlCar) return; setPriceCfg(_fmlCar, field, val); fmlSyncCarKnobs(); renderFormulaPreview(); }
 function renderFormulaPreview(){
   var box=document.getElementById("fml_preview"); if(!box) return;
@@ -5492,7 +5516,7 @@ function renderFormulaPreview(){
   var sym=(typeof _curSymForCar==="function")?_curSymForCar(car):"£";
   var fx=(sym==="€")?FX.EUR:FX.GBP;
   var base=+car.variants[_fmlVariant].base||0;
-  var bc=bodyCoefFor(car.id), oc=optCoefFor(car.id), tr=transportFor(car.id), tw=totalWeightFor(car.id);
+  var _k=_fmlKnobs(car.id); var bc=_k.bc, oc=_k.oc, tr=_k.tr, tw=_k.tw;
   var bodyItem=roundRetail((base+tr)*fx*bc), weightItem=roundRetail(tw);
   var bodyRetail=bodyItem+weightItem;
   var total=roundTotal(bodyRetail);
