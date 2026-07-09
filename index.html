@@ -534,7 +534,7 @@
 .wzsteps{ display:flex; gap:8px; flex-wrap:wrap; }
 .wzstep-ind{ font-size:13px; font-weight:700; color:#8a857c; background:#f1efe9; border:1px solid var(--line,#d9d6ce); border-radius:999px; padding:6px 14px; cursor:pointer; white-space:nowrap; }
 .wzstep-ind.active{ color:#fff; background:#171717; border-color:#171717; }
-.wznav{ display:flex; align-items:center; gap:10px; margin:2px 0 8px; }
+.wznav{ display:flex; align-items:center; gap:10px; margin:20px 0 10px; }
 .wznav .spacer{ flex:1; }
 /* ===== 我的客戶代碼 ===== */
 .code-box{ text-align:center; background:#f7f5ef; border:1px dashed #c9a24b; border-radius:14px; padding:20px 16px; margin:14px 0; }
@@ -3198,6 +3198,7 @@ function submitToSales(){
   if(!_guard("submitToSales",1500)) return;
   if(!cur||!variant){ toast("請先選一部車與配備"); return; }
   { const _de=configError(); if(_de){ toast(_de); return; } }
+  if(!_caseRequireName("請先填寫您的大名再送出")) return;
   const subs=getSubs();
   subs.unshift({
     id:"s"+Date.now(), ts:Date.now(),
@@ -4737,6 +4738,9 @@ function refreshDash(){
 function dashNewQuote(){ hideDashboard(); if(typeof goStep==="function") goStep(1); window.scrollTo(0,0); }
 /* ===== 三步驟精靈 ===== */
 function goStep(n){
+  var maxStep=1;
+  if(cur && variant){ maxStep=(typeof configError==="function" && configError())?2:3; }
+  if(n>maxStep){ if(!cur||!variant){ toast("請先選擇一部車與車型"); } else { var _e=(typeof configError==="function")?configError():""; if(_e) toast(_e); } n=maxStep; }
   [1,2,3].forEach(function(i){ var el=document.getElementById("wzStep"+i); if(el) el.style.display=(i===n)?"":"none"; });
   var inds=document.querySelectorAll(".wzstep-ind");
   for(var j=0;j<inds.length;j++){ inds[j].classList.toggle("active", (+inds[j].getAttribute("data-s"))===n); }
@@ -5545,7 +5549,7 @@ function _promoteToDeal(){
   return null;
 }
 function _guard(key, ms){ if(!window._busyLock) window._busyLock={}; var t=Date.now(); if(_busyLock[key] && (t-_busyLock[key])<(ms||1200)) return false; _busyLock[key]=t; return true; }
-function _caseRequireName(){ var el=document.getElementById("c_name"); var nm=((el&&el.value)||"").trim(); if(nm) return true; toast("請先填寫客戶名字，再產生文件"); if(el){ try{ el.focus(); el.scrollIntoView({block:"center"}); }catch(e){} } return false; }
+function _caseRequireName(msg){ var el=document.getElementById("c_name"); var nm=((el&&el.value)||"").trim(); if(nm) return true; toast(msg||"請先填寫客戶名字"); if(el){ try{ el.focus(); el.scrollIntoView({block:"center"}); }catch(e){} } return false; }
 function caseGeneratePDF(type,id){
   if(!_guard("genpdf_"+id)) return;
   if(editingCaseRef && editingCaseRef.id===id && cur && variant){ _caseDoPDF(type,id); }
@@ -5607,6 +5611,7 @@ function caseAutosave(){
 }
 function caseFinish(){
   if(cur&&variant && !(typeof configError==="function" && configError())){
+    if(!_caseRequireName()) return;
     if(editingCaseRef && editingCaseRef.type==='sub'){ caseAutosave(); }
     else { _promoteToDeal(); }
   }
@@ -6656,6 +6661,7 @@ function syncDealFromQuote(rec, items, quote){
 function saveQuote(silent){
   if(!cur||!variant){toast("請先選擇車型");return;}
   { const _de=configError(); if(_de){ toast(_de); return; } }
+  if(!silent && !_caseRequireName()) return;
   const q=getQuotes();
   const baseKey=cur.id+"|base";
   const perfItems=(paintLine()?[paintLine()]:[]).concat(sigLine()?[sigLine()]:[]).concat(currentOptions()).concat(decalLines()).concat(sigOptLines()).concat(nurLines());
