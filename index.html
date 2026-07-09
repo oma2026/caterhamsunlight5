@@ -5163,7 +5163,7 @@ function caseCancelOrdered(id){ if(!isFinanceRole()){ toast("僅限管理後台/
 function caseMarkLost(id){ var reason=prompt("未成交原因（可留空）"); if(reason===null) return; var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return; d.dealStatus="deal_lost"; d.status="lost"; d.dealLostReason=reason||""; d.updatedAt=nowTs(); saveDeals(deals); logActivity(id,"標記未成交",reason||""); _caseRefresh(); toast("已標記未成交"); }
 /* 產生合約單（用現有 openContract/printContract 模板，記狀態） */
 var _contractCaseId=null;
-function caseGenerateContract(type,id){ if(editingCaseRef && editingCaseRef.id===id && cur && variant){ _caseDoContract(id); } else { caseOpen(type,id); setTimeout(function(){ _caseDoContract(id); }, 600); } }
+function caseGenerateContract(type,id){ if(editingCaseRef && editingCaseRef.id===id && cur && variant){ _caseDoContract(id); return; } if(_caseLoadSilent(type,id)){ setTimeout(function(){ _caseDoContract(id); }, 80); } }
 function _caseDoContract(id){
   if(!cur||!variant){ toast("此案件缺少可產生合約的內容"); return; }
   if(typeof configError==="function" && configError()){ toast(configError()); return; }
@@ -5188,8 +5188,19 @@ function _afterContractPrint(){
 }
 function caseDownloadQuote(type,id){ caseGeneratePDF(type,id); }
 function caseDownloadContract(type,id){ caseGenerateContract(type,id); }
-/* 直接列印合約（略過「合約書資料」表單，只問成交價，買方欄位留空給客戶手寫） */
-function caseGenerateContractDirect(type,id){ if(editingCaseRef && editingCaseRef.id===id && cur && variant){ _caseDoContractDirect(id); } else { caseOpen(type,id); setTimeout(function(){ _caseDoContractDirect(id); }, 600); } }
+/* 背景載入案件內容但「不換頁」（留在客戶案件），供產生報價單 / 合約用 */
+function _caseLoadSilent(type,id){
+  editingCaseRef={type:type,id:id}; _caseMode="edit";
+  if(type==="sub"){ loadSub(id); return true; }
+  var d=findCase(id); if(!d){ toast("找不到案件"); editingCaseRef=null; return false; }
+  if(d.quoteId && getQuotes().find(function(x){return x.id===d.quoteId;})){ loadQuote(d.quoteId); return true; }
+  if(d.carId){ pickCar(d.carId); pickVariant(d.variant); selected=JSON.parse(JSON.stringify(d.sel||{})); sigOptSel=JSON.parse(JSON.stringify(d.sigSel||{}));
+    var e1=document.getElementById("c_name"); if(e1)e1.value=d.cust||""; var e2=document.getElementById("c_vin"); if(e2)e2.value=d.vin||""; var e3=document.getElementById("c_notes"); if(e3)e3.value=d.notes||"";
+    if(typeof renderOptions==="function") renderOptions(); if(typeof renderSigOpts==="function") renderSigOpts(); if(typeof updateSummary==="function") updateSummary(); return true; }
+  toast("此為舊資料，無法載入完整內容"); editingCaseRef=null; return false;
+}
+/* 直接列印合約（略過「合約書資料」表單，只問成交價，買方欄位留空給客戶手寫；留在客戶案件不換頁） */
+function caseGenerateContractDirect(type,id){ if(editingCaseRef && editingCaseRef.id===id && cur && variant){ _caseDoContractDirect(id); return; } if(_caseLoadSilent(type,id)){ setTimeout(function(){ _caseDoContractDirect(id); }, 80); } }
 function _caseDoContractDirect(id){
   if(!cur||!variant){ toast("此案件缺少可產生合約的內容"); return; }
   if(typeof configError==="function" && configError()){ toast(configError()); return; }
@@ -5443,7 +5454,7 @@ function _promoteToDeal(){
 }
 function caseGeneratePDF(type,id){
   if(editingCaseRef && editingCaseRef.id===id && cur && variant){ _caseDoPDF(type,id); }
-  else { caseOpen(type,id); setTimeout(function(){ _caseDoPDF(type,id); }, 550); }
+  else if(_caseLoadSilent(type,id)){ setTimeout(function(){ _caseDoPDF(type,id); }, 80); }
 }
 function _caseDoPDF(type,id){
   if(!cur||!variant){ toast("此案件缺少可產生報價的內容"); return; }
