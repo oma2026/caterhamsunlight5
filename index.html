@@ -776,7 +776,7 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
         <div id="fml_preview"></div>
       </div>
       <div class="fml-card" id="fml_sunCard">
-        <div class="fml-ct">🆕 Sunlight 新公式試算（尚未生效・改這裡不會動到實際報價）</div>
+        <div class="fml-ct">🆕 新公式試算 · Caterham & Sunlight（尚未生效・改這裡不會動到實際報價）</div>
         <label class="fml-f">試算係數（只影響這個試算，不會存檔）<input class="t" id="fml_sunCoef" type="number" step="0.05" min="0" style="text-align:right" oninput="renderSunNew()"></label>
         <div id="fml_sunResult"></div>
       </div>
@@ -5442,33 +5442,38 @@ function fmlSyncCarKnobs(){
 function renderSunNew(){
   var box=document.getElementById("fml_sunResult"); if(!box) return;
   var car=_fmlCarObj();
-  if(!car || car.brandId!=="sunlight" || !_fmlVariant || !car.variants || !car.variants[_fmlVariant]){ box.innerHTML='<div class="hint">選一台 Sunlight 車，這裡才會出現新公式試算。（Caterham 之後另外處理）</div>'; return; }
+  if(!car || !_fmlVariant || !car.variants || !car.variants[_fmlVariant]){ box.innerHTML='<div class="hint">選一台車，這裡會出現新公式試算。</div>'; return; }
+  var sym=(typeof _curSymForCar==="function")?_curSymForCar(car):(car.brandId==="sunlight"?"€":"£");
+  var fx=(sym==="€")?FX.EUR:FX.GBP;
+  var markup=(car.brandId==="sunlight")?1.61:1.545;
+  var brandName=(car.brandId==="sunlight")?"Sunlight":"Caterham";
   var base=+car.variants[_fmlVariant].base||0;
-  var fx=FX.EUR;
   var coef=parseFloat((document.getElementById("fml_sunCoef")||{}).value); if(isNaN(coef)||coef<0) coef=bodyCoefFor(car.id);
   var weight=totalWeightFor(car.id), tr=transportFor(car.id);
   var chassisNT=base*coef*fx, transNT=tr*fx, optNT=0;
   var subtotal=chassisNT+weight+transNT+optNT;
-  var preTax=subtotal*1.61;
-  var isLux=preTax>=LUX_TAX_MIN;
+  var preTax=subtotal*markup;
+  var taxBasis=(chassisNT+weight+transNT)*markup;   // 奢侈稅門檻：不含選配 × 倍率
+  var isLux=taxBasis>=LUX_TAX_MIN;
   var grand=isLux?preTax*1.1:preTax;
   var oldPrice=roundRetail((base+tr)*fx*bodyCoefFor(car.id))+roundRetail(weight);
   var nt=function(n){ return "NT$"+Math.round(n).toLocaleString("en-US"); };
-  var e=function(n){ return "€"+Math.round(n).toLocaleString("en-US"); };
+  var cy=function(n){ return sym+Math.round(n).toLocaleString("en-US"); };
   var rows=[
-    ["空車架成本", e(base), 0],
+    ["空車架成本", cy(base), 0],
     ["× 係數（試算 "+coef+"） × 匯率 "+fx, "", 0],
     ["＝ 空車架台幣", nt(chassisNT), 0],
     ["＋ 加權", nt(weight), 0],
     ["＋ 運費 "+tr+" × 匯率", nt(transNT), 0],
     ["＋ 選配（車身試算・無選配）", nt(optNT), 0],
     ["＝ 小計", nt(subtotal), 1],
-    ["× 1.61（未稅總價）", nt(preTax), 1],
-    ["奢侈稅（未稅 "+(isLux?"≥ 300萬 → ×1.1":"< 300萬 → 不課")+"）", isLux?("＋"+nt(grand-preTax)):"—", 0],
+    ["× "+markup+"（未稅總價）", nt(preTax), 1],
+    ["奢侈稅門檻（不含選配 ×"+markup+"）", nt(taxBasis)+(isLux?"　≥300萬 ✅":"　<300萬"), 0],
+    ["奢侈稅", isLux?("＋"+nt(grand-preTax)+"（×1.1）"):"不課", 0],
     ["＝ 含稅總價（新公式）", nt(grand), 2]
   ];
-  box.innerHTML='<table class="fml-tbl">'+rows.map(function(r){ return "<tr"+(r[2]?' class="fml-strong"':"")+"><td>"+r[0]+"</td><td class=\"fml-num\">"+r[1]+"</td></tr>"; }).join("")+"</table>"
-    +'<div class="hint" style="margin-top:8px">對照：這台<b>現在的實際報價（舊公式）＝ '+nt(oldPrice)+'</b>（用你後台設的係數 '+bodyCoefFor(car.id)+'）。調上面「試算係數」，讓新公式的含稅總價接近你要的價格。</div>';
+  box.innerHTML='<div style="font-size:12px;color:#888;margin-bottom:6px">品牌：'+brandName+'（倍率 '+markup+'）</div><table class="fml-tbl">'+rows.map(function(r){ return "<tr"+(r[2]?' class="fml-strong"':"")+"><td>"+r[0]+"</td><td class=\"fml-num\">"+r[1]+"</td></tr>"; }).join("")+"</table>"
+    +'<div class="hint" style="margin-top:8px">對照：這台<b>現在的實際報價（舊公式）＝ '+nt(oldPrice)+'</b>（你後台設的係數 '+bodyCoefFor(car.id)+'）。調上面「試算係數」讓新公式價格接近你要的。</div>';
 }
 function fmlSetGlobal(field,val){
   var s=getSettings();
