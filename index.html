@@ -652,6 +652,21 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 .qv-tbl tfoot tr td:first-child{ color:#666; }
 .qv-total td{ font-size:15px; }
 .qv-status{ font-size:12px; color:#666; line-height:1.7; }
+.case-actrow{ display:flex; gap:8px; align-items:center; }
+.case-main{ flex:1 1 auto; min-width:0; }
+.case-main .btn{ width:100%; justify-content:center; }
+.case-wait{ display:block; text-align:center; padding:9px; border-radius:8px; background:#fbf1d6; color:#8a6d1b; font-size:13px; font-weight:600; }
+.case-done{ display:block; text-align:center; padding:9px; border-radius:8px; background:#e7f3ea; color:#2f7d46; font-size:13px; font-weight:600; }
+.case-closed{ display:block; text-align:center; padding:9px; border-radius:8px; background:#efece6; color:#777; font-size:13px; font-weight:600; }
+.case-more{ position:relative; flex:0 0 auto; }
+.case-more>summary{ list-style:none; cursor:pointer; padding:9px 12px; border:1px solid var(--line,#d9d6ce); border-radius:8px; font-size:13px; white-space:nowrap; background:#fff; }
+.case-more>summary::-webkit-details-marker{ display:none; }
+.case-more[open]>summary{ background:#f4f1ea; }
+.case-menu{ position:absolute; right:0; top:calc(100% + 4px); z-index:30; background:#fff; border:1px solid var(--line,#d9d6ce); border-radius:10px; box-shadow:0 10px 28px rgba(0,0,0,.14); min-width:210px; padding:6px; }
+.case-mi{ display:block; width:100%; text-align:left; padding:8px 10px; background:none; border:none; border-radius:7px; font:inherit; font-size:13px; cursor:pointer; color:var(--ink,#222); box-sizing:border-box; }
+.case-mi:hover{ background:#f4f1ea; }
+.case-mi.danger{ color:#b4451f; }
+.case-hint2{ margin-top:8px; line-height:1.6; font-size:12px; color:#8a6d1b; background:#fbf1d6; border-radius:8px; padding:8px 10px; }
 </style>
 </head>
 <body>
@@ -796,7 +811,7 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 <div id="dealPopBg">
   <div class="modal-card">
     <button class="modal-x" onclick="closeDealPop()">✕</button>
-    <h3 style="margin:0 0 14px">標記成交</h3>
+    <h3 style="margin:0 0 14px">確認成交資料</h3>
     <div class="dp-field"><label>成交金額 NT$</label><input class="t" id="dp_price" type="number" placeholder="實際成交金額"></div>
     <div class="dp-field"><label>訂金金額 NT$</label><input class="t" id="dp_deposit" type="number" placeholder="收取的訂金"></div>
     <div class="dp-field"><label>備註</label><textarea class="t" id="dp_notes" rows="2" placeholder="議價、交車安排…"></textarea></div>
@@ -5396,46 +5411,50 @@ function caseStats(){
   });
   return st;
 }
+function caseFlowKey(it){
+  if(it.type==="sub") return "sub";
+  var c=normalizeCase(it._raw); if(!c) return "draft";
+  if(c.orderStatus==="ordered") return "ordered";
+  if(c.dealStatus==="deal_lost") return "lost";
+  if(c.depositStatus==="confirmed") return "dep_confirmed";
+  if(c.depositStatus==="sales_marked_paid") return "dep_marked";
+  if(c.dealStatus==="deal_won") return "won";
+  if(c.contractStatus==="signed_uploaded"||c.hasSignedContract) return "signed";
+  if(c.contractStatus==="generated"||c.dealStatus==="contract_generated"||c.contractGeneratedAt) return "contract";
+  if(c.quoteStatus==="generated"||c.dealStatus==="quoted"||c.pdfDone) return "quoted";
+  return "draft";
+}
+function caseStatusText(it){ return ({sub:"客戶已送出",draft:"客戶已送出",quoted:"已報價",contract:"簽約文件已產生，等待客戶簽名",signed:"已上傳客戶簽名合約",won:"成交資料已確認",dep_marked:"訂金待公司確認",dep_confirmed:"訂金已確認，等待公司下定",ordered:"公司已下定",lost:"已結案未成交"})[caseFlowKey(it)]||"客戶已送出"; }
+function caseBadgeCls(it){ return ({sub:"cb-submitted",draft:"cb-submitted",quoted:"cb-quoted",contract:"cb-quoted",signed:"cb-quoted",won:"cb-dealt",dep_marked:"cb-dealt",dep_confirmed:"cb-ready",ordered:"cb-ordered",lost:"cb-submitted"})[caseFlowKey(it)]||"cb-submitted"; }
 function caseButtonsHTML(it){
-  var k=caseStageKey(it), b=[];
-  var idq="'"+it.id+"'";
-  var openA='onclick="caseOpen(\''+it.type+'\',\''+it.id+'\')"';
-  var pdfA='onclick="caseGeneratePDF(\''+it.type+'\',\''+it.id+'\')"';
-  var conA='onclick="caseGenerateContract(\''+it.type+'\',\''+it.id+'\')"';
-  var conDirA='onclick="caseGenerateContractDirect(\''+it.type+'\',\''+it.id+'\')"';
-  var upl='<label class="btn ghost" style="cursor:pointer">上傳已簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+it.id+'\',this)"></label>';
-  if(k==="submitted" || k==="draft"){
-    b.push('<button class="btn ghost" '+openA+'>查看 / 修改</button>');
-    b.push('<button class="btn primary" '+pdfA+'>產生報價單</button>');
-  } else if(k==="quoted"){
-    b.push('<button class="btn ghost" '+pdfA+'>下載報價單</button>');
-    b.push('<button class="btn ghost" '+openA+'>重新產生 / 修改</button>');
-    b.push('<button class="btn primary" '+conDirA+'>產生合約單</button>');
-    b.push('<button class="btn ghost" onclick="caseMarkLost('+idq+')">標記未成交</button>');
-  } else if(k==="contract"){
-    b.push('<button class="btn ghost" '+conDirA+'>下載 / 重新列印合約</button>');
-    b.push(upl);
-    b.push('<button class="btn primary" onclick="caseMarkDeal('+idq+')">標記成交</button>');
-    b.push('<button class="btn ghost" onclick="caseMarkLost('+idq+')">標記未成交</button>');
-    b.push('<div class="case-note" style="width:100%;margin-top:8px;line-height:1.6">產生合約單只是產生給客戶簽名的文件，不代表已成交。請在客戶簽名後上傳已簽名合約，並完成成交與訂金流程。</div>');
-  } else if(k==="dealt"){
-    var c=normalizeCase(it._raw);
-    if(c.depositStatus==="unpaid") b.push('<button class="btn primary" onclick="caseToggleDeposit('+idq+')">標記訂金已付</button>');
-    else if(c.depositStatus==="sales_marked_paid") b.push('<span class="case-badge cb-dealt">訂金待管理後台確認</span>');
-    if(c.contractStatus!=="signed_uploaded") b.push(upl);
-    if(c.contractStatus==="signed_uploaded") b.push('<button class="btn ghost" onclick="viewContract('+idq+')">檢視簽名合約</button>');
-    b.push('<button class="btn ghost" onclick="caseMarkDeal('+idq+')">修改成交金額</button>');
-  } else if(k==="ready"){
-    b.push('<span class="case-badge cb-ready">✅ 訂金已確認・合約已簽，等待管理後台下定</span>');
-    b.push('<button class="btn ghost" onclick="viewContract('+idq+')">檢視簽名合約</button>');
-    if(isFinanceRole()) b.push('<button class="btn primary" onclick="caseMarkOrdered('+idq+')">標記已下定</button>');
-  } else if(k==="lost"){
-    b.push('<span class="case-badge cb-submitted">已標記未成交</span>');
-  } else if(k==="ordered"){
-    b.push('<span class="case-badge cb-ordered">✓ 已完成（已下定）</span>');
-    if(normalizeCase(it._raw).hasSignedContract) b.push('<button class="btn ghost" onclick="viewContract('+idq+')">檢視簽名合約</button>');
-  }
-  return b.join(" ");
+  var t=it.type, id=it.id, key=caseFlowKey(it);
+  var c=(t==="deal")?normalizeCase(it._raw):null;
+  var isSigned=!!(c&&(c.contractStatus==="signed_uploaded"||c.hasSignedContract));
+  var A_open="caseOpen(\'"+t+"\',\'"+id+"\')", A_qv="caseQuickView(\'"+t+"\',\'"+id+"\')", A_pdf="caseGeneratePDF(\'"+t+"\',\'"+id+"\')", A_con="caseGenerateContractDirect(\'"+t+"\',\'"+id+"\')", A_deal="caseMarkDeal(\'"+id+"\')", A_dep="caseToggleDeposit(\'"+id+"\')", A_lost="caseMarkLost(\'"+id+"\')", A_vc="viewContract(\'"+id+"\')", A_del="caseDelete(\'"+t+"\',\'"+id+"\')";
+  function mi(oc,label){ return '<button class="case-mi" onclick="'+oc+'">'+label+'</button>'; }
+  var uplMi='<label class="case-mi" style="cursor:pointer">上傳客戶已簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+id+'\',this)"></label>';
+  var uplMain='<label class="btn primary" style="cursor:pointer;width:100%;justify-content:center">上傳客戶已簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+id+'\',this)"></label>';
+  var main;
+  if(key==="quoted") main='<button class="btn primary" onclick="'+A_con+'">產生簽約文件</button>';
+  else if(key==="contract") main=uplMain;
+  else if(key==="signed") main='<button class="btn primary" onclick="'+A_deal+'">確認成交資料</button>';
+  else if(key==="won") main='<button class="btn primary" onclick="'+A_dep+'">回報客戶已付訂金</button>';
+  else if(key==="dep_marked") main='<span class="case-wait">⏳ 等待公司確認收款</span>';
+  else if(key==="dep_confirmed") main='<span class="case-wait">⏳ 等待公司下定</span>';
+  else if(key==="ordered") main='<span class="case-done">✓ 已完成（公司已下定）</span>';
+  else if(key==="lost") main='<span class="case-closed">已結案（未成交）</span>';
+  else main='<button class="btn primary" onclick="'+A_pdf+'">產生報價單</button>';
+  var m=[ mi(A_qv,"查看客戶選擇 / 明細"), mi(A_open,"查看 / 修改案件") ];
+  if(key==="quoted"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_lost,"結案為未成交")); }
+  else if(key==="contract"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_con,"下載 / 重新產生簽約文件")); m.push(mi(A_deal,"確認成交資料")); m.push(mi(A_lost,"結案為未成交")); }
+  else if(key==="signed"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_con,"下載簽約文件")); m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_lost,"結案為未成交")); }
+  else if(key==="won"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_con,"下載簽約文件")); if(!isSigned) m.push(uplMi); else m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_deal,"修改成交金額")); m.push(mi(A_lost,"結案為未成交")); }
+  else if(key==="dep_marked"||key==="dep_confirmed"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_con,"下載簽約文件")); if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_deal,"修改成交金額")); m.push(mi(A_lost,"結案為未成交")); }
+  else if(key==="ordered"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_con,"下載簽約文件")); if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約")); }
+  else if(key==="lost"){ m.push(mi(A_pdf,"下載報價單")); }
+  m.push('<button class="case-mi danger" onclick="'+A_del+'">刪除案件</button>');
+  var note=(key==="quoted"||key==="contract")?'<div class="case-hint2">簽約文件只是產生給客戶簽名的文件，不代表已成交。請在客戶簽名後上傳已簽名合約，並完成成交資料與訂金流程。</div>':"";
+  return '<div class="case-actrow"><div class="case-main">'+main+'</div><details class="case-more"><summary>更多操作 ▾</summary><div class="case-menu">'+m.join("")+'</div></details></div>'+note;
 }
 function renderCases(){
   var st=caseStats();
@@ -5456,24 +5475,16 @@ function renderCases(){
   if(!body) return;
   if(!items.length){ body.innerHTML='<div class="hint" style="padding:20px 2px">目前沒有符合的案件。客戶從 VIP 區送單、或按「＋ 新增案件」都會出現在這裡。</div>'; return; }
   body.innerHTML=items.map(function(it){
-    var k=caseStageKey(it);
-    var badgeCls=({submitted:"cb-submitted",draft:"cb-submitted",quoted:"cb-quoted",contract:"cb-quoted",dealt:"cb-dealt",ready:"cb-ready",lost:"cb-submitted",ordered:"cb-ordered"})[k]||"cb-submitted";
-    var money="", statusLine="";
-    if(it.type==='deal'){
+    var money="";
+    if(it.type==="deal"){
       var c=normalizeCase(it._raw);
       money='報價 NT$'+((c.quoteTotal||0).toLocaleString("en-US"));
       if(c.dealStatus==="deal_won"&&c.dealPrice) money+=' ・ 成交 NT$'+((+c.dealPrice).toLocaleString("en-US"));
-      if(c.depositAmount) money+=' ・ 訂金 NT$'+((+c.depositAmount).toLocaleString("en-US"));
-      statusLine='<div class="case-note" style="margin-top:4px">合約：'+contractStatusLabel(c.contractStatus)+'　訂金：'+depositStatusLabel(c.depositStatus)+'</div>';
     }
     return '<div class="case-card">'
-      +'<div class="cc-top"><div><div class="cc-cust">'+it.cust+'</div><div class="cc-sub">'+(it.car||"—")+(it.vin?(" · 車身碼 "+it.vin):"")+" · "+fmtDT(it.updatedAt||it.ts)+'</div></div><span class="case-badge '+badgeCls+'">'+caseStageLabel(k)+'</span></div>'
+      +'<div class="cc-top"><div><div class="cc-cust">'+it.cust+'</div><div class="cc-sub">'+(it.car||"—")+(it.vin?(" · 車身碼 "+it.vin):"")+" · "+fmtDT(it.updatedAt||it.ts)+'</div></div><span class="case-badge '+caseBadgeCls(it)+'">'+caseStatusText(it)+'</span></div>'
       +(money?'<div class="case-money">'+money+'</div>':'')
-      +statusLine
-      +(it.notes?'<div class="case-note">備註：'+it.notes+'</div>':'')
-      +'<div class="case-qv"><button class="btn ghost" style="width:100%;justify-content:center" onclick="caseQuickView(\''+it.type+'\',\''+it.id+'\')">🔍 查看客戶選擇 / 明細</button></div>'
       +'<div class="case-actions">'+caseButtonsHTML(it)+'</div>'
-      +'<div class="case-del" style="text-align:right;margin-top:6px"><button class="btn ghost" style="font-size:12px;padding:3px 10px;color:#b4451f" onclick="caseDelete(\''+it.type+'\',\''+it.id+'\')">🗑 刪除案件</button></div>'
       +'</div>';
   }).join("");
 }
