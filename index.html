@@ -656,6 +656,25 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 .case-actrow .btn{ font-size:13px; padding:7px 12px; }
 .case-actrow .casedl{ font-size:12px; padding:6px 10px; }
 .casedl.casedis{ opacity:.4; cursor:not-allowed; }
+#formulaView{ max-width:1080px; margin:0 auto; padding:8px 4px 44px; }
+.fml-top{ display:flex; align-items:flex-start; gap:14px; margin:6px 0 18px; }
+.fml-h1{ font-size:24px; font-weight:800; }
+.fml-sub{ font-size:13px; color:#777; margin-top:3px; line-height:1.6; max-width:660px; }
+.fml-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }
+.fml-card{ background:#fff; border:1px solid #eee; border-radius:14px; padding:16px 18px; margin-bottom:14px; }
+.fml-ct{ font-size:15px; font-weight:700; margin-bottom:12px; }
+.fml-ct2{ font-size:12px; color:#888; font-weight:600; margin:16px 0 8px; }
+.fml-formula{ font-size:13.5px; line-height:2.15; color:#444; }
+.fml-formula b{ color:#111; }
+.fml-f{ display:flex; flex-direction:column; gap:4px; font-size:12px; color:#888; margin-bottom:10px; }
+.fml-f .t, .fml-f select.t{ font-size:14px; }
+.fml-row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.fml-toggle{ display:flex; align-items:center; gap:8px; font-size:13px; color:#333; margin-top:4px; cursor:pointer; }
+.fml-tbl{ width:100%; border-collapse:collapse; font-size:13.5px; margin-top:8px; }
+.fml-tbl td{ padding:6px 2px; border-bottom:1px solid #f2f1ee; color:#444; }
+.fml-tbl .fml-num{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; color:#222; }
+.fml-tbl .fml-strong td{ font-weight:700; color:#111; border-bottom:1px solid #ddd; }
+@media(max-width:820px){ .fml-grid{ grid-template-columns:1fr; } }
 .case-wait{ padding:7px 12px; border-radius:8px; background:#fbf1d6; color:#8a6d1b; font-size:13px; font-weight:600; }
 .case-done{ padding:7px 12px; border-radius:8px; background:#e7f3ea; color:#2f7d46; font-size:13px; font-weight:600; }
 .case-closed{ padding:7px 12px; border-radius:8px; background:#efece6; color:#777; font-size:13px; font-weight:600; }
@@ -708,6 +727,54 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     <div class="dash-card" onclick="openQuotePreview()"><div class="dash-ic">👁️</div><div><div class="dc-t">報價預覽</div><div class="dc-d">用業務端視角預覽車輛報價</div></div></div>
     <div class="dash-card" onclick="openAdminCases()"><div class="dash-ic">📇</div><div><div class="dc-t">業務案件總覽</div><div class="dc-d">所有業務案件・下載・確認訂金/下定</div></div></div>
     <div class="dash-card" onclick="openImport()"><div class="dash-ic">📥</div><div><div class="dc-t">PDF 匯入車型</div><div class="dc-d">上傳原廠 PDF・AI 解析・人工確認・匯入新車</div></div></div>
+    <div class="dash-card" onclick="openFormula()"><div class="dash-ic">🧮</div><div><div class="dc-t">價格公式</div><div class="dc-d">看懂並調整算價的每個數字・即時預覽</div></div></div>
+  </div>
+</div>
+
+<!-- ===== 價格公式 ===== -->
+<div id="formulaView" style="display:none">
+  <div class="fml-top">
+    <button class="btn ghost" onclick="showAdminDash()">← 管理後台</button>
+    <div><div class="fml-h1">價格公式</div><div class="fml-sub">系統怎麼算價錢都列在這裡。改上面任何數字，右邊的試算會即時跟著變。奢侈稅 10% ／ 300 萬是法定值（特種貨物稅），只能開／關。</div></div>
+  </div>
+  <div class="fml-grid">
+    <div class="fml-col">
+      <div class="fml-card">
+        <div class="fml-ct">算價公式</div>
+        <div class="fml-formula">
+          <div><b>車本體</b> ＝ ( 成本 ＋ 運輸費 ) × 匯率 × 車身係數 ＋ 加權</div>
+          <div><b>每個選配</b> ＝ 成本 × 匯率 × 配備係數</div>
+          <div><b>總價</b> ＝ 車本體 ＋ 所有選配相加</div>
+          <div><b>奢侈稅</b> ＝ 總價 ≥ 300 萬 才收，總價 × 10%（法定）</div>
+          <div><b>訂金</b> ＝ ( 總價 ＋ 稅 ) × 訂金比例</div>
+          <div><b>交車前餘款</b> ＝ 總價 − 訂金</div>
+        </div>
+      </div>
+      <div class="fml-card">
+        <div class="fml-ct">全域數字（所有車共用）</div>
+        <label class="fml-f">匯率　£ 英鎊 → NT$<input class="t" id="fml_fxGBP" type="number" step="0.5" min="0" style="text-align:right" onchange="fmlSetGlobal('fxGBP',this.value)"></label>
+        <label class="fml-f">匯率　€ 歐元 → NT$<input class="t" id="fml_fxEUR" type="number" step="0.5" min="0" style="text-align:right" onchange="fmlSetGlobal('fxEUR',this.value)"></label>
+        <label class="fml-f">訂金比例 %<input class="t" id="fml_dep" type="number" step="1" min="0" max="100" style="text-align:right" onchange="fmlSetGlobal('depositPct',this.value)"></label>
+        <label class="fml-toggle"><input type="checkbox" id="fml_lux" onchange="fmlSetGlobal('luxTax',this.checked)"> 收奢侈稅（總價 ≥ 300 萬加收 10% ・法定）</label>
+      </div>
+    </div>
+    <div class="fml-col">
+      <div class="fml-card">
+        <div class="fml-ct">試算預覽 · 選一台車看價格怎麼算出來</div>
+        <div class="fml-row2">
+          <label class="fml-f">車型<select class="t" id="fml_car" onchange="fmlPickCar(this.value)"></select></label>
+          <label class="fml-f">版本<select class="t" id="fml_variant" onchange="fmlPickVariant(this.value)"></select></label>
+        </div>
+        <div class="fml-ct2">這台車的係數（只影響這台・空白＝用預設值）</div>
+        <div class="fml-row2">
+          <label class="fml-f">車身係數<input class="t" id="fml_bc" type="number" step="0.05" min="0" style="text-align:right" onchange="fmlSetCar('bc',this.value)"></label>
+          <label class="fml-f">配備係數<input class="t" id="fml_oc" type="number" step="0.05" min="0" style="text-align:right" onchange="fmlSetCar('oc',this.value)"></label>
+          <label class="fml-f">運輸費 £/€<input class="t" id="fml_tr" type="number" step="50" min="0" style="text-align:right" onchange="fmlSetCar('tr',this.value)"></label>
+          <label class="fml-f">總價加權 NT$<input class="t" id="fml_tw" type="number" step="1000" min="0" style="text-align:right" onchange="fmlSetCar('tw',this.value)"></label>
+        </div>
+        <div id="fml_preview"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -4582,7 +4649,7 @@ function showDashboard(){
 /* ===================== 管理後台 Dashboard + 車型資料庫 + 報價預覽 ===================== */
 function showAdminDash(){
   if(role!=="admin") return;
-  ["dashView","casesView","carDbView","adminCasesView","importView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  ["dashView","casesView","carDbView","adminCasesView","importView","formulaView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var d=document.getElementById("adminDashView"); if(d) d.style.display="block";
   window.scrollTo(0,0);
@@ -4609,7 +4676,7 @@ function _curSymForCar(car){ var m=carMetaFor(car.id); if(m.currency==="£"||m.c
 
 function openCarDb(mode){
   if(role!=="admin") return;
-  ["adminDashView","dashView","casesView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  ["adminDashView","dashView","casesView","formulaView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var v=document.getElementById("carDbView"); if(v) v.style.display="block";
   if(!carDbSel.brand){ carDbSel.brand=(BRANDS[0]&&BRANDS[0].id)||"caterham"; }
@@ -4836,7 +4903,7 @@ function buildAIText(j){ return AI_IMPORT_PROMPT + "\n\n=== PDF 文字開始 ===
 /* ---- 進出視圖 ---- */
 function openImport(){
   if(role!=="admin"){ toast("僅限管理員"); return; }
-  ["adminDashView","dashView","casesView","carDbView","adminCasesView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  ["adminDashView","dashView","casesView","carDbView","adminCasesView","formulaView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var v=document.getElementById("importView"); if(v) v.style.display="block";
   impShowJobs(); window.scrollTo(0,0);
@@ -5325,9 +5392,90 @@ function caseQuickView(type,id){
 function closeQuickView(){ var e=document.getElementById("qvBg"); if(e) e.style.display="none"; }
 
 /* ===================== 業務案件總覽（管理後台/會計）===================== */
+var _fmlCar=null, _fmlVariant=null;
+function openFormula(){
+  if(role!=="admin"){ toast("僅限管理員"); return; }
+  ["adminDashView","dashView","casesView","carDbView","adminCasesView","importView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
+  var v=document.getElementById("formulaView"); if(v) v.style.display="block";
+  renderFormula(); window.scrollTo(0,0);
+}
+function _fmlCarObj(){ return (typeof CARS!=="undefined"?CARS:[]).find(function(c){return c.id===_fmlCar;}); }
+function renderFormula(){
+  var s=getSettings();
+  var setV=function(id,val){ var e=document.getElementById(id); if(e) e.value=val; };
+  setV("fml_fxGBP", (s.fxGBP!=null?s.fxGBP:FX.GBP));
+  setV("fml_fxEUR", (s.fxEUR!=null?s.fxEUR:FX.EUR));
+  setV("fml_dep", (s.depositPct!=null?s.depositPct:DEPOSIT_PCT));
+  var lux=document.getElementById("fml_lux"); if(lux) lux.checked=(s.luxTax!==false);
+  var sel=document.getElementById("fml_car");
+  if(sel){
+    if(sel.options.length===0){ (typeof CARS!=="undefined"?CARS:[]).forEach(function(c){ var o=document.createElement("option"); o.value=c.id; o.textContent=(c.brand?c.brand+" ":"")+c.name; sel.appendChild(o); }); }
+    if(!_fmlCar && typeof CARS!=="undefined" && CARS.length){ _fmlCar=CARS[0].id; }
+    if(_fmlCar) sel.value=_fmlCar;
+  }
+  fmlSyncVariant(); fmlSyncCarKnobs(); renderFormulaPreview();
+}
+function fmlPickCar(id){ _fmlCar=id; _fmlVariant=null; fmlSyncVariant(); fmlSyncCarKnobs(); renderFormulaPreview(); }
+function fmlPickVariant(vk){ _fmlVariant=vk; renderFormulaPreview(); }
+function fmlSyncVariant(){
+  var car=_fmlCarObj(); var sel=document.getElementById("fml_variant"); if(!sel) return;
+  sel.innerHTML="";
+  var ks=(car&&car.variants)?Object.keys(car.variants):[];
+  ks.forEach(function(vk){ var o=document.createElement("option"); o.value=vk; o.textContent=(car.variants[vk].label||vk); sel.appendChild(o); });
+  if(!_fmlVariant || ks.indexOf(_fmlVariant)<0){ _fmlVariant=ks.length?ks[0]:null; }
+  if(_fmlVariant) sel.value=_fmlVariant;
+}
+function fmlSyncCarKnobs(){
+  var c=getPriceCfg(_fmlCar);
+  var gTW=(typeof WEIGHT_MAP!=="undefined" && _fmlCar && WEIGHT_MAP[_fmlCar]!=null)?WEIGHT_MAP[_fmlCar]:WEIGHT;
+  var setV=function(id,v,ph){ var e=document.getElementById(id); if(!e)return; e.value=(v!=null?v:""); e.placeholder="預設 "+ph; };
+  setV("fml_bc", c.bc, COEF); setV("fml_oc", c.oc, COEF); setV("fml_tr", c.tr, TRANSPORT_DEFAULT); setV("fml_tw", c.tw, gTW);
+}
+function fmlSetGlobal(field,val){
+  var s=getSettings();
+  if(field==="luxTax"){ s.luxTax=!!val; }
+  else { var n=parseFloat(val); if(isNaN(n)||n<0){ toast("請輸入正確的數字"); renderFormula(); return; } if(field==="depositPct" && n>100){ toast("訂金比例不能超過 100%"); renderFormula(); return; } s[field]=n; }
+  localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
+  if(typeof loadSettings==="function") loadSettings();
+  renderFormulaPreview();
+}
+function fmlSetCar(field,val){ if(!_fmlCar) return; setPriceCfg(_fmlCar, field, val); fmlSyncCarKnobs(); renderFormulaPreview(); }
+function renderFormulaPreview(){
+  var box=document.getElementById("fml_preview"); if(!box) return;
+  var car=_fmlCarObj();
+  if(!car || !_fmlVariant || !car.variants || !car.variants[_fmlVariant]){ box.innerHTML='<div class="hint">請選一台車與版本</div>'; return; }
+  var sym=(typeof _curSymForCar==="function")?_curSymForCar(car):"£";
+  var fx=(sym==="€")?FX.EUR:FX.GBP;
+  var base=+car.variants[_fmlVariant].base||0;
+  var bc=bodyCoefFor(car.id), oc=optCoefFor(car.id), tr=transportFor(car.id), tw=totalWeightFor(car.id);
+  var bodyItem=roundRetail((base+tr)*fx*bc), weightItem=roundRetail(tw);
+  var bodyRetail=bodyItem+weightItem;
+  var total=roundTotal(bodyRetail);
+  var luxOn=(typeof luxTaxOn==="function")?luxTaxOn():true;
+  var lux=(luxOn && total>=LUX_TAX_MIN)?Math.round(total*LUX_TAX_RATE):0;
+  var grand=total+lux, dep=Math.round(grand*(DEPOSIT_PCT/100)), bal=Math.max(0,grand-dep);
+  var nt=function(n){ return "NT$"+Math.round(n).toLocaleString("en-US"); };
+  var cy=function(n){ return sym+Math.round(n).toLocaleString("en-US"); };
+  var rows=[
+    ["車身成本（"+sym+"）", cy(base), 0],
+    ["＋ 運輸費（灌進成本・客戶看不到）", cy(tr), 0],
+    ["× 匯率（"+sym+" → NT$）", "× "+fx, 0],
+    ["× 車身係數", "× "+bc, 0],
+    ["＋ 總價加權", nt(weightItem), 0],
+    ["＝ 車身零售", nt(bodyRetail), 1],
+    ["總價（湊整後）", nt(total), 1],
+    ["奢侈稅（"+(luxOn?(total>=LUX_TAX_MIN?"10%":"未達 300 萬・0"):"已關閉")+"）", nt(lux), 0],
+    ["含稅總價", nt(grand), 1],
+    ["訂金（"+DEPOSIT_PCT+"%）", nt(dep), 0],
+    ["交車前餘款", nt(bal), 0]
+  ];
+  box.innerHTML='<table class="fml-tbl">'+rows.map(function(r){ return "<tr"+(r[2]?" class=\"fml-strong\"":"")+"><td>"+r[0]+"</td><td class=\"fml-num\">"+r[1]+"</td></tr>"; }).join("")+"</table>"
+    +'<div class="hint" style="margin-top:8px">＊此為「車身＋加權」的價格（未加選配）。每個選配會用「成本 × 匯率 × 配備係數（'+oc+'）」另外加上去。</div>';
+}
 function openAdminCases(){
   if(role!=="admin" && role!=="acct"){ toast("僅限管理後台/會計"); return; }
-  ["adminDashView","dashView","casesView","carDbView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  ["adminDashView","dashView","casesView","carDbView","formulaView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var v=document.getElementById("adminCasesView"); if(v) v.style.display="block";
   try{ var sel=document.getElementById("acaseSales"); if(sel && sel.options.length<=1){ getAccounts().sales.forEach(function(s){ var o=document.createElement("option"); o.value=s.u; o.textContent=([s.title,s.name].filter(Boolean).join(" ")||s.u); sel.appendChild(o); }); } }catch(e){}
@@ -5508,7 +5656,7 @@ function showQuoteEditor(){
 }
 function openCases(){
   editingCaseRef=null; _caseMode=null;
-  ["adminDashView","carDbView","adminCasesView","importView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  ["adminDashView","carDbView","adminCasesView","importView","formulaView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var d=document.getElementById("dashView"); if(d) d.style.display="none";
   var c=document.getElementById("casesView"); if(c) c.style.display="block";
@@ -6101,7 +6249,7 @@ function renderAdminMenu(){
   const admin=role==="admin", sales=role==="sales";
   let items=[], label="管理 ▾";
   if(admin && VIEW==="admin"){
-    items=[["管理後台","showAdminDash"],["報價明細","openPerf"],["業務案件總覽","openAdminCases"],["PDF 匯入車型","openImport"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["設定","openSettings"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
+    items=[["管理後台","showAdminDash"],["報價明細","openPerf"],["業務案件總覽","openAdminCases"],["PDF 匯入車型","openImport"],["客戶登入","openLogins"],["帳號 & 密碼","openSalesMgr"],["車型管理","openCarMgr"],["設定","openSettings"],["價格公式","openFormula"],["__hr"],["匯出備份","exportBackup"],["匯入備份","__import"]];
     label="管理 ▾";
   } else if((admin && VIEW==="sales") || sales){
     const n=(typeof inboxCount==="function")?inboxCount():0;
