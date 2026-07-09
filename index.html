@@ -655,6 +655,7 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 .case-actrow{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; width:100%; }
 .case-actrow .btn{ font-size:13px; padding:7px 12px; }
 .case-actrow .casedl{ font-size:12px; padding:6px 10px; }
+.casedl.casedis{ opacity:.4; cursor:not-allowed; }
 .case-wait{ padding:7px 12px; border-radius:8px; background:#fbf1d6; color:#8a6d1b; font-size:13px; font-weight:600; }
 .case-done{ padding:7px 12px; border-radius:8px; background:#e7f3ea; color:#2f7d46; font-size:13px; font-weight:600; }
 .case-closed{ padding:7px 12px; border-radius:8px; background:#efece6; color:#777; font-size:13px; font-weight:600; }
@@ -5429,35 +5430,31 @@ function caseFlowKey(it){
 function caseStatusText(it){ return ({sub:"客戶已送出",draft:"客戶已送出",quoted:"已報價",contract:"簽約文件已產生，等待客戶簽名",signed:"已上傳客戶簽名合約",won:"成交資料已確認",dep_marked:"訂金待公司確認",dep_confirmed:"訂金已確認，等待公司下定",ordered:"公司已下定",lost:"已結案未成交"})[caseFlowKey(it)]||"客戶已送出"; }
 function caseBadgeCls(it){ return ({sub:"cb-submitted",draft:"cb-submitted",quoted:"cb-quoted",contract:"cb-quoted",signed:"cb-quoted",won:"cb-dealt",dep_marked:"cb-dealt",dep_confirmed:"cb-ready",ordered:"cb-ordered",lost:"cb-submitted"})[caseFlowKey(it)]||"cb-submitted"; }
 function caseButtonsHTML(it){
-  var t=it.type, id=it.id, key=caseFlowKey(it);
+  var t=it.type, id=it.id;
   var c=(t==="deal")?normalizeCase(it._raw):null;
   var isSigned=!!(c&&(c.contractStatus==="signed_uploaded"||c.hasSignedContract));
   var hasContract=!!(c&&(c.contractGeneratedAt||c.contractStatus==="generated"||c.contractStatus==="signed_uploaded"||c.hasSignedContract));
+  var isWon=!!(c&&c.dealStatus==="deal_won");
+  var isLost=!!(c&&c.dealStatus==="deal_lost");
+  var isOrdered=!!(c&&c.orderStatus==="ordered");
+  var dep=(c&&c.depositStatus)||"unpaid";
+  var active=!isLost&&!isOrdered;
   var A_open="caseOpen(\'"+t+"\',\'"+id+"\')", A_qv="caseQuickView(\'"+t+"\',\'"+id+"\')", A_pdf="caseGeneratePDF(\'"+t+"\',\'"+id+"\')", A_con="caseGenerateContractDirect(\'"+t+"\',\'"+id+"\')", A_deal="caseMarkDeal(\'"+id+"\')", A_dep="caseToggleDeposit(\'"+id+"\')", A_lost="caseMarkLost(\'"+id+"\')", A_vc="viewContract(\'"+id+"\')", A_del="caseDelete(\'"+t+"\',\'"+id+"\')";
   function mi(oc,label){ return '<button class="case-mi" onclick="'+oc+'">'+label+'</button>'; }
-  var uplMi='<label class="case-mi" style="cursor:pointer">上傳客戶已簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+id+'\',this)"></label>';
-  var uplNext='<label class="btn primary casenext" style="cursor:pointer">上傳客戶已簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+id+'\',this)"></label>';
+  function db(label,oc,en){ return en?('<button class="btn ghost casedl" onclick="'+oc+'">'+label+'</button>'):('<button class="btn ghost casedl casedis" disabled>'+label+'</button>'); }
+  var uplBtn=(hasContract&&active)?('<label class="btn ghost casedl" style="cursor:pointer">📎 上傳客戶已簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+id+'\',this)"></label>'):('<button class="btn ghost casedl casedis" disabled>📎 上傳客戶已簽名合約</button>');
   var row=[];
-  row.push('<button class="btn ghost casedl" onclick="'+A_pdf+'">📄 下載報價單</button>');
-  if(hasContract) row.push('<button class="btn ghost casedl" onclick="'+A_con+'">📄 下載簽約文件</button>');
-  if(key==="contract") row.push(uplNext);
-  else if(key==="signed") row.push('<button class="btn primary casenext" onclick="'+A_deal+'">確認成交資料</button>');
-  else if(key==="won") row.push('<button class="btn primary casenext" onclick="'+A_dep+'">回報客戶已付訂金</button>');
-  else if(key==="dep_marked") row.push('<span class="case-wait">⏳ 等待公司確認收款</span>');
-  else if(key==="dep_confirmed") row.push('<span class="case-wait">⏳ 等待公司下定</span>');
-  else if(key==="ordered") row.push('<span class="case-done">✓ 已完成（公司已下定）</span>');
-  else if(key==="lost") row.push('<span class="case-closed">已結案（未成交）</span>');
-  else row.push('<button class="btn primary casenext" onclick="'+A_con+'">產生簽約文件</button>');
+  row.push(db('📄 下載報價單', A_pdf, true));
+  row.push(db('📄 '+(hasContract?'下載':'產生')+'簽約文件', A_con, hasContract||active));
+  row.push(uplBtn);
+  row.push(db((isWon?'修改成交金額':'確認成交資料'), A_deal, hasContract&&active));
+  var depLabel=(dep==="confirmed")?'訂金已確認':((dep==="sales_marked_paid")?'訂金待公司確認':'回報客戶已付訂金');
+  row.push(db(depLabel, A_dep, isWon&&dep==="unpaid"&&active));
   var m=[ mi(A_qv,"查看客戶選擇 / 明細"), mi(A_open,"查看 / 修改案件") ];
-  if(key==="contract"){ m.push(mi(A_deal,"確認成交資料")); m.push(mi(A_lost,"結案為未成交")); }
-  else if(key==="signed"){ m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_lost,"結案為未成交")); }
-  else if(key==="won"){ if(!isSigned) m.push(uplMi); else m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_deal,"修改成交金額")); m.push(mi(A_lost,"結案為未成交")); }
-  else if(key==="dep_marked"||key==="dep_confirmed"){ if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_deal,"修改成交金額")); m.push(mi(A_lost,"結案為未成交")); }
-  else if(key==="ordered"){ if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約")); }
-  else if(key==="lost"){}
-  else if(t==="deal"){ m.push(mi(A_lost,"結案為未成交")); }
+  if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約"));
+  if(active && t==="deal") m.push(mi(A_lost,"結案為未成交"));
   m.push('<button class="case-mi danger" onclick="'+A_del+'">刪除案件</button>');
-  var note=(key==="sub"||key==="draft"||key==="quoted"||key==="contract")?'<div class="case-hint2">簽約文件只是產生給客戶簽名的文件，不代表已成交。請在客戶簽名後上傳已簽名合約，並完成成交資料與訂金流程。</div>':"";
+  var note=(hasContract&&!isSigned&&active)?'<div class="case-hint2">簽約文件只是產生給客戶簽名的文件，不代表已成交。請在客戶簽名後上傳已簽名合約，並完成成交資料與訂金流程。</div>':"";
   return '<div class="case-actrow">'+row.join("")+'<details class="case-more"><summary>更多操作 ▾</summary><div class="case-menu">'+m.join("")+'</div></details></div>'+note;
 }
 function renderCases(){
