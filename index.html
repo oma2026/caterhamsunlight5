@@ -5547,6 +5547,8 @@ function _caseDoPDF(type,id){
   if(dealId){ var deals=getDeals(); var d=deals.find(function(x){return x.id===dealId;}); if(d){ d.pdfDone=true; d.quoteStatus="generated"; d.quoteGeneratedAt=nowTs(); d.quoteGeneratedBy=_actor().name; d.quoteVersion=(d.quoteVersion||0)+1; if(!d.dealStatus||d.dealStatus==="quote") d.dealStatus="quoted"; d.updatedAt=nowTs(); saveDeals(deals); logActivity(dealId,"產生報價單","v"+((d.quoteVersion)||1)); } }
   if(type==='sub'){ var subs=getSubs(); var s=subs.find(function(x){return x.id===id;}); if(s){ s.status="done"; saveSubs(subs); } }
   if(typeof printQuote==="function") printQuote();
+  if(typeof _caseRefresh==="function") _caseRefresh();
+  if(typeof toast==="function") toast("報價單已產生，下一步可『產生簽約文件』");
 }
 function caseMarkDeal(id){
   _caseDealPopId=id; var d=findCase(id);
