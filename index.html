@@ -667,6 +667,8 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 .case-mi:hover{ background:#f4f1ea; }
 .case-mi.danger{ color:#b4451f; }
 .case-hint2{ margin-top:8px; line-height:1.6; font-size:12px; color:#8a6d1b; background:#fbf1d6; border-radius:8px; padding:8px 10px; }
+.case-dlrow{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+.case-dlrow .casedl{ font-size:12px; padding:5px 10px; }
 </style>
 </head>
 <body>
@@ -5430,6 +5432,8 @@ function caseButtonsHTML(it){
   var t=it.type, id=it.id, key=caseFlowKey(it);
   var c=(t==="deal")?normalizeCase(it._raw):null;
   var isSigned=!!(c&&(c.contractStatus==="signed_uploaded"||c.hasSignedContract));
+  var hasQuote=!!(c&&(c.quoteStatus==="generated"||c.pdfDone));
+  var hasContract=!!(c&&(c.contractGeneratedAt||c.contractStatus==="generated"||c.contractStatus==="signed_uploaded"||c.hasSignedContract));
   var A_open="caseOpen(\'"+t+"\',\'"+id+"\')", A_qv="caseQuickView(\'"+t+"\',\'"+id+"\')", A_pdf="caseGeneratePDF(\'"+t+"\',\'"+id+"\')", A_con="caseGenerateContractDirect(\'"+t+"\',\'"+id+"\')", A_deal="caseMarkDeal(\'"+id+"\')", A_dep="caseToggleDeposit(\'"+id+"\')", A_lost="caseMarkLost(\'"+id+"\')", A_vc="viewContract(\'"+id+"\')", A_del="caseDelete(\'"+t+"\',\'"+id+"\')";
   function mi(oc,label){ return '<button class="case-mi" onclick="'+oc+'">'+label+'</button>'; }
   var uplMi='<label class="case-mi" style="cursor:pointer">上傳客戶已簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+id+'\',this)"></label>';
@@ -5444,17 +5448,20 @@ function caseButtonsHTML(it){
   else if(key==="ordered") main='<span class="case-done">✓ 已完成（公司已下定）</span>';
   else if(key==="lost") main='<span class="case-closed">已結案（未成交）</span>';
   else main='<button class="btn primary" onclick="'+A_pdf+'">產生報價單</button>';
+  var dl=[];
+  if(hasQuote) dl.push('<button class="btn ghost casedl" onclick="'+A_pdf+'">📄 下載報價單</button>');
+  if(hasContract) dl.push('<button class="btn ghost casedl" onclick="'+A_con+'">📄 下載簽約文件</button>');
+  var dlRow=dl.length?'<div class="case-dlrow">'+dl.join("")+'</div>':"";
   var m=[ mi(A_qv,"查看客戶選擇 / 明細"), mi(A_open,"查看 / 修改案件") ];
-  if(key==="quoted"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_lost,"結案為未成交")); }
-  else if(key==="contract"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_con,"下載 / 重新產生簽約文件")); m.push(mi(A_deal,"確認成交資料")); m.push(mi(A_lost,"結案為未成交")); }
-  else if(key==="signed"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_con,"下載簽約文件")); m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_lost,"結案為未成交")); }
-  else if(key==="won"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_con,"下載簽約文件")); if(!isSigned) m.push(uplMi); else m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_deal,"修改成交金額")); m.push(mi(A_lost,"結案為未成交")); }
-  else if(key==="dep_marked"||key==="dep_confirmed"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_con,"下載簽約文件")); if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_deal,"修改成交金額")); m.push(mi(A_lost,"結案為未成交")); }
-  else if(key==="ordered"){ m.push(mi(A_pdf,"下載報價單")); m.push(mi(A_con,"下載簽約文件")); if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約")); }
-  else if(key==="lost"){ m.push(mi(A_pdf,"下載報價單")); }
+  if(key==="quoted"){ m.push(mi(A_lost,"結案為未成交")); }
+  else if(key==="contract"){ m.push(mi(A_deal,"確認成交資料")); m.push(mi(A_lost,"結案為未成交")); }
+  else if(key==="signed"){ m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_lost,"結案為未成交")); }
+  else if(key==="won"){ if(!isSigned) m.push(uplMi); else m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_deal,"修改成交金額")); m.push(mi(A_lost,"結案為未成交")); }
+  else if(key==="dep_marked"||key==="dep_confirmed"){ if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約")); m.push(mi(A_deal,"修改成交金額")); m.push(mi(A_lost,"結案為未成交")); }
+  else if(key==="ordered"){ if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約")); }
   m.push('<button class="case-mi danger" onclick="'+A_del+'">刪除案件</button>');
   var note=(key==="quoted"||key==="contract")?'<div class="case-hint2">簽約文件只是產生給客戶簽名的文件，不代表已成交。請在客戶簽名後上傳已簽名合約，並完成成交資料與訂金流程。</div>':"";
-  return '<div class="case-actrow"><div class="case-main">'+main+'</div><details class="case-more"><summary>更多操作 ▾</summary><div class="case-menu">'+m.join("")+'</div></details></div>'+note;
+  return dlRow+'<div class="case-actrow"><div class="case-main">'+main+'</div><details class="case-more"><summary>更多操作 ▾</summary><div class="case-menu">'+m.join("")+'</div></details></div>'+note;
 }
 function renderCases(){
   var st=caseStats();
