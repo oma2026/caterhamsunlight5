@@ -430,6 +430,7 @@
   #print-root{display:none}
   @media print{
     body{background:#fff}
+    body > *:not(#print-root){display:none!important}
     header.app,.wrap{display:none!important}
     .modal-bg,#settingsBg,#contractBg,.rolefull,#acctBg,#cashierBg{display:none!important}
     #print-root{display:flex;flex-direction:column;min-height:96vh}
@@ -638,6 +639,19 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 .imp-warnbox{ background:#fbf1d6; border:1px solid #ecd9a3; border-radius:10px; padding:10px 12px; font-size:12px; color:#7a5b12; margin-bottom:12px; }
 .imp-warnbox ul{ margin:6px 0 0; padding-left:18px; }
 @media(max-width:640px){ .imp-grid2{ grid-template-columns:1fr; } }
+#qvBg{ z-index:70; }
+.case-qv{ margin-top:8px; }
+.qv-sec{ border-top:1px solid var(--line,#eee); padding:10px 0; }
+.qv-sec:first-child{ border-top:none; padding-top:0; }
+.qv-sec h4{ margin:0 0 8px; font-size:13px; color:#8a6d3b; }
+.qv-g{ display:flex; gap:8px; font-size:13px; padding:3px 0; align-items:flex-start; }
+.qv-g>span{ color:#888; min-width:64px; flex:0 0 64px; }
+.qv-tbl{ width:100%; border-collapse:collapse; font-size:13px; }
+.qv-tbl td{ padding:5px 4px; border-bottom:1px solid #f1efe9; vertical-align:top; }
+.qv-tbl tfoot td{ border-top:2px solid #333; border-bottom:none; padding-top:8px; }
+.qv-tbl tfoot tr td:first-child{ color:#666; }
+.qv-total td{ font-size:15px; }
+.qv-status{ font-size:12px; color:#666; line-height:1.7; }
 </style>
 </head>
 <body>
@@ -790,6 +804,14 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
   </div>
 </div>
 
+
+<div id="qvBg" class="modal-bg" style="display:none" onclick="if(event.target===this)closeQuickView()">
+  <div class="modal-card" style="max-width:580px;max-height:86vh;overflow:auto">
+    <button class="modal-x" onclick="closeQuickView()">✕</button>
+    <h3 id="qvTitle" style="margin:0 0 12px">案件明細</h3>
+    <div id="qvBody"></div>
+  </div>
+</div>
 
 <div class="wrap" id="quoteWrap">
 
@@ -5223,6 +5245,58 @@ function caseDelete(type,id){
   if(typeof _caseRefresh==="function") _caseRefresh(); else if(typeof renderCases==="function") renderCases();
   toast("已刪除案件");
 }
+/* 查看明細：唯讀顯示客戶選了什麼（背景載入、不換頁、不觸發自動存檔／升級） */
+function _caseLoadForView(type,id){
+  editingCaseRef=null;   // 保持 null：updateSummary→onCaseConfigChanged 會直接跳過，不自動存檔
+  var ok=false;
+  if(type==="sub"){ if(getSubs().some(function(s){return s.id===id;})){ loadSub(id); ok=true; } }
+  else {
+    var d=findCase(id);
+    if(d){
+      if(d.quoteId && getQuotes().find(function(x){return x.id===d.quoteId;})){ loadQuote(d.quoteId); ok=true; }
+      else if(d.carId){ pickCar(d.carId); pickVariant(d.variant); selected=JSON.parse(JSON.stringify(d.sel||{})); sigOptSel=JSON.parse(JSON.stringify(d.sigSel||{}));
+        var e1=document.getElementById("c_name"); if(e1)e1.value=d.cust||""; var e2=document.getElementById("c_vin"); if(e2)e2.value=d.vin||""; var e3=document.getElementById("c_notes"); if(e3)e3.value=d.notes||"";
+        if(typeof renderOptions==="function") renderOptions(); if(typeof renderSigOpts==="function") renderSigOpts(); if(typeof updateSummary==="function") updateSummary(); ok=true; }
+    }
+  }
+  editingCaseRef=null;
+  return ok;
+}
+function caseQuickView(type,id){
+  if(!_caseLoadForView(type,id)){ toast("找不到案件內容"); return; }
+  if(!cur||!variant){ toast("此案件沒有完整車型明細（可能是舊資料）"); return; }
+  var val=function(eid){var e=document.getElementById(eid);return e?(e.value||""):"";};
+  var txt=function(eid){var e=document.getElementById(eid);return e?(e.textContent||""):"";};
+  var nt=function(n){return "NT$"+Math.round(+n||0).toLocaleString("en-US");};
+  var color = selectedPaint ? (selectedPaint.colour||selectedPaint.hexName||selectedPaint.tierLabel||"") : "";
+  var rows="";
+  try{ var info=contractItemsTotal(), allItems=info.allItems, baseKey=info.baseKey;
+    rows=allItems.map(function(o){ var pr=o.price===0?"NCO":(o.key===baseKey?nt(baseNTWithWeight(o.price,o.key)):nt(retailOf(o.price,o.key))); return '<tr><td>'+_esc(o.name)+'</td><td style="text-align:right;white-space:nowrap">'+pr+'</td></tr>'; }).join("");
+  }catch(e){ rows='<tr><td class="hint">明細載入失敗</td><td></td></tr>'; }
+  var extra="";
+  var luxBox=document.getElementById("sumLuxBox");
+  if(luxBox && luxBox.style.display!=="none"){ extra+='<tr><td>奢侈稅（估）</td><td style="text-align:right">'+_esc(txt("sumLux"))+'</td></tr><tr><td>預估含稅總價</td><td style="text-align:right"><b>'+_esc(txt("sumGrand"))+'</b></td></tr>'; }
+  extra+='<tr><td>訂金</td><td style="text-align:right">'+_esc(txt("sumDep"))+'</td></tr><tr><td>交車前餘款</td><td style="text-align:right">'+_esc(txt("sumBal"))+'</td></tr>';
+  var statusLine="";
+  if(type==="deal"){ var c=normalizeCase(findCase(id)); if(c) statusLine='<div class="qv-status">成交：'+dealStatusLabel(c.dealStatus)+'<br>合約：'+contractStatusLabel(c.contractStatus)+'　訂金：'+depositStatusLabel(c.depositStatus)+'</div>'; }
+  var h='<div class="qv-sec"><h4>客戶</h4>'
+    +'<div class="qv-g"><span>姓名</span>'+_esc(val("c_name")||"—")+'</div>'
+    +'<div class="qv-g"><span>電話</span>'+_esc(val("c_phone")||"—")+'</div>'
+    +'<div class="qv-g"><span>E-MAIL</span>'+_esc(val("c_email")||"—")+'</div>'
+    +'<div class="qv-g"><span>車身碼</span>'+_esc(val("c_vin")||"—")+'</div>'
+    +(val("c_notes")?'<div class="qv-g"><span>備註</span>'+_esc(val("c_notes"))+'</div>':'')+'</div>'
+    +'<div class="qv-sec"><h4>車輛</h4>'
+    +'<div class="qv-g"><span>車型</span>'+_esc(cur.brand+" "+cur.name)+'</div>'
+    +'<div class="qv-g"><span>版本</span>'+_esc(cur.variants[variant].label)+'</div>'
+    +(color?'<div class="qv-g"><span>車色</span>'+_esc(color)+'</div>':'')+'</div>'
+    +'<div class="qv-sec"><h4>客戶選擇 / 報價明細</h4>'
+    +'<table class="qv-tbl"><tbody>'+rows+'</tbody>'
+    +'<tfoot><tr class="qv-total"><td>總價 Total</td><td style="text-align:right"><b>'+_esc(txt("sumTotal"))+'</b></td></tr>'+extra+'</tfoot></table></div>'
+    +(statusLine?'<div class="qv-sec">'+statusLine+'</div>':'');
+  document.getElementById("qvBody").innerHTML=h;
+  document.getElementById("qvBg").style.display="flex";
+}
+function closeQuickView(){ var e=document.getElementById("qvBg"); if(e) e.style.display="none"; }
 
 /* ===================== 業務案件總覽（管理後台/會計）===================== */
 function openAdminCases(){
@@ -5336,12 +5410,10 @@ function caseButtonsHTML(it){
   } else if(k==="quoted"){
     b.push('<button class="btn ghost" '+pdfA+'>下載報價單</button>');
     b.push('<button class="btn ghost" '+openA+'>重新產生 / 修改</button>');
-    b.push('<button class="btn primary" '+conDirA+'>產生合約單（買方手寫）</button>');
-    b.push('<button class="btn ghost" '+conA+'>填買方資料再印</button>');
+    b.push('<button class="btn primary" '+conDirA+'>產生合約單</button>');
     b.push('<button class="btn ghost" onclick="caseMarkLost('+idq+')">標記未成交</button>');
   } else if(k==="contract"){
-    b.push('<button class="btn ghost" '+conDirA+'>下載 / 重新列印合約（買方手寫）</button>');
-    b.push('<button class="btn ghost" '+conA+'>填買方資料</button>');
+    b.push('<button class="btn ghost" '+conDirA+'>下載 / 重新列印合約</button>');
     b.push(upl);
     b.push('<button class="btn primary" onclick="caseMarkDeal('+idq+')">標記成交</button>');
     b.push('<button class="btn ghost" onclick="caseMarkLost('+idq+')">標記未成交</button>');
@@ -5399,6 +5471,7 @@ function renderCases(){
       +(money?'<div class="case-money">'+money+'</div>':'')
       +statusLine
       +(it.notes?'<div class="case-note">備註：'+it.notes+'</div>':'')
+      +'<div class="case-qv"><button class="btn ghost" style="width:100%;justify-content:center" onclick="caseQuickView(\''+it.type+'\',\''+it.id+'\')">🔍 查看客戶選擇 / 明細</button></div>'
       +'<div class="case-actions">'+caseButtonsHTML(it)+'</div>'
       +'<div class="case-del" style="text-align:right;margin-top:6px"><button class="btn ghost" style="font-size:12px;padding:3px 10px;color:#b4451f" onclick="caseDelete(\''+it.type+'\',\''+it.id+'\')">🗑 刪除案件</button></div>'
       +'</div>';
@@ -6777,7 +6850,7 @@ function printContract(){
     `\u3010\u53d6\u6d88\u8a02\u55ae\u53ca\u8cbb\u7528\u8ca0\u64d4\u3011\u8cb7\u53d7\u4eba\u65bc\u51fa\u8ce3\u4eba\u5df2\u5411\u539f\u5ee0\u3001\u4f9b\u61c9\u5546\u6216\u7b2c\u4e09\u65b9\u4e0b\u55ae\u5f8c\uff0c\u4e0d\u5f97\u4efb\u610f\u53d6\u6d88\u8a02\u55ae\u6216\u8981\u6c42\u7121\u689d\u4ef6\u9000\u8ca8\u3001\u9000\u9084\u7b2c\u4e00\u671f\u6b3e\uff0f\u5ba2\u88fd\u5316\u8a02\u88fd\u6b3e\u3002\u82e5\u96d9\u65b9\u5354\u8b70\u53d6\u6d88\uff0c\u8cb7\u53d7\u4eba\u61c9\u8ca0\u64d4\u5df2\u767c\u751f\u4e4b\u5be6\u969b\u6210\u672c\uff0c\u5305\u62ec\u539f\u5ee0\u4e0d\u80fd\u53d6\u6d88\u4e4b\u8cbb\u7528\u3001\u9032\u53e3\u8cbb\u7528\u3001\u6587\u4ef6\u8cbb\u7528\u3001\u532f\u6b3e\u8cbb\u7528\u3001\u6539\u88dd\u8cbb\u7528\u53ca\u5176\u4ed6\u5fc5\u8981\u652f\u51fa\u3002`,
     `\u3010\u7455\u75b5\u64d4\u4fdd\u4e0d\u53d7\u5f71\u97ff\u3011\u524d\u4e8c\u689d\u4e0d\u6392\u9664\u8cb7\u53d7\u4eba\u4f9d\u6c11\u6cd5\u3001\u6d88\u8cbb\u8005\u4fdd\u8b77\u6cd5\u3001\u539f\u5ee0\u4fdd\u56fa\u6216\u672c\u5951\u7d04\u6240\u5f97\u4e3b\u5f35\u4e4b\u7455\u75b5\u64d4\u4fdd\u3001\u91cd\u5927\u7455\u75b5\u3001\u4fdd\u56fa\u6216\u5176\u4ed6\u6cd5\u5b9a\u6b0a\u5229\uff1b\u672c\u5951\u7d04\u4e0d\u6392\u9664\u6216\u9650\u5236\u4ea4\u8eca\u6642\u672a\u80fd\u767c\u73fe\u4e4b\u7455\u75b5\u64d4\u4fdd\u8cac\u4efb\u3002`,
     `\u3010\u91cd\u5927\u7455\u75b5\u53ca\u5c62\u4fee\u4e0d\u5fa9\uff08\u6aab\u6aac\u8eca\u689d\u6b3e\uff09\u3011\u672c\u8eca\u4ea4\u4ed8\u5f8c\u4e00\u767e\u516b\u5341\u65e5\u6216\u884c\u99db\u4e00\u842c\u4e8c\u5343\u516c\u91cc\u5167\uff08\u4ee5\u5148\u5230\u8005\u70ba\u6e96\uff09\uff0c\u5982\u767c\u751f\u884c\u99db\u4e2d\u7a81\u7136\u8d77\u706b\u71c3\u71d2\u3001\u66b4\u885d\u3001\u714e\u8eca\u5931\u9748\u3001\u7a81\u7136\u7194\u706b\u3001\u5f15\u64ce\u6eab\u5ea6\u5347\u9ad8\u81f3\u6975\u9650\u6216\u5176\u4ed6\u6709\u5371\u5bb3\u751f\u547d\u8eab\u9ad4\u5065\u5eb7\u5b89\u5168\u4e4b\u865e\u4e4b\u91cd\u5927\u7455\u75b5\uff0c\u4e14\u7d93\u9001\u4fee\u9054\u6cd5\u5b9a\u6b21\u6578\u4ecd\u672a\u4fee\u5fa9\uff0c\u6216\u540c\u4e00\u7455\u75b5\u7dad\u4fee\u56db\u6b21\u4ee5\u4e0a\u4ecd\u7121\u6cd5\u56de\u5fa9\u6b63\u5e38\u6a5f\u80fd\u8005\uff0c\u8cb7\u53d7\u4eba\u5f97\u4f9d\u300c\u6c7d\u8eca\u8cb7\u8ce3\u5b9a\u578b\u5316\u5951\u7d04\u61c9\u8a18\u8f09\u4e8b\u9805\u300d\u53ca\u76f8\u95dc\u6cd5\u4ee4\u8acb\u6c42\u66f4\u63db\u540c\u578b\uff08\u6216\u7b49\u503c\uff09\u65b0\u8eca\u6216\u89e3\u9664\u5951\u7d04\u3002`,
-    `\u3010\u4ea4\u8eca\u8207\u4fdd\u8b49\u66f8\u3011\u51fa\u8ce3\u4eba\u61c9\u65bc\u4ea4\u8eca\u6642\u4ea4\u4ed8\u4e2d\u6587\u4fdd\u8b49\u66f8\u53ca\u4e2d\u6587\u4f7f\u7528\u8aaa\u660e\u66f8\uff08\u4f7f\u7528\u8aaa\u660e\u66f8\u5f97\u7d93\u8cb7\u53d7\u4eba\u540c\u610f\u4ee5\u96fb\u5b50\u6a94\u3001\u9023\u7d50\u3001QR Code \u7b49\u53ef\u4fdd\u5b58\u65b9\u5f0f\u63d0\u4f9b\uff09\u3002\u9810\u8a08\u4ea4\u8eca\uff1a`+kDeliver+`\uff1b\u5be6\u969b\u4ea4\u671f\u4ee5\u539f\u5ee0\u751f\u7522\u6392\u7a0b\u53ca\u6d77\u904b\u70ba\u6e96\uff0c\u5982\u9047\u4e0d\u53ef\u6297\u529b\u5f97\u9806\u5ef6\uff0c\u51fa\u8ce3\u4eba\u5c07\u5373\u6642\u901a\u77e5\u8cb7\u53d7\u4eba\u3002`,
+    `\u3010\u4ea4\u8eca\u8207\u4fdd\u8b49\u66f8\u3011\u51fa\u8ce3\u4eba\u61c9\u65bc\u4ea4\u8eca\u6642\u4ea4\u4ed8\u4e2d\u6587\u4fdd\u8b49\u66f8\u53ca\u4e2d\u6587\u4f7f\u7528\u8aaa\u660e\u66f8\uff08\u4f7f\u7528\u8aaa\u660e\u66f8\u5f97\u7d93\u8cb7\u53d7\u4eba\u540c\u610f\u4ee5\u96fb\u5b50\u6a94\u3001\u9023\u7d50\u3001QR Code \u7b49\u53ef\u4fdd\u5b58\u65b9\u5f0f\u63d0\u4f9b\uff09\u3002\u5be6\u969b\u4ea4\u671f\u4ee5\u539f\u5ee0\u751f\u7522\u6392\u7a0b\u53ca\u6d77\u904b\u70ba\u6e96\uff0c\u5982\u9047\u4e0d\u53ef\u6297\u529b\u5f97\u9806\u5ef6\uff0c\u51fa\u8ce3\u4eba\u5c07\u5373\u6642\u901a\u77e5\u8cb7\u53d7\u4eba\u3002`,
     `\u3010\u898f\u683c\u8b8a\u66f4\u3011\u8a02\u55ae\u78ba\u8a8d\u5f8c\u8cb7\u53d7\u4eba\u8981\u6c42\u8b8a\u66f4\u898f\u683c\u8005\uff0c\u9808\u7d93\u51fa\u8ce3\u4eba\u53ca\u539f\u5ee0\u540c\u610f\uff0c\u6240\u751f\u8cbb\u7528\u7531\u8cb7\u53d7\u4eba\u8ca0\u64d4\uff0c\u4e26\u53ef\u80fd\u5f71\u97ff\u4ea4\u671f\u3002`,
     `\u3010\u50f9\u683c\u8abf\u6574\u3011\u5982\u9047\u532f\u7387\u3001\u95dc\u7a05\u3001\u539f\u5ee0\u552e\u50f9\u6216\u653f\u5e9c\u898f\u8cbb\u4e4b\u91cd\u5927\u8b8a\u52d5\uff0c\u96d9\u65b9\u5f97\u672c\u8aa0\u4fe1\u539f\u5247\u5354\u5546\u8abf\u6574\uff1b\u672a\u80fd\u5408\u610f\u8005\uff0c\u5c31\u5c1a\u672a\u4ea4\u4ed8\u4e4b\u90e8\u5206\u5f97\u89e3\u9664\u5951\u7d04\u4e26\u8fd4\u9084\u5df2\u6536\u4e4b\u76f8\u61c9\u50f9\u6b3e\u3002`,
     `\u3010\u500b\u4eba\u8cc7\u6599\u3011\u8cb7\u53d7\u4eba\u540c\u610f\u51fa\u8ce3\u4eba\u65bc\u5c65\u884c\u672c\u5951\u7d04\u5fc5\u8981\u7bc4\u570d\u5167\uff0c\u853c\u96c6\u3001\u8655\u7406\u53ca\u5229\u7528\u8cb7\u53d7\u4eba\u53ca\u9818\u724c\u540d\u7fa9\u4eba\u4e4b\u59d3\u540d\u3001\u8eab\u5206\u8b49\u5b57\u865f\uff0f\u7d71\u4e00\u7de8\u865f\u3001\u5730\u5740\u3001\u96fb\u8a71\u3001Email\u3001\u8eca\u8f1b\u53ca\u4ed8\u6b3e\u8cc7\u6599\uff0c\u4f7f\u7528\u76ee\u7684\u5305\u542b\u8a02\u8eca\u3001\u9032\u53e3\u3001\u5831\u95dc\u3001\u9a57\u8eca\u3001\u9818\u724c\u3001\u4fdd\u96aa\u3001\u8cb8\u6b3e\u3001\u958b\u7acb\u767c\u7968\u3001\u4fdd\u56fa\u767b\u9304\u3001\u7dad\u4fee\u670d\u52d9\u3001\u53ec\u56de\u901a\u77e5\u53ca\u552e\u5f8c\u670d\u52d9\uff1b\u51fa\u8ce3\u4eba\u4e0d\u5f97\u65bc\u524d\u8ff0\u76ee\u7684\u5916\u4efb\u610f\u4f7f\u7528\u6216\u63d0\u4f9b\u4e88\u7121\u95dc\u7b2c\u4e09\u4eba\u3002`,
