@@ -3396,7 +3396,7 @@ function cashierTogglePay(id,stage){
     if(d.depositStatus!=="confirmed"){ d.depositPaid=true; d.depositStatus="confirmed"; d.depositConfirmedAt=Date.now(); d.depositConfirmedBy="出納"; if(d.status!=="done"){ d.status="done"; d.dealStatus="deal_won"; if(!d.dealPrice){ var _c=normalizeCase(d); d.dealPrice=_c.quoteTotal||0; } d.balanceAmount=(+d.dealPrice||0)-(+d.depositAmount||0); if(!d.dealMarkedAt){ d.dealMarkedAt=Date.now(); d.dealMarkedBy="出納"; } } }
     else { d.depositPaid=false; d.depositStatus="sales_marked_paid"; d.depositConfirmedAt=null; if(d.status==="done"){ d.status=""; d.dealStatus="contract_generated"; } }
   }        // 訂金打勾＝出納確認訂金＝這筆正式成交
-  else { d.pay=d.pay||{}; d.pay[stage]=!d.pay[stage]; }
+  else { d.pay=d.pay||{}; if(!confirm((d.pay[stage]?"取消收到":"確認收到")+(stage==="d2"?"二次款":"尾款")+"？")) return; d.pay[stage]=!d.pay[stage]; }
   saveDeals(a); renderCashierPanel();
   var m; if((m=document.getElementById("dealBg"))&&m.style.display!=="none"&&typeof renderDeals==="function") renderDeals();
   if((m=document.getElementById("perfBg"))&&m.style.display!=="none"&&typeof renderPerf==="function") renderPerf();
@@ -3563,13 +3563,13 @@ function viewContract(dealId){
     const url=URL.createObjectURL(new Blob([u8],{type:mime})); window.open(url,"_blank"); setTimeout(()=>URL.revokeObjectURL(url),60000);
   }catch(e){ window.open(c.data,"_blank"); }
 }
-function dealToggleDeposit(dealId){ const a=getDeals(); const d=a.find(x=>x.id===dealId); if(d){ d.depositPaid=!d.depositPaid; saveDeals(a); var m; if((m=document.getElementById("dealBg"))&&m.style.display!=="none") renderDeals(); if((m=document.getElementById("perfBg"))&&m.style.display!=="none") renderPerf(); } }
+function dealToggleDeposit(dealId){ const a=getDeals(); const d=a.find(x=>x.id===dealId); if(d){ if(!confirm(d.depositPaid?"取消「已付訂金」？":"確認已收到訂金？")) return; d.depositPaid=!d.depositPaid; saveDeals(a); var m; if((m=document.getElementById("dealBg"))&&m.style.display!=="none") renderDeals(); if((m=document.getElementById("perfBg"))&&m.style.display!=="none") renderPerf(); } }
 function perfToggleDeposit(qid){ if(!(role==="admin"||role==="cashier")){ toast("僅限出納/管理後台確認訂金"); return; } const d=perfEnsureDeal(qid); if(!d)return; const a=getDeals(); const x=a.find(z=>z.quoteId===qid); if(!confirm(x.depositPaid?"取消訂金確認？這筆會退回「待出納確認」、不算成交。":"確認這筆「訂金已收」並正式成交？")) return; x.depositPaid=!x.depositPaid; x.depositStatus=x.depositPaid?"confirmed":"sales_marked_paid"; if(x.depositPaid){ x.depositConfirmedAt=Date.now(); x.depositConfirmedBy=(role==="cashier"?"出納":"管理後台"); if(x.status!=="done"){ x.status="done"; x.dealStatus="deal_won"; if(!x.dealPrice){ var _c=normalizeCase(x); x.dealPrice=_c.quoteTotal||0; } } } else { x.depositConfirmedAt=null; if(x.status==="done"){ x.status=""; x.dealStatus="contract_generated"; } } saveDeals(a); renderPerf(); }
 function perfToggleOrdered(qid){
   if(!(role==="admin"||role==="acct")){ toast("僅限管理後台/會計"); return; }
   const d=perfEnsureDeal(qid); if(!d)return; const a=getDeals(); const x=a.find(z=>z.quoteId===qid);
   if(!x.ordered && !((x.depositStatus==="confirmed"||x.depositConfirmedAt) && x.hasContract)){ toast("需先『訂金已確認』且『已上傳簽名合約』才能下定"); return; }
-  x.ordered=!x.ordered; x.orderStatus=x.ordered?"ordered":"not_ordered"; if(x.ordered) x.orderedAt=Date.now(); saveDeals(a); renderPerf();
+  if(!confirm(x.ordered?"取消「公司已下定」？":"確認公司已下定（向 Caterham／原廠下單）？")) return; x.ordered=!x.ordered; x.orderStatus=x.ordered?"ordered":"not_ordered"; if(x.ordered) x.orderedAt=Date.now(); saveDeals(a); renderPerf();
 }
 function delDeal(id){
   const d=getDeals().find(x=>x.id===id);
