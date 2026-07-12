@@ -6055,7 +6055,7 @@ function renderNcVars(){
   </div>`).join("");
 }
 function carMYLabel(c){
-  if(c&&c.my){ if(/^\d\d$/.test(c.my)) return "MY20"+c.my; if(c.my==="both") return "MY2025/26"; }
+  if(c&&c.my){ if(/^\d\d$/.test(c.my)) return "MY20"+c.my; if(c.my==="both") return "MY2026"; }
   if(c&&c.year&&/^(MY)?\s*20\d\d/.test(c.year)) return c.year;
   return "";
 }
