@@ -1732,7 +1732,7 @@ const sigExtCat = is170=>["Signature 外觀 Exterior",[
 
 /* ---------------- SEVEN 170 ---------------- */
 const CAR_170={
-  id:"170", brand:"Caterham", brandId:"caterham", name:"Seven 170", year:"MY2024", ref:"170 Dealer Price V1.7",
+  id:"170", brand:"Caterham", brandId:"caterham", name:"Seven 170", year:"MY2026", ref:"170 Dealer Price V1.7",
   paint:STD_PAINT, decals:{swoosh:true}, signature:true,
   variants:{S:{label:"170S",base:26000},R:{label:"170R",base:27900}},
   included:{
@@ -1811,7 +1811,7 @@ const CAR_170={
 
 /* ---------------- SEVEN 340 ---------------- */
 const CAR_340={
-  id:"340", brand:"Caterham", brandId:"caterham", name:"Seven 340", year:"MY2024", ref:"340 Dealer Price V1.4",
+  id:"340", brand:"Caterham", brandId:"caterham", name:"Seven 340", year:"MY2026", ref:"340 Dealer Price V1.4",
   paint:STD_PAINT, decals:{swoosh:false}, signature:true,
   variants:{S:{label:"340S",base:36250},R:{label:"340R",base:38150}},
   included:{
@@ -6054,6 +6054,16 @@ function renderNcVars(){
     <div style="display:flex;gap:6px;align-items:center"><input class="t" type="number" step="1" placeholder="車價成本" value="${q(v.base)}" oninput="carMgr.nv[${i}].base=this.value">${carMgr.nv.length>1?``:""}</div>
   </div>`).join("");
 }
+function carMYLabel(c){
+  if(c&&c.my){ if(/^\d\d$/.test(c.my)) return "MY20"+c.my; if(c.my==="both") return "MY2025/26"; }
+  if(c&&c.year&&/^(MY)?\s*20\d\d/.test(c.year)) return c.year;
+  return "";
+}
+function carYearDesc(c){
+  var y=carMYLabel(c), d=(c&&c.year)||"";
+  if(y&&d&&d!==y) return y+" · "+d;
+  return y||d||"";
+}
 function renderCarMgr(){
   const hidden=new Set(getHiddenCars());
   const custom=new Set(getCustomCars().map(c=>c.id));
@@ -6066,7 +6076,7 @@ function renderCarMgr(){
       const hid=hidden.has(c.id), isCustom=custom.has(c.id);
       const vlabels=Object.values(c.variants).map(v=>v.label).join(" / ");
       html+=`<div class="opt" style="justify-content:space-between">
-        <span class="oname" style="${hid?'color:#aaa;text-decoration:line-through':''}">${c.name} <span class="hint">· ${c.year||''}${vlabels?' · '+vlabels:''}${isCustom?' · 自訂':''}</span></span>
+        <span class="oname" style="${hid?'color:#aaa;text-decoration:line-through':''}">${c.name} <span class="hint">· ${carYearDesc(c)}${vlabels?' · '+vlabels:''}${isCustom?' · 自訂':''}</span></span>
         <span style="display:flex;gap:6px">
           <button class="mini" onclick="carMgrToggleHide('${c.id}')">${hid?'顯示':'隱藏'}</button>
           ${isCustom?`<button class="mini" onclick="carMgrDelCar('${c.id}')">刪除</button>`:''}
