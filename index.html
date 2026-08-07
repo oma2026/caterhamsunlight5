@@ -1952,6 +1952,74 @@ const CAR_NUR={
   ]
 };
 
+/* ---------------- SUPER SEVEN 600 / 2000 ---------------- */
+const SS_PAINT=[
+  {id:"ss_heritage",label:"Heritage 經典塗裝 Heritage paint finishes",price:0,colours:[
+    ["Racing Green","#004225"],["Caribbean Blue","#4f93c8"],["Tuscany Red","#b0201d"],["Saxony Grey","#97999b"],
+    ["Serengeti Orange","#e98229"],["Bordeaux Red","#5d1a24"],["Oxford White","#f2f0e6"],["Ashdown Green","#7aa338"],
+    ["Windsor Blue","#2d4b9a"],["Fawn","#e5d5b5"],["Bourbon","#7a6248"]
+  ]},
+  {id:"bare",label:"裸鋁車身＋彩色複合板件 Bare aluminium",price:0,colours:[
+    ["Gravity Black","#0d0d0d"],["Exocet Red","#e12e26"],["Vintage Green","#38431f"],["Firecracker Yellow","#f6ee3f"]
+  ]},
+  {id:"custom",label:"客製 Custom（任何顏色）",price:1850,custom:true,colours:[]}
+];
+const CAR_SS={
+  id:"ss", brand:"Caterham", brandId:"caterham", name:"Super Seven", year:"現車 #216（600）", ref:"Super Seven Dealer V1.1 04/23 · Hoffmann #216",
+  paint:SS_PAINT,
+  variants:{S:{label:"SuperSeven 600 · 660cc Suzuki Turbo · 84bhp",base:26500},R:{label:"SuperSeven 2000 · 2.0 Duratec · 170bhp",base:37000}},
+  included:{
+    S:["五速手排變速箱 5-speed transmission","道路懸吊套件 Road suspension pack","前煞 – 實心碟＋雙活塞卡鉗 Solid discs, twin piston calipers","14\" 銀色 Juno 輪圈 · Avon ZT7 輪胎","完整擋風玻璃（拋光）、軟篷 & 側窗 Full windscreen with hood and sidescreens","SMITHS 儀表 SMITHS gauges","鍍鉻油箱蓋 Chrome filler cap","鍍鉻橫柵水箱罩 Chrome bar front grill","LED 尾燈 LED rear lights","備胎＋備胎架 Spare wheel and carrier","暖氣 Heater","三點式慣性捲收安全帶 3-point inertia reel seat belts","黑色乙烯基中央鞍座 Black vinyl tunnel top","黑色皮革 Moto-Lita 方向盤 Black leather Moto-Lita steering wheel","拋光排氣管 Polished exhaust","後飾板地毯 Carpeted rear panel","車色 Windsor Blue（Heritage 塗裝）","客製烤漆輪圈中心 · 鑽石切削唇 Oxford White（Custom painted alloy centres）","降低式底板 Lowered floors","置物袋 Map pocket","Classic 前輪弧葉子板 Classic front cycle wings","車身滾邊 Cream（Exterior piping）","皮革儀表板 Birch White（Dashboard leather）","彩色皮革座椅 Birch White（Fluted leather seats）","排檔 & 手煞車皮套 Birch White（Muirhead leather gaitors）","彩繪鼻帶＋引擎蓋條 Oxford White（Painted noseband & bonnet stripe）","彩繪防滾桿 Windsor Blue（Painted roll bar）"],
+    R:["五速手排變速箱 5-speed transmission","道路懸吊套件 Road suspension pack","前煞 – 實心碟＋雙活塞卡鉗 Solid discs, twin piston calipers","14\" 銀色 Classic 輪圈 · Avon ZT7 輪胎","外擴式前葉子板 Flared front wings","完整擋風玻璃（拋光）、軟篷 & 側窗 Full windscreen with hood and sidescreens","SMITHS 儀表 SMITHS gauges","鍍鉻油箱蓋 Chrome filler cap","鍍鉻橫柵水箱罩 Chrome bar front grill","LED 尾燈 LED rear lights","備胎＋備胎架 Spare wheel and carrier","暖氣 Heater","黑色打摺皮革座椅 Fluted black leather seats","三點式慣性捲收安全帶 3-point inertia reel seat belts","黑色乙烯基中央鞍座 Black vinyl tunnel top","黑色皮革 Moto-Lita 方向盤 Black leather Moto-Lita steering wheel","後飾板地毯 Carpeted rear panel","Heritage 經典塗裝可選 Choice of heritage paint finishes"]
+  },
+  cats:[
+    ["原廠選項 Factory Options",[
+      ["大型底盤 Large chassis",P(N,2050)],
+    ]],
+    ["引擎 & 傳動 Engine & Transmission",[
+      ["限滑差速器 Limited-slip differential",P(995,995)],
+    ]],
+    ["懸吊 Suspension",[
+      ["後防傾桿 Rear anti-roll bar",P(N,165)],
+      ["運動懸吊套件（後防傾桿＋可調平台）Sport suspension package",P(N,600)],
+    ]],
+    ["輪圈 & 輪胎 Wheels & Tyres",[
+      ["金色輪圈中心 · 鑽石切削唇 Gold coloured alloy centres with diamond cut lip",P(525,525)],
+      ["車身同色輪圈中心 · 鑽石切削唇 Body coloured alloy centres with diamond cut lip",P(525,525)],
+      ["客製烤漆輪圈中心 · 鑽石切削唇 Custom painted alloy centre with diamond cut lip",P(S,600)],
+    ]],
+    ["煞車 Brakes",[
+      ["前煞 – 通風碟＋四活塞卡鉗 Front ventilated discs with quad piston calipers",P(N,600)],
+      ["強化煞車總泵 Uprated brake master cylinder",P(N,185)],
+    ]],
+    ["風雨防護 Weather Protection",[
+      ["軟篷、側窗 & 行李廂罩 · 馬海毛 Hood, side screens and boot cover in mohair",P(1125,1125)],
+      ["側窗扶手（大型底盤標配）Side screen armrests",P(110,110)],
+    ]],
+    ["內裝 Interior",[
+      ["方向盤 – 木框 Moto-Lita Wooden rimmed Moto-Lita steering wheel",P(225,225)],
+      ["降低式底板 Lowered floors",P(S,450)],
+      ["置物袋 Map pocket",P(S,40)],
+      ["彩色後飾板地毯（Cranberry/Cream/Tan）Carpeted rear panel & tunnel sides in colour",P(375,375)],
+      ["皮革儀表板 Dashboard – leather",P(S,375)],
+      ["彩色打摺皮革座椅 Fluted leather seats in choice of colours",P(S,750)],
+      ["排檔 & 手煞車皮套 · Muirhead 皮革 Gearbox and handbrake gaitors in Muirhead leather",P(S,110)],
+      ["側板 Muirhead 皮革包覆 Side panels trimmed in Muirhead leather",P(750,750)],
+    ]],
+    ["外觀 Exterior",[
+      ["Classic 前輪弧葉子板 Classic front cycle wings",P(S,0)],
+      ["鑽石鍍鉻網格水箱罩 Diamond chrome mesh grill",P(110,110)],
+      ["高強度大燈＋LED 側燈 High intensity headlights with LED side lights",P(650,650)],
+      ["車身滾邊 – Cream（黑色為標配）Exterior piping – Cream",P(S,70)],
+    ]],
+    ["塗裝 & 貼飾 Additional Paint & Decals",[
+      ["彩繪鼻帶 Painted noseband",P(370,370)],
+      ["彩繪鼻帶＋引擎蓋條 Painted noseband and bonnet stripe",P(S,900)],
+      ["彩繪防滾桿／防滾架 Painted roll bar / cage",P(S,500)],
+    ]],
+  ]
+};
+
 /* ---------------- SUNLIGHT CLIFF Adventure (Fiat) ---------------- */
 const CLIFF_STD=[
   "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6","Fiat 原廠白車身","Adventure 車身貼紙","Adventure 布材套組",
@@ -3026,7 +3094,7 @@ const T_FOOTNOTES_CIT=[
   {t:"選配「側長椅第 5 座位（含安全帶）」時，內部置物翻蓋將取消。第 5 座位於計算最低承載量與乘員重量時須以正規座位計入；欲取得第 5 座位，須確保仍維持最低承載量並符合所有法定重量規範，詳情請洽經銷夥伴。 When ordering the option \"5th seat on side bench with safety belt\", the interior storage space flap is not applicable. An optional 5th seat should be counted as a regular seat when calculating the minimum payload and passenger mass; to obtain a 5th seat, the minimum payload and all other legal mass values must be observed. For details, please contact our trading partners."},
   {t:"無法與太陽能預接線同時選配。 Not possible in conjunction with pre-cabling for solar system."}
 ];
-const CARS=[CAR_170,CAR_340,CAR_NUR,
+const CARS=[CAR_170,CAR_340,CAR_NUR,CAR_SS,
   CLIFF_540,CLIFF_600,CLIFF_601,CLIFF_602,CLIFF_640,CLIFF_540V,CLIFF_600J,
   CLIFF_600X,CLIFF_640X,CLIFF_540P,CLIFF_600P,CLIFF_640P].concat(T_CARS);
 // Sunlight 價格明細：DPP 底價（EUR）、掛牌文件、全險（各車固定）
