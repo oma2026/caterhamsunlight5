@@ -3855,6 +3855,17 @@ function selectedWeight(){ let sum=0,unknown=false,has=false;
   Object.keys(selected).forEach(id=>{ const p=id.split(":").map(Number); const o=cur.cats[p[0]][1][p[1]]; const w=weightFor(o); if(w===undefined) return; has=true; if(w===null) unknown=true; else sum+=w; });
   return {sum,unknown,has}; }
 
+function ssDecalImg(cname,oname){
+  // Super Seven「塗裝 & 貼飾」三項：借用 170/340 貼飾區的現成示意圖（darren 2026-08-08）
+  if(!(cur&&cur.id==="ss")) return "";
+  if(!/塗裝 & 貼飾|Additional Paint/i.test(cname)) return "";
+  let k=null;
+  if(/引擎蓋條|bonnet stripe/i.test(oname)) k="nosestripe";
+  else if(/鼻帶|noseband/i.test(oname)) k="noseband";
+  else if(/防滾桿|roll bar/i.test(oname)) k="rollbar";
+  if(!k||typeof DECAL_IMG==="undefined"||!DECAL_IMG[k]) return "";
+  return `<img src="${DECAL_IMG[k]}" alt="" style="height:36px;border-radius:6px;margin-right:8px;vertical-align:middle;flex:0 0 auto">`;
+}
 function renderOptions(){
   let html=""; let total=0;
   cur.cats.forEach((cat,ci)=>{
@@ -3875,7 +3886,7 @@ function renderOptions(){
       if(val===S){
         return `<label class="opt included">
           <input type="checkbox" checked disabled>
-          <span class="oname">${o[0]}${Array.isArray(o[3])?"<small>"+o[3].join("・")+"</small>":""}</span>
+          <span class="oname">${ssDecalImg(cname,o[0])}${o[0]}${Array.isArray(o[3])?"<small>"+o[3].join("・")+"</small>":""}</span>
           <span class="oprice"><span class="badge-std">Included</span></span></label>`;
       }
       if(isForcedRC(o[0])){   // 必選：鎖住勾選、標示必選、價錢照算
@@ -3892,7 +3903,7 @@ function renderOptions(){
       const on = selected[id]!==undefined;
       return `<label class="opt">
         <input type="checkbox" ${on?"checked":""} onchange="toggleOpt('${id}',${val})">
-        <span class="oname">${o[0]}${cfMark(o[0])}${xgTag(cname,o[0])}${Array.isArray(o[3])?"<small>"+o[3].join("・")+"</small>":""}</span>
+        <span class="oname">${ssDecalImg(cname,o[0])}${o[0]}${cfMark(o[0])}${xgTag(cname,o[0])}${Array.isArray(o[3])?"<small>"+o[3].join("・")+"</small>":""}</span>
         <span class="oprice">${priceLabel}${optWt(o)}</span></label>`;
     }).join("");
     if(!rows.trim()) return;
