@@ -3857,7 +3857,7 @@ function renderOptions(){
   let html=""; let total=0;
   cur.cats.forEach((cat,ci)=>{
     const [cname,opts]=cat;
-    if(!weatherShown() && /風雨防護|Weather Protection/i.test(cname)) return;   // 「風雨防護」預設隱藏（天氣套件已標配）；管理後台可開關顯示
+    if(!weatherShown() && /風雨防護|Weather Protection/i.test(cname) && !(cur&&cur.id==="ss")) return;   // 「風雨防護」預設隱藏（天氣套件已標配）；管理後台可開關顯示。Super Seven 例外：訂單表列有 mohair 軟篷組，一律顯示
     // rows available for this variant
     const rows=opts.map((o,oi)=>{
       const val=priceFor(o);
