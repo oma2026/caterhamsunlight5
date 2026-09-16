@@ -447,6 +447,10 @@
   #print-root .p-contact div span{color:#999;margin-right:6px}
   #print-root .p-contact .en2{color:#999;font-size:9px;max-width:230px;margin-left:auto}
   #print-root .p-title{text-align:center;font-size:23px;font-weight:800;letter-spacing:.5em;border-top:2.5px solid #000;border-bottom:2.5px solid #000;padding:8px 0;margin:4px 0 14px}
+  /* 報價單中英並列（2026-09-04）：中文為主、英文小字灰色 */
+  #print-root .p-title-en{font-size:11px;font-weight:700;letter-spacing:.38em;color:#555;margin-top:3px}
+  #print-root .pen{font-style:normal;font-size:9px;color:#999;margin-left:4px;letter-spacing:.02em}
+  #print-root .p-note-en{display:block;color:#888;font-size:9.5px;margin-top:1px}
   #print-root .p-info{display:grid;grid-template-columns:1fr 1fr;gap:6px 30px;font-size:12px;border-bottom:1px solid #000;padding-bottom:12px;margin-bottom:14px}
   #print-root .p-info div span{color:#666;display:inline-block;min-width:58px}
   #print-root .p-items{width:100%;border-collapse:collapse;font-size:12px}
@@ -670,6 +674,24 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 .fml-f .t, .fml-f select.t{ font-size:14px; }
 .fml-row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .fml-toggle{ display:flex; align-items:center; gap:8px; font-size:13px; color:#333; margin-top:4px; cursor:pointer; }
+/* 定價總表：每台車一列，直接填係數／加權 */
+.pct-wrap{ overflow-x:auto; border:1px solid #eee; border-radius:10px; }
+.pct{ width:100%; border-collapse:collapse; font-size:13px; }
+.pct th{ position:sticky; top:0; z-index:2; background:#faf9f7; text-align:left; font-size:11.5px; color:#777; font-weight:700; padding:9px 8px; border-bottom:1px solid #e3e1dc; white-space:nowrap; }
+.pct th.pct-r{ text-align:right; }
+.pct td{ padding:5px 8px; border-bottom:1px solid #f4f3f0; white-space:nowrap; vertical-align:middle; }
+.pct tr.pct-grp td{ background:#f4f2ee; font-weight:800; color:#222; font-size:12.5px; padding:8px; border-bottom:1px solid #e3e1dc; }
+.pct input.pci{ width:88px; padding:5px 7px; border:1px solid #ddd; border-radius:7px; font-size:13px; text-align:right; font-variant-numeric:tabular-nums; background:#fff; }
+.pct input.pci:focus{ border-color:#b1802a; outline:none; box-shadow:0 0 0 2px rgba(177,128,42,.15); }
+.pct input.pci.pci-set{ border-color:#b1802a; background:#fffdf6; font-weight:700; }
+.pct .pct-num{ text-align:right; font-variant-numeric:tabular-nums; color:#555; }
+.pct .pct-price{ text-align:right; font-variant-numeric:tabular-nums; font-weight:700; color:#111; }
+.pct .pct-name{ font-weight:600; color:#222; }
+.pct .pct-sub{ color:#aaa; font-size:11px; font-weight:400; margin-left:6px; }
+.pct tr.pct-saved td{ background:#e9f8ef; }
+.pct .pct-x{ border:1px solid #e0ded9; background:#fff; color:#999; border-radius:6px; font-size:11px; padding:3px 7px; cursor:pointer; }
+.pct .pct-x:hover{ color:#c0392b; border-color:#c0392b; }
+.pct-legend{ font-size:12px; color:#888; line-height:1.9; margin:10px 2px 0; }
 .fml-tbl{ width:100%; border-collapse:collapse; font-size:13.5px; margin-top:8px; }
 .fml-tbl td{ padding:6px 2px; border-bottom:1px solid #f2f1ee; color:#444; }
 .fml-tbl .fml-num{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; color:#222; }
@@ -732,15 +754,15 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 <div id="formulaView" style="display:none">
   <div class="fml-top">
     <button class="btn ghost" onclick="showAdminDash()">← 管理後台</button>
-    <div><div class="fml-h1">價格公式</div><div class="fml-sub">系統怎麼算價錢都列在這裡。改上面任何數字，右邊的試算會即時跟著變。奢侈稅 10% ／ 300 萬是法定值（特種貨物稅），只能開／關。</div></div>
+    <div><div class="fml-h1">價格公式</div><div class="fml-sub">系統怎麼算價錢都列在這裡。<b>每台車的係數與加權在最下面那張「定價總表」一次改完</b>，改完上面的試算會立刻跟著變。奢侈稅 10% ／ 300 萬是法定值（特種貨物稅），只能開／關。</div></div>
   </div>
   <div class="fml-grid">
     <div class="fml-col">
       <div class="fml-card">
         <div class="fml-ct">算價公式</div>
         <div class="fml-formula">
-          <div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #e6e6e6"><div style="margin-bottom:2px"><b>底價（成本）看品牌，算法不同：</b></div><div>・<b>Caterham</b> ＝ 車型表價（£）</div><div>・<b>Sunlight</b> ＝ DPP ＋ 掛牌 €158.82 ＋ 全險 €95 ＋ 標配（€）</div></div>
-          <div><b>車本體</b> ＝ ( 底價 ＋ 運輸費 ) × 匯率 × 車身係數 ＋ 加權　<span style="color:#999">（兩品牌相同）</span></div>
+          <div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #e6e6e6"><div style="margin-bottom:2px"><b>底價（成本）看品牌，算法不同：</b></div><div>・<b>Caterham</b> ＝ 車型表價（£，匯率用英鎊）</div><div>・<b>Sunlight</b> ＝ DPP ＋ 掛牌 €158.82 ＋ 全險 €95 ＋ 標配（€）</div><div>・<b>ERIBA／Crosscamp／Bürstner</b> ＝ 原廠表價（€）</div></div>
+          <div><b>車本體</b> ＝ ( 底價 ＋ 運輸費 ) × 匯率 × 車身係數 ＋ 加權　<span style="color:#999">（所有品牌相同）</span></div>
           <div><b>每個選配</b> ＝ 成本 × 匯率 × 配備係數</div>
           <div><b>總價</b> ＝ 車本體 ＋ 所有選配相加</div>
           <div><b>奢侈稅</b> ＝ 總價 ≥ 300 萬 才收，總價 × 10%（法定）</div>
@@ -758,17 +780,7 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     </div>
     <div class="fml-col">
       <div class="fml-card">
-        <div class="fml-ct">試算預覽 · 選分類 → 設係數 → 儲存（套用整系列）</div>
-        <label class="fml-f">分類<select class="t" id="fml_cat" onchange="fmlPickCat(this.value)"></select></label>
-        <div class="fml-ct2">這個分類的係數（改這裡先「試算」・按「儲存」套用到整個分類全部的車・空白＝用預設值）</div>
-        <div class="fml-row2">
-          <label class="fml-f">車身係數<input class="t" id="fml_bc" type="number" step="0.05" min="0" style="text-align:right" oninput="renderFormulaPreview()"></label>
-          <label class="fml-f">配備係數<input class="t" id="fml_oc" type="number" step="0.05" min="0" style="text-align:right" oninput="renderFormulaPreview()"></label>
-          <label class="fml-f">運輸費 £/€<input class="t" id="fml_tr" type="number" step="50" min="0" style="text-align:right" oninput="renderFormulaPreview()"></label>
-          <label class="fml-f">總價加權 NT$<input class="t" id="fml_tw" type="number" step="1000" min="0" style="text-align:right" oninput="renderFormulaPreview()"></label>
-        </div>
-        <button class="btn primary" onclick="fmlSaveCat()" style="width:100%;margin:2px 0 14px">💾 儲存這個分類的係數（套用整系列）</button>
-        <div class="fml-ct2">預覽（選這個分類裡的一台看價格）</div>
+        <div class="fml-ct">單台明細 · 選一台看它現在怎麼算出來的</div>
         <div class="fml-row2">
           <label class="fml-f">車型<select class="t" id="fml_car" onchange="fmlPickCar(this.value)"></select></label>
           <label class="fml-f">版本<select class="t" id="fml_variant" onchange="fmlPickVariant(this.value)"></select></label>
@@ -776,9 +788,24 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
         <div id="fml_preview"></div>
       </div>
       <div class="fml-card" id="fml_sunCard">
-        <div class="fml-ct">🆕 新公式試算 · Caterham & Sunlight（用上面「車身係數」試算・尚未生效）</div>
+        <div class="fml-ct">🆕 新公式試算（含關稅／貨物稅完稅價・尚未生效）</div>
         <div id="fml_sunResult"></div>
       </div>
+    </div>
+  </div>
+
+  <div class="fml-card" style="margin-top:2px">
+    <div class="fml-ct" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span>📋 定價總表 — 每台車一列，填好按 Enter 或點別的地方就存好了</span>
+      <button class="mini" id="pctHidBtn" style="border-color:#555;background:#222;color:#fff" onclick="pctToggleHidden()">顯示隱藏車款</button>
+    </div>
+    <div class="pct-wrap"><table class="pct" id="pctTbl"></table></div>
+    <div class="pct-legend">
+      ・<b>空白＝用預設值</b>（欄位裡淡淡的灰字就是目前的預設）。填過的格子會變成<b style="color:#b1802a">金色框</b>，想改回預設按那一列最後的「清除」。<br>
+      ・<b>車價</b>是這台車<b>不加任何選配</b>的價格（跟業務端車卡上的「起 from」一樣）＝（底價＋運輸費）× 匯率 × 車身係數 ＋ 總價加權。<br>
+      ・<b>配備係數</b>不影響這個車價，它是每個選配各自乘的倍率。<br>
+      ・每個品牌的灰色那一列可以<b>一次套用整個品牌</b>：填要改的欄位（不想改的留空），按「套用整組」。<br>
+      ・存檔會同步到雲端，其他電腦重新整理後就看得到。
     </div>
   </div>
 </div>
@@ -1630,7 +1657,23 @@ function coefFor(key){ const id=(key||"").split("|")[0]; return (key||"").endsWi
 function weightForCar(id){ return totalWeightFor(id); }   // 只保留「總價加權」（灌進總價、對客戶隱藏）
 function curWeight(){ return weightForCar(typeof cur!=="undefined"&&cur?cur.id:null); }
 /* ===== 各車定價（車身係數/配備係數/運輸費/總價加權；沒設就用預設）===== */
-function getPriceCfg(id){ return (id&&PRICE_CFG[id])?PRICE_CFG[id]:{}; }
+/* 新車款的定價預設：管理後台「定價」還沒設過這台車時才生效，後台一設定就以後台為準。
+   MY27 Cliff X 跟 MY26 Cliff X 是同一批車，要沿用 CLIFF 的車身係數 2.0 / 配備係數 2.4 / 總價加權 40 萬；
+   少了這行會掉回全域預設（2.4 / 20 萬），同一台車 MY27 會比 MY26 貴約 54 萬（2026-09-16 補）。 */
+const PRICE_CFG_DEFAULT={
+  "cliff600x27":{bc:2,oc:2.4,tw:400000},
+  "cliff602x27":{bc:2,oc:2.4,tw:400000},
+  "cliff640x27":{bc:2,oc:2.4,tw:400000}
+};
+function getPriceCfg(id){
+  if(!id) return {};
+  var d=PRICE_CFG_DEFAULT[id], s=PRICE_CFG[id];
+  if(!d) return s||{};
+  if(!s) return d;
+  var out={}; Object.keys(d).forEach(function(k){ out[k]=d[k]; });   // 內建預設打底，後台設過的欄位蓋上去
+  Object.keys(s).forEach(function(k){ out[k]=s[k]; });
+  return out;
+}
 function bodyCoefFor(id){ const c=getPriceCfg(id); return c.bc!=null?+c.bc:COEF; }
 function optCoefFor(id){ const c=getPriceCfg(id); return c.oc!=null?+c.oc:COEF; }
 function totalWeightFor(id){ const c=getPriceCfg(id); if(c.tw!=null) return +c.tw; return (id&&WEIGHT_MAP[id]!=null)?+WEIGHT_MAP[id]:WEIGHT; }   // 沿用舊「全車加權」當總價加權
@@ -1738,13 +1781,13 @@ const paintCat = ()=>["塗裝 Paint",[
   ["標準全車烤漆（Gravity Black / Poppy Red / Vintage Green / Firecracker Yellow）",P(S,S)],
   ["Premium 塗裝（Hyper Green、Gulf Blue、Black Grey、Ultraviolet、Ballistic Orange、Peppermint Green、Polar White）",P(750,750)],
   ["Exclusive 塗裝（Viper Blue、Dark Silver、Riviera Blue、Volcano Red、Arancio Argos、Detonator Yellow、Crystaline White、Nardo Grey、Acid Green）",P(938,938)],
-  ["客製塗裝 – 任何顏色（需提供 paint code）",P(1875,1875)],
+  ["客製塗裝 – 任何顏色（需提供 paint code）Custom paint (any colour)",P(1875,1875)],
 ]];
 const decalCat = swoosh=>["塗裝細節 & 貼紙 Decals",[
-  ["彩繪 7 字水箱護罩",P(113,113)],
-  ["彩繪鼻錐飾板",P(375,375)],
-  ["彩繪鼻錐飾板 & 引擎蓋條紋",P(938,938)],
-  ["彩繪防滾桿 / 防滾架",P(563,563)],
+  ["彩繪 7 字水箱護罩 Painted 7 grille",P(113,113)],
+  ["彩繪鼻錐飾板 Painted noseband",P(375,375)],
+  ["彩繪鼻錐飾板 & 引擎蓋條紋 Painted noseband and bonnet stripe",P(938,938)],
+  ["彩繪防滾桿 / 防滾架 Painted roll bar/cage",P(563,563)],
   ["完整貼紙套件（雙條紋 / 三條紋"+(swoosh?" / Swoosh":"")+"）",P(300,300)],
 ]];
 const sigSeatCat = ()=>["Signature 座椅 Seats",[
@@ -1756,28 +1799,28 @@ const sigSeatCat = ()=>["Signature 座椅 Seats",[
   ["Signature Sport Hex 座椅 – 僅座椅",P(1463,1613)],
 ]];
 const sigIntCat = is170=>["Signature 內裝 Interior",[
-  ["彩色座椅滾邊",P(600,600)],
-  ["椅背刺繡 7 字圓標",P(338,338)],
-  ["中央鞍座 – Muirhead 真皮包覆",P(338,338)],
-  ["排檔 & 手煞車防塵套 – Muirhead 真皮包覆",P(188,188)],
-  ["扶手 – Muirhead 真皮包覆",P(188,188)],
-  ["碳纖維側板",P(750,750)],
-  ["側板 – Muirhead 真皮包覆",P(900,900)],
-  ["儀表板 – 木紋飾",P(338,338)],
-  ["儀表板 – 真皮（多色可選）",P(488,488)],
-  ["儀表板 – 黑色 Alcantara",P(563,563)],
-  ["儀表板 – 烤漆",P(375,375)],
-  ["儀表板 – 620 樣式"+(is170?"（170 不適用）":""),is170?P(N,N):P(900,900)],
+  ["彩色座椅滾邊 Coloured seat piping from a range of colours",P(600,600)],
+  ["椅背刺繡 7 字圓標 Embroidered 7 Roundel on seat back",P(338,338)],
+  ["中央鞍座 – Muirhead 真皮包覆 Tunnel top trimmed in fine Muirhead leather",P(338,338)],
+  ["排檔 & 手煞車防塵套 – Muirhead 真皮包覆 Gearbox and handbrake gaitors trimmed in fine Muirhead leather",P(188,188)],
+  ["扶手 – Muirhead 真皮包覆 Armrests trimmed in fine Muirhead leather",P(188,188)],
+  ["碳纖維側板 Carbon side panels",P(750,750)],
+  ["側板 – Muirhead 真皮包覆 Side panels trimmed in fine Muirhead leather",P(900,900)],
+  ["儀表板 – 木紋飾 Dash – Wood effect",P(338,338)],
+  ["儀表板 – 真皮（多色可選）Dash – Leather from a range of colours",P(488,488)],
+  ["儀表板 – 黑色 Alcantara Dash – Black Alcantara",P(563,563)],
+  ["儀表板 – 烤漆 Dash – Painted",P(375,375)],
+  ["儀表板 – 620 樣式 Dash – 620 style"+(is170?"（170 不適用）":""),is170?P(N,N):P(900,900)],
 ]];
 const sigExtCat = is170=>["Signature 外觀 Exterior",[
-  ["620 樣式鼻錐",P(563,563)],
-  ["黑色真皮防滾桿（限標準防滾桿）",P(563,563)],
-  ["彩繪大燈碗",P(188,188)],
-  ["彩繪踏板箱蓋",P(75,75)],
-  ["彩繪凸輪軸蓋"+(is170?"（170 不適用）":""),is170?P(N,N):P(131,131)],
-  ["底盤 & 懸吊連桿 – 客製色粉體塗裝",P(600,600)],
-  ["彩繪輪圈 – 單色",P(525,525)],
-  ["彩繪輪圈 – 雙色（限 13\" / 14\"）",P(750,750)],
+  ["620 樣式鼻錐 620 style nosecone",P(563,563)],
+  ["黑色真皮防滾桿（限標準防滾桿）Black leather roll bar (standard roll bar only)",P(563,563)],
+  ["彩繪大燈碗 Painted headlight bowls",P(188,188)],
+  ["彩繪踏板箱蓋 Painted pedal box cover",P(75,75)],
+  ["彩繪凸輪軸蓋 Painted cam cover"+(is170?"（170 不適用）":""),is170?P(N,N):P(131,131)],
+  ["底盤 & 懸吊連桿 – 客製色粉體塗裝 Chassis and wishbones powdercoated in custom colour",P(600,600)],
+  ["彩繪輪圈 – 單色 Painted wheels – single-tone",P(525,525)],
+  ["彩繪輪圈 – 雙色（限 13\" / 14\"）Painted wheels – two-tone (13\" or 14\" only)",P(750,750)],
 ]];
 
 /* ---------------- SEVEN 170 ---------------- */
@@ -1786,75 +1829,75 @@ const CAR_170={
   paint:STD_PAINT, decals:{swoosh:true}, signature:true,
   variants:{S:{label:"170S",base:26000},R:{label:"170R",base:27900}},
   included:{
-    S:["五速手排變速箱","道路懸吊套件","14\" 銀色 Juno 輪圈 · Avon ZT7 輪胎","黑色皮革座椅","完整擋風玻璃、軟篷 & 側窗","MOMO 方向盤","LED 尾燈","暖氣","拋光排氣管","後面板內裝地毯","620 樣式鼻錐","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"],
-    R:["五速手排變速箱","輕量化飛輪","運動懸吊套件","14\" 黑色 Juno 輪圈 · Avon ZT7 輪胎","複合材質賽車座椅","限滑差速器","碳纖維儀表板","四點式賽車安全帶","Black Pack 黑化套件","MOMO 方向盤","LED 尾燈","拋光排氣管","完整擋風玻璃、軟篷 & 側窗","620 樣式鼻錐","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"]
+    S:["五速手排變速箱 5 speed gearbox","道路懸吊套件 Road suspension pack","14\" 銀色 Juno 輪圈 · Avon ZT7 輪胎","黑色皮革座椅","完整擋風玻璃、軟篷 & 側窗 Full windscreen, hood and side screens","MOMO 方向盤","LED 尾燈","暖氣 Heater","拋光排氣管","後面板內裝地毯","620 樣式鼻錐 620 style nosecone","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"],
+    R:["五速手排變速箱 5 speed gearbox","輕量化飛輪","運動懸吊套件","14\" 黑色 Juno 輪圈 · Avon ZT7 輪胎","複合材質賽車座椅","限滑差速器 Limited-slip differential","碳纖維儀表板","四點式賽車安全帶 4-point race harness","Black Pack 黑化套件","MOMO 方向盤","LED 尾燈","拋光排氣管","完整擋風玻璃、軟篷 & 側窗 Full windscreen, hood and side screens","620 樣式鼻錐 620 style nosecone","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"]
   },
   cats:[
     ["引擎 & 傳動 Engine & Transmission",[
-      ["660cc 渦輪增壓 Suzuki 引擎 – 84bhp",P(S,S)],
-      ["五速手排變速箱",P(S,S)],
-      ["限滑差速器",P(938,S)],
+      ["660cc 渦輪增壓 Suzuki 引擎 – 84bhp 660cc turbo charged Suzuki engine – 84bhp",P(S,S)],
+      ["五速手排變速箱 5 speed gearbox",P(S,S)],
+      ["限滑差速器 Limited-slip differential",P(938,S)],
     ]],
     ["懸吊 Suspension",[
-      ["道路懸吊套件",P(S,N)],
-      ["運動懸吊（可調車高平台）",P(188,S)],
+      ["道路懸吊套件 Road suspension pack",P(S,N)],
+      ["運動懸吊（可調車高平台）Sports suspension (adjustable platforms)",P(188,S)],
     ]],
     ["輪圈 & 輪胎 Wheels & Tyres",[
-      ["14\" 銀色 Juno · Avon ZT7",P(S,N)],
-      ["14\" 黑色 Juno 拋光唇 · Avon ZT7",P(75,S)],
-      ["14\" 煤灰色 Juno 拋光唇 · Avon ZT7",P(150,75)],
+      ["14\" 銀色 Juno · Avon ZT7 14\" Silver Juno alloy wheels with Avon ZT7 tyres",P(S,N)],
+      ["14\" 黑色 Juno 拋光唇 · Avon ZT7 14\" Black Juno alloy wheels with polished lip and Avon ZT7 tyres",P(75,S)],
+      ["14\" 煤灰色 Juno 拋光唇 · Avon ZT7 14\" Anthracite Juno alloy wheels with polished lip and Avon ZT7 tyres",P(150,75)],
     ]],
     ["煞車 Brakes",[
-      ["前煞 – 實心碟 + 雙活塞卡鉗",P(S,S)],
+      ["前煞 – 實心碟 + 雙活塞卡鉗 Front – solid discs with twin piston calipers",P(S,S)],
     ]],
     ["風雨防護 Weather Protection",[
-      ["完整擋風玻璃、軟篷 & 側窗（取代 aeroscreen）",P(S,1200)],
-      ["完整風雨配備 · 可換式複合材質 aeroscreen",P(N,N)],
-      ["側窗扶手",P(113,113)],
-      ["行李箱蓋 – 乙烯基",P(S,S)],
-      ["行李箱蓋 – 碳纖維乙烯基",P(113,113)],
+      ["完整擋風玻璃、軟篷 & 側窗（取代 aeroscreen）Full windscreen, hood & side screens (in lieu of aeroscreen)",P(S,1200)],
+      ["完整風雨配備 · 可換式複合材質 aeroscreen Full weather equipment with interchangeable composite aeroscreen",P(N,N)],
+      ["側窗扶手 Side screen armrests",P(113,113)],
+      ["行李箱蓋 – 乙烯基 Boot cover – vinyl",P(S,S)],
+      ["行李箱蓋 – 碳纖維乙烯基 Boot cover – Carbon vinyl",P(113,113)],
     ]],
     ["賽道 Track",[
-      ["四點式賽車安全帶",P(188,S)],
-      ["管路式滅火器",P(375,375)],
-      ["電瓶總電源切斷開關",P(150,150)],
-      ["賽道用防滾桿",P(225,225)],
-      ["賽道用防滾架（易進出）",P(525,525)],
-      ["運動防滾架",P(675,675)],
-      ["賽事防滾架（與風雨配備不相容）",P(N,N)],
+      ["四點式賽車安全帶 4-point race harness",P(188,S)],
+      ["管路式滅火器 Plumbed-in fire extinguisher",P(375,375)],
+      ["電瓶總電源切斷開關 Battery master cut-off switch",P(150,150)],
+      ["賽道用防滾桿 Track day roll bar",P(225,225)],
+      ["賽道用防滾架（易進出）Track day roll cage (Easy-access)",P(525,525)],
+      ["運動防滾架 Sport roll cage",P(675,675)],
+      ["賽事防滾架（與風雨配備不相容）Race roll cage (not compatible with weather equipment)",P(N,N)],
     ]],
     ["內裝 Interior",[
-      ["橡膠腳踏墊 & 行李箱地毯",P(S,S)],
-      ["全車地毯內裝",P(S,90)],
-      ["儀表板 – 標準",P(S,N)],
-      ["儀表板 – 碳纖維",P(300,S)],
-      ["座椅 – 黑色皮革",P(S,150)],
-      ["座椅 – 複合材質賽車",P(0,S)],
-      ["座椅 – 碳纖維皮革",P(300,450)],
-      ["座椅 – 碳纖維含襯墊",P(750,900)],
-      ["方向盤 – MOMO",P(S,S)],
-      ["方向盤 – MOMO 皮革快拆",P(150,150)],
-      ["方向盤 – MOMO 麂皮",P(113,113)],
-      ["方向盤 – MOMO 麂皮快拆",P(225,225)],
-      ["三點式慣性捲收安全帶",P(S,N)],
-      ["暖氣",P(S,338)],
-      ["降低式底板",P(450,450)],
-      ["中央鞍座 – 黑色乙烯基",P(S,N)],
-      ["中央鞍座 – 碳纖維乙烯基",P(113,S)],
-      ["置物袋",P(38,38)],
+      ["橡膠腳踏墊 & 行李箱地毯 Rubber floor mats and boot floor carpet",P(S,S)],
+      ["全車地毯內裝 Fully carpeted interior",P(S,90)],
+      ["儀表板 – 標準 Dashboard – standard",P(S,N)],
+      ["儀表板 – 碳纖維 Dashboard – Carbon-fibre",P(300,S)],
+      ["座椅 – 黑色皮革 Seats – Black Leather",P(S,150)],
+      ["座椅 – 複合材質賽車 Seats – Composite race",P(0,S)],
+      ["座椅 – 碳纖維皮革 Seats – Carbon Leather",P(300,450)],
+      ["座椅 – 碳纖維含襯墊 Seats – Carbon with padding",P(750,900)],
+      ["方向盤 – MOMO Steering wheel – MOMO",P(S,S)],
+      ["方向盤 – MOMO 皮革快拆 Steering wheel – MOMO leather quick-release",P(150,150)],
+      ["方向盤 – MOMO 麂皮 Steering wheel – MOMO suede",P(113,113)],
+      ["方向盤 – MOMO 麂皮快拆 Steering wheel – MOMO suede quick-release",P(225,225)],
+      ["三點式慣性捲收安全帶 3 point inertia reel seatbelts",P(S,N)],
+      ["暖氣 Heater",P(S,338)],
+      ["降低式底板 Lowered floors",P(450,450)],
+      ["中央鞍座 – 黑色乙烯基 Tunnel top – black vinyl",P(S,N)],
+      ["中央鞍座 – 碳纖維乙烯基 Tunnel top – Carbon-vinyl",P(113,S)],
+      ["置物袋 Map pocket",P(38,38)],
     ]],
     ["外觀 Exterior",[
-      ["複合材質鼻錐、前後葉子板",P(S,S)],
-      ["鼻錐 – 碳纖維裸織紋（限標準底盤）",P(563,563)],
-      ["鼻錐 – 碳纖維烤漆（限標準底盤）",P(713,713)],
-      ["前葉子板 – 碳纖維裸織紋",P(375,375)],
-      ["前葉子板 – 碳纖維烤漆",P(525,525)],
-      ["後葉子板 – 碳纖維裸織紋",P(675,675)],
-      ["後葉子板 – 碳纖維烤漆",P(863,863)],
-      ["零件飾面：黑化",P(188,S)],
-      ["備胎架",P(563,563)],
-      ["高強度 LED 大燈 + LED 側燈",P(600,600)],
-      ["透明方向燈燈殼套件",P(68,68)],
+      ["複合材質鼻錐、前後葉子板 Composite nosecone, front and rear wings",P(S,S)],
+      ["鼻錐 – 碳纖維裸織紋（限標準底盤）Nosecone – Carbon-fibre – Exposed weave – Standard chassis only",P(563,563)],
+      ["鼻錐 – 碳纖維烤漆（限標準底盤）Nosecone – Carbon-fibre – Painted – Standard chassis only",P(713,713)],
+      ["前葉子板 – 碳纖維裸織紋 Front cycle wings – Carbon-fibre – Exposed weave",P(375,375)],
+      ["前葉子板 – 碳纖維烤漆 Front cycle wings – Carbon-fibre – Painted",P(525,525)],
+      ["後葉子板 – 碳纖維裸織紋 Rear cycle wings – Carbon-fibre – Exposed weave",P(675,675)],
+      ["後葉子板 – 碳纖維烤漆 Rear cycle wings – Carbon-fibre – Painted",P(863,863)],
+      ["零件飾面：黑化 Components finish: Black",P(188,S)],
+      ["備胎架 Spare wheel carrier",P(563,563)],
+      ["高強度 LED 大燈 + LED 側燈 High intensity LED headlights with LED side lights",P(600,600)],
+      ["透明方向燈燈殼套件 Clear indicator lens pack (front and side repeaters)",P(68,68)],
     ]],
   ]
 };
@@ -1865,84 +1908,84 @@ const CAR_340={
   paint:STD_PAINT, decals:{swoosh:false}, signature:true,
   variants:{S:{label:"340S",base:36250},R:{label:"340R",base:38150}},
   included:{
-    S:["五速手排變速箱","輕量化飛輪","道路懸吊套件","14\" Classic 輪圈 · Avon ZT7","黑色皮革座椅","完整擋風玻璃、軟篷 & 側窗","MOMO 方向盤","LED 尾燈 & 方向燈","暖氣","後飾板地毯","620 樣式鼻錐","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"],
-    R:["五速手排變速箱","輕量化飛輪","運動懸吊套件","15\" Orcus 輪圈 · Avon ZZS","複合材質賽車座椅","限滑差速器","碳纖維儀表板","四點式賽道安全帶","Black Pack 黑化套件","MOMO 方向盤","LED 尾燈 & 方向燈","完整擋風玻璃、軟篷 & 側窗","620 樣式鼻錐","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"]
+    S:["五速手排變速箱 5 speed gearbox","輕量化飛輪","道路懸吊套件 Road suspension pack","14\" Classic 輪圈 · Avon ZT7 14\" Classic alloy wheels with Avon ZT7 tyres","黑色皮革座椅","完整擋風玻璃、軟篷 & 側窗 Full windscreen, hood and side screens","MOMO 方向盤","LED 尾燈 & 方向燈","暖氣 Heater","後飾板地毯","620 樣式鼻錐 620 style nosecone","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"],
+    R:["五速手排變速箱 5 speed gearbox","輕量化飛輪","運動懸吊套件","15\" Orcus 輪圈 · Avon ZZS","複合材質賽車座椅","限滑差速器 Limited-slip differential","碳纖維儀表板","四點式賽道安全帶 4 point race harnesses","Black Pack 黑化套件","MOMO 方向盤","LED 尾燈 & 方向燈","完整擋風玻璃、軟篷 & 側窗 Full windscreen, hood and side screens","620 樣式鼻錐 620 style nosecone","專屬鑰匙、排檔頭 & 儀表","四色塗裝可選"]
   },
   cats:[
     ["原廠選項 Factory Options",[
       ["大型底盤 Large chassis",P(2063,2063)],
     ]],
     ["引擎 & 傳動 Engine & Transmission",[
-      ["五速手排變速箱",P(S,S)],
-      ["限滑差速器",P(938,S)],
+      ["五速手排變速箱 5 speed gearbox",P(S,S)],
+      ["限滑差速器 Limited-slip differential",P(938,S)],
     ]],
     ["懸吊 Suspension",[
-      ["道路懸吊套件",P(S,N)],
-      ["運動懸吊（寬輪距、後防傾桿、可調平台）",P(600,S)],
-      ["賽道懸吊（比道路/運動硬 30%）",P(750,150)],
-      ["賽事懸吊",P(N,1200)],
+      ["道路懸吊套件 Road suspension pack",P(S,N)],
+      ["運動懸吊（寬輪距、後防傾桿、可調平台）Sports suspension (wide track, rear anti-roll bar and adjustable platforms)",P(600,S)],
+      ["賽道懸吊（比道路/運動硬 30%）Track suspension (30% stiffer than road/sport suspension)",P(750,150)],
+      ["賽事懸吊 Race suspension",P(N,1200)],
       ["空力懸吊連桿 Aero wishbones",P(338,338)],
     ]],
     ["輪圈 & 輪胎 Wheels & Tyres",[
-      ["14\" Classic 輪圈 · Avon ZT7",P(S,N)],
-      ["13\" 銀色 Apollo · Avon ZZS（前6\"/後8\"）",P(525,300)],
-      ["13\" 黑色 Apollo · Avon ZZS（前6\"/後8\"）",P(525,300)],
-      ["15\" 銀色 Orcus · Avon ZZS",P(450,0)],
-      ["15\" 煤灰色 Orcus · Avon ZZS",P(450,S)],
+      ["14\" Classic 輪圈 · Avon ZT7 14\" Classic alloy wheels with Avon ZT7 tyres",P(S,N)],
+      ["13\" 銀色 Apollo · Avon ZZS（前6\"/後8\"）13\" Silver Apollo alloy wheels with Avon ZZS (6\" front and 8\" rear)",P(525,300)],
+      ["13\" 黑色 Apollo · Avon ZZS（前6\"/後8\"）13\" Black Apollo alloy wheels with Avon ZZS (6\" front and 8\" rear)",P(525,300)],
+      ["15\" 銀色 Orcus · Avon ZZS 15\" Silver Orcus alloy wheels with Avon ZZS",P(450,0)],
+      ["15\" 煤灰色 Orcus · Avon ZZS 15\" Anthracite Orcus alloy wheels with Avon ZZS",P(450,S)],
     ]],
     ["煞車 Brakes",[
-      ["前煞 – 實心碟 + 雙活塞卡鉗",P(S,S)],
-      ["前煞 – 通風碟 + 四活塞卡鉗",P(600,600)],
-      ["強化煞車總泵",P(188,S)],
+      ["前煞 – 實心碟 + 雙活塞卡鉗 Front – solid discs with twin piston calipers",P(S,S)],
+      ["前煞 – 通風碟 + 四活塞卡鉗 Front – ventilated discs with quad piston calipers",P(600,600)],
+      ["強化煞車總泵 Uprated brake master cylinder",P(188,S)],
     ]],
     ["風雨防護 Weather Protection",[
-      ["完整擋風玻璃、軟篷 & 側窗（取代 aeroscreen）",P(S,938)],
-      ["完整風雨配備 · 可換式複合材質 aeroscreen",P(N,N)],
-      ["側窗扶手（大型底盤標配）",P(71,71)],
-      ["行李箱蓋 – 乙烯基",P(S,S)],
-      ["行李箱蓋 – 碳纖維乙烯基",P(71,71)],
+      ["完整擋風玻璃、軟篷 & 側窗（取代 aeroscreen）Full windscreen, hood & side screens (in lieu of aeroscreen)",P(S,938)],
+      ["完整風雨配備 · 可換式複合材質 aeroscreen Full weather equipment with interchangeable composite aeroscreen",P(N,N)],
+      ["側窗扶手（大型底盤標配）Side screen armrests (standard on large chassis)",P(71,71)],
+      ["行李箱蓋 – 乙烯基 Boot cover – vinyl",P(S,S)],
+      ["行李箱蓋 – 碳纖維乙烯基 Boot cover – Carbon vinyl",P(71,71)],
     ]],
     ["賽道 Track",[
-      ["四點式賽道安全帶",P(188,S)],
-      ["管路式滅火器",P(375,375)],
-      ["電瓶總電源切斷開關",P(150,150)],
-      ["賽道用防滾桿",P(225,225)],
-      ["賽道用防滾架（易進出）",P(525,525)],
-      ["運動防滾架",P(675,675)],
-      ["賽事防滾架（與風雨配備不相容）",P(N,N)],
+      ["四點式賽道安全帶 4 point race harnesses",P(188,S)],
+      ["管路式滅火器 Plumbed-in fire extinguisher",P(375,375)],
+      ["電瓶總電源切斷開關 Battery master cut-off switch",P(150,150)],
+      ["賽道用防滾桿 Track day roll bar",P(225,225)],
+      ["賽道用防滾架（易進出）Track day roll cage (Easy-access)",P(525,525)],
+      ["運動防滾架 Sport roll cage",P(675,675)],
+      ["賽事防滾架（與風雨配備不相容）Race roll cage (not compatible with weather equipment)",P(N,N)],
     ]],
     ["內裝 Interior",[
-      ["橡膠腳踏墊 & 行李箱地毯",P(S,S)],
-      ["全車地毯內裝",P(90,90)],
-      ["儀表板 – 標準",P(S,N)],
-      ["儀表板 – 碳纖維",P(300,S)],
-      ["座椅 – 黑色皮革",P(S,150)],
-      ["座椅 – 複合材質賽車",P(0,S)],
-      ["座椅 – 碳纖維皮革",P(300,450)],
-      ["座椅 – 碳纖維含襯墊",P(750,900)],
-      ["方向盤 – MOMO",P(S,S)],
-      ["方向盤 – MOMO 皮革快拆",P(150,150)],
-      ["方向盤 – MOMO 麂皮",P(113,113)],
-      ["方向盤 – MOMO 麂皮快拆",P(225,225)],
-      ["三點式慣性捲收安全帶",P(S,N)],
-      ["暖氣",P(S,338)],
-      ["序列換檔指示燈",P(225,225)],
-      ["降低式底板",P(450,450)],
-      ["中央鞍座 – 黑色乙烯基",P(S,N)],
-      ["中央鞍座 – 碳纖維乙烯基",P(113,S)],
-      ["置物袋",P(38,38)],
+      ["橡膠腳踏墊 & 行李箱地毯 Rubber floor mats and boot floor carpet",P(S,S)],
+      ["全車地毯內裝 Fully carpeted interior",P(90,90)],
+      ["儀表板 – 標準 Dashboard – standard",P(S,N)],
+      ["儀表板 – 碳纖維 Dashboard – Carbon-fibre",P(300,S)],
+      ["座椅 – 黑色皮革 Seats – Black Leather",P(S,150)],
+      ["座椅 – 複合材質賽車 Seats – Composite race",P(0,S)],
+      ["座椅 – 碳纖維皮革 Seats – Carbon Leather",P(300,450)],
+      ["座椅 – 碳纖維含襯墊 Seats – Carbon with padding",P(750,900)],
+      ["方向盤 – MOMO Steering wheel – MOMO",P(S,S)],
+      ["方向盤 – MOMO 皮革快拆 Steering wheel – MOMO leather quick-release",P(150,150)],
+      ["方向盤 – MOMO 麂皮 Steering wheel – MOMO suede",P(113,113)],
+      ["方向盤 – MOMO 麂皮快拆 Steering wheel – MOMO suede quick-release",P(225,225)],
+      ["三點式慣性捲收安全帶 3 point inertia reel seatbelts",P(S,N)],
+      ["暖氣 Heater",P(S,338)],
+      ["序列換檔指示燈 Sequential shift lights",P(225,225)],
+      ["降低式底板 Lowered floors",P(450,450)],
+      ["中央鞍座 – 黑色乙烯基 Tunnel top – black vinyl",P(S,N)],
+      ["中央鞍座 – 碳纖維乙烯基 Tunnel top – Carbon-vinyl",P(113,S)],
+      ["置物袋 Map pocket",P(38,38)],
     ]],
     ["外觀 Exterior",[
-      ["複合材質鼻錐、前後葉子板",P(S,S)],
-      ["鼻錐 – 碳纖維裸織紋（限標準底盤）",P(563,563)],
-      ["鼻錐 – 碳纖維烤漆（限標準底盤）",P(713,713)],
-      ["前葉子板 – 碳纖維裸織紋",P(375,375)],
-      ["前葉子板 – 碳纖維烤漆",P(525,525)],
-      ["後葉子板 – 碳纖維裸織紋",P(675,675)],
-      ["後葉子板 – 碳纖維烤漆",P(863,863)],
-      ["零件飾面：黑化",P(188,S)],
-      ["備胎架",P(563,N)],
-      ["高強度 LED 大燈 + LED 側燈",P(600,600)],
+      ["複合材質鼻錐、前後葉子板 Composite nosecone, front and rear wings",P(S,S)],
+      ["鼻錐 – 碳纖維裸織紋（限標準底盤）Nosecone – Carbon-fibre – Exposed weave – Standard chassis only",P(563,563)],
+      ["鼻錐 – 碳纖維烤漆（限標準底盤）Nosecone – Carbon-fibre – Painted – Standard chassis only",P(713,713)],
+      ["前葉子板 – 碳纖維裸織紋 Front cycle wings – Carbon-fibre – Exposed weave",P(375,375)],
+      ["前葉子板 – 碳纖維烤漆 Front cycle wings – Carbon-fibre – Painted",P(525,525)],
+      ["後葉子板 – 碳纖維裸織紋 Rear cycle wings – Carbon-fibre – Exposed weave",P(675,675)],
+      ["後葉子板 – 碳纖維烤漆 Rear cycle wings – Carbon-fibre – Painted",P(863,863)],
+      ["零件飾面：黑化 Components finish: Black",P(188,S)],
+      ["備胎架 Spare wheel carrier",P(563,N)],
+      ["高強度 LED 大燈 + LED 側燈 High intensity LED headlights with LED side lights",P(600,600)],
     ]],
   ]
 };
@@ -1953,8 +1996,8 @@ const CAR_NUR={
   paint:NUR_PAINT, nurAddons:true,
   variants:{STD:{label:"Nürburgring Edition",base:39213}},
   included:{ STD:[
-    "標準尺寸底盤 + dedion 後懸","限滑差速器","五速手排變速箱","濕式油底殼","前煞 – 實心碟 + 雙活塞卡鉗",
-    "13\" 黑色 Apollo 輪圈","橡膠腳踏墊 & 行李廂地毯","完整擋風玻璃、軟篷 & 側窗","強化煞車總泵","行李廂蓋 · Vinyl",
+    "標準尺寸底盤 + dedion 後懸","限滑差速器 Limited-slip differential","五速手排變速箱 5 speed gearbox","濕式油底殼","前煞 – 實心碟 + 雙活塞卡鉗 Front – solid discs with twin piston calipers",
+    "13\" 黑色 Apollo 輪圈","橡膠腳踏墊 & 行李廂地毯 Rubber floor mats and boot floor carpet","完整擋風玻璃、軟篷 & 側窗 Full windscreen, hood and side screens","強化煞車總泵 Uprated brake master cylinder","行李廂蓋 · Vinyl",
     "四點式道路安全帶","換檔提示燈","零件黑化處理","12V 電源座","LED 尾燈組","碳纖維儀表板",
     "620 鼻錐含碳纖維導流鬚","MOMO 方向盤",
     "底盤色 · 槍金屬灰","碳纖維內裝飾板",
@@ -1966,33 +2009,33 @@ const CAR_NUR={
   cats:[
     ["原廠選項 Factory Options",[["大型底盤 Large chassis",{STD:2063}]]],
     ["賽道 Track",[
-      ["四點式賽車安全帶",{STD:260}],
-      ["管路式滅火器",{STD:375}],
-      ["電瓶總電源切斷開關",{STD:185}],
+      ["四點式賽車安全帶 4-point race harness",{STD:260}],
+      ["管路式滅火器 Plumbed-in fire extinguisher",{STD:375}],
+      ["電瓶總電源切斷開關 Battery master cut-off switch",{STD:185}],
       ["強化通風碟煞車 + 四活塞卡鉗",{STD:600}],
       ["賽道用防滾架",{STD:750}],
-      ["運動防滾架",{STD:750}],
-      ["賽事防滾架（與風雨配備不相容）",{STD:N}],
+      ["運動防滾架 Sport roll cage",{STD:750}],
+      ["賽事防滾架（與風雨配備不相容）Race roll cage (not compatible with weather equipment)",{STD:N}],
       ["空力懸吊連桿（限寬輪距懸吊）",{STD:675}],
     ]],
     ["風雨防護 Weather Protection",[
-      ["完整擋風玻璃、軟篷 & 側窗（取代 aeroscreen）",{STD:1200}],
-      ["完整風雨配備 · 可換式複合材質 aeroscreen",{STD:N}],
-      ["行李箱蓋 – 碳纖維乙烯基",{STD:225}],
-      ["側窗扶手",{STD:110}],
+      ["完整擋風玻璃、軟篷 & 側窗（取代 aeroscreen）Full windscreen, hood & side screens (in lieu of aeroscreen)",{STD:1200}],
+      ["完整風雨配備 · 可換式複合材質 aeroscreen Full weather equipment with interchangeable composite aeroscreen",{STD:N}],
+      ["行李箱蓋 – 碳纖維乙烯基 Boot cover – Carbon vinyl",{STD:225}],
+      ["側窗扶手 Side screen armrests",{STD:110}],
     ]],
     ["內裝 Interior",[
       ["碳纖維襯墊座椅 · Nürburgring 刺繡紅縫線",{STD:1125}],
       ["碳纖維襯墊加熱座椅 · Nürburgring 刺繡紅縫線",{STD:1275}],
       ["麂皮 MOMO 方向盤含快拆",{STD:315}],
-      ["暖氣",{STD:338}],
+      ["暖氣 Heater",{STD:338}],
       ["Aces 換檔燈",{STD:300}],
       ["碳纖維乙烯基中央鞍座含紅縫線",{STD:250}],
-      ["降低式底板",{STD:450}],
+      ["降低式底板 Lowered floors",{STD:450}],
     ]],
     ["外觀 Exterior",[
-      ["後葉子板 – 碳纖維裸織紋",{STD:675}],
-      ["高強度 LED 大燈 + LED 側燈",{STD:650}],
+      ["後葉子板 – 碳纖維裸織紋 Rear cycle wings – Carbon-fibre – Exposed weave",{STD:675}],
+      ["高強度 LED 大燈 + LED 側燈 High intensity LED headlights with LED side lights",{STD:650}],
       ["方向燈燈艙 – 碳纖維",{STD:110}],
     ]],
     ["貼紙 & 塗裝細節 Decals",[
@@ -2074,56 +2117,56 @@ const CAR_SS={
 
 /* ---------------- SUNLIGHT CLIFF Adventure (Fiat) ---------------- */
 const CLIFF_STD=[
-  "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6","Fiat 原廠白車身","Adventure 車身貼紙","Adventure 布材套組",
-  "遮陽篷（黑）","Basic-Pack（全景天窗、淋浴設備、浴室窗、衣桿、寬踏階等）","彩繪前保桿 + 黑色護板 + 霧燈","雙色鋁圈套件 + 真皮方向盤/排檔頭",
-  "Start & Stop · 定速巡航 · 手動駕駛艙冷氣","前輪驅動 · M+S 雪地胎","電動加熱後視鏡 · 電動車窗 · 遙控中控鎖","多功能方向盤 · 行車電腦 · USB 充電(A+C)",
+  "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6","Fiat 原廠白車身 Fiat white","Adventure 車身貼紙","Adventure 布材套組",
+  "遮陽篷（黑）Awning (black)","Basic-Pack（全景天窗、淋浴設備、浴室窗、衣桿、寬踏階等）","彩繪前保桿 + 黑色護板 + 霧燈 Painted front bumper, black skid plate, fog lights","雙色鋁圈套件 + 真皮方向盤/排檔頭 Two-colour alloy wheels Pack + leather steering wheel/gear knob",
+  "Start & Stop · 定速巡航 · 手動駕駛艙冷氣","前輪驅動 · M+S 雪地胎 Front Wheel Drive · M+S Camping tyres","電動加熱後視鏡 · 電動車窗 · 遙控中控鎖 Electric heated mirrors, electric windows, central locking","多功能方向盤 · 行車電腦 · USB 充電(A+C) Multifunction steering wheel, on-board computer, USB charger (A+C)",
   "雙安全氣囊 · ABS/EBD/ESP/ESC/ASR/HillHolder · Traction+","Captain Chair 可旋轉駕駛/副駕座椅（扶手、腰靠、高低可調）",
-  "壓縮機冰箱 84L · 雙口瓦斯爐(含玻璃蓋)","Combi 4 暖氣（601 為柴油暖氣）· 100L 清水 / 90L 廢水",
+  "壓縮機冰箱 84L · 雙口瓦斯爐(含玻璃蓋) Compressor fridge 84 l, 2-burner hob with glass lid","Combi 4 暖氣（601 為柴油暖氣）· 100L 清水 / 90L 廢水",
   "95Ah AGM 輔助電池 · 12V/18A 充電器 · 230V 外部插座","車內插座 12V/230V/USB · 板控面板顯示水位電量",
-  "雙層中空掀開式車窗（含遮光簾 + 紗窗）· 臥室/起居區 40×40cm 天窗各一","卡匣式馬桶 C223 · 固定洗手台 · 浴室天窗",
-  "高品質床墊 · 人體工學座墊 · 燈軌可調式聚光燈","7 年滲水保固 · Isofix ×2 · 後置物空間含 4 個綁點"
+  "雙層中空掀開式車窗（含遮光簾 + 紗窗）· 臥室/起居區 40×40cm 天窗各一 Double glazed hinged windows with blinds and fly screens, two 40×40 cm roof lights","卡匣式馬桶 C223 · 固定洗手台 · 浴室天窗 Cassette toilet C 223, fixed washbasin, bathroom roof light",
+  "高品質床墊 · 人體工學座墊 · 燈軌可調式聚光燈 High quality mattresses, ergonomic upholstery, adjustable spotlights","7 年滲水保固 · Isofix ×2 · 後置物空間含 4 個綁點"
 ];
 function cliffCats(model,trim){
   trim=trim||"adv";
   const is540=model==="540", is640=model==="640", is601=model==="601";
   const conv=[
-    ["隔熱加熱廢水箱",{STD:442.96},10.5],
-    ["自行車架（2 台，黑）",{STD:405.98},10.5],
+    ["隔熱加熱廢水箱 Insulated and heated waste water tank",{STD:442.96},10.5],
+    ["自行車架（2 台，黑）Bike rack for 2 bikes (black)",{STD:405.98},10.5],
   ];
-  if(trim==="adv") conv.push(["氣密窗",{STD:487.33},5]);
+  if(trim==="adv") conv.push(["氣密窗 Framed windows",{STD:487.33},5]);
   conv.push(["CLIFF RT-Pack 車頂床（含 RT 貼紙）",{STD:4214.39},160]);
   return [
     ["底盤 & 動力 Base vehicle / Engine",[
       ["8速自排 140hp 8-speed automatic",{STD:S},60],
       ["8速自排 180hp 8-speed automatic",{STD:4768.27},60],
-      ["Maxi 底盤 140hp 6速手排",{STD:is540?"na":295.80},40],
-      ["Maxi 底盤 180hp 8速自排",{STD:is540?"na":5064.07},60],
-      ["Maxi 底盤 4,250kg 180hp 8速自排（HD）",{STD:is640?5669.72:"na"},60],
-      ["全 LED 頭燈（含 LED 日行燈、動態方向燈）",{STD:812.71},0],
-      ["胎壓偵測",{STD:S},0.8],
-      ["拖車電路預接",{STD:S},0],
-      ["備胎（含固定架與千斤頂，取代 Fix & Go）",{STD:221.11},30],
-      ["90 公升油箱",{STD:S},23],
+      ["Maxi 底盤 140hp 6速手排 Maxi Chassis 3.5t 140 BHP 6-speed manual",{STD:is540?"na":295.80},40],
+      ["Maxi 底盤 180hp 8速自排 Maxi Chassis 3.5t 180 BHP 8-speed automatic",{STD:is540?"na":5064.07},60],
+      ["Maxi 底盤 4,250kg 180hp 8速自排（HD）Maxi Chassis 4.25t 180 BHP 8-speed automatic (HD)",{STD:is640?5669.72:"na"},60],
+      ["全 LED 頭燈（含 LED 日行燈、動態方向燈）Full LED headlamps incl. wiping indicators and LED daytime running lights",{STD:812.71},0],
+      ["胎壓偵測 Tyre pressure indicator",{STD:S},0.8],
+      ["拖車電路預接 Electrical preparation for trailer coupling",{STD:S},0],
+      ["備胎（含固定架與千斤頂，取代 Fix & Go）Spare wheel incl. holder and car jack instead of Fix & Go kit",{STD:221.11},30],
+      ["90 公升油箱 90l fuel tank",{STD:S},23],
     ]],
     ["外觀塗裝 Painting",[
-      ["黑色金屬",{STD:698.82},2.5],
+      ["黑色金屬 Chassis colour Black metallic",{STD:698.82},2.5],
       ["Lanzarote Grey（深灰）",{STD:583.46},0],
       ["Expedition Grey（卡其灰）",{STD:583.46},0],
     ]],
     ["車體改裝 Conversion",conv],
     ["舒適 Comfort",[
-      ["轉換床",{STD:258.08},5],
-      ["浴室木地板隔扇",{STD:65.82},2],
-      ["百褶聯",{STD:487.33},7.5],
+      ["轉換床 Bed conversion for seating area",{STD:258.08},5],
+      ["浴室木地板隔扇 Wooden duckboard for the shower tray",{STD:65.82},2],
+      ["百褶聯 Foldable window blinds",{STD:487.33},7.5],
     ]],
     ["電力 Installations",[
-      ["第二顆 AGM 輔助電池 95Ah",{STD:243.29},27],
-      ["電視預接線 / 電視架",{STD:161.95},3],
+      ["第二顆 AGM 輔助電池 95Ah Additional AGM leisure battery 95 Ah",{STD:243.29},27],
+      ["電視預接線 / 電視架 TV pre-cabling / TV holder",{STD:161.95},3],
       ["行動網路（WiFi/LTE 天線含路由器）",{STD:738.76},1.4],
-      ["倒車顯影預接線",{STD:124.97},1],
-      ["太陽能預接線",{STD:124.97},2],
-      ["太陽能板 100W（含 MPPT 控制器）",{STD:516.91},null],
-      ["燈軌內 USB 插頭",{STD:43.63},0],
+      ["倒車顯影預接線 Pre-cabling reversing camera",{STD:124.97},1],
+      ["太陽能預接線 Pre-cabling solar system",{STD:124.97},2],
+      ["太陽能板 100W（含 MPPT 控制器）Solar system 100 Watt incl. MPPT controller",{STD:516.91},null],
+      ["燈軌內 USB 插頭 USB-port in the light rail",{STD:43.63},0],
     ]],
     ["暖氣 / 瓦斯 Heating",[
       ["Combi 4 柴油暖氣（含高度感測 + 數位面板）",{STD:is601?"std":561.28},1.1],
@@ -2135,12 +2178,12 @@ function cliffCats(model,trim){
       ["Green Trail 綠色小徑",{STD:161.95},0],
     ]],
     ["套件 Packs",[
-      ["黑色鋁圈套件 Black alloy wheels Pack",{STD:0},8,["真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 消光黑鋁圈"]],
-      ["車身包",{STD:1349.58},-8.3,["電動折疊後視鏡","後方停車感測器","盲點偵測輔助","電子駐車煞車"]],
-      ["Digital Package 數位套件",{STD:2399.66},4,["駕駛艙自動空調","無線手機充電","10吋 收音機 & 導航 DAB+","7吋 TFT 彩色數位儀表","倒車攝影機（搭配動態停車輔助線）"]],
-      ["Safety Pack 安全套件",{STD:797.92},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助"]],
-      ["安全包 + ACC",{STD:1249.01},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
-      ["副駕駛包（安全包 + ACC PLUS）",{STD:1748.91},null,["ACC 含 Stop & Go","車道置中","塞車輔助","煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助"]],
+      ["黑色鋁圈套件 Black alloy wheels Pack",{STD:0},8,["真皮方向盤 & 排檔頭 Leather steering wheel and gear knob","銀色出風口飾件 Techno-Trim","16吋 消光黑鋁圈 16\" alloy wheels black matt"]],
+      ["車身包 Chassis Package",{STD:1349.58},-8.3,["電動折疊後視鏡 Electric folding mirrors","後方停車感測器 Parking sensors","盲點偵測輔助 Blind spot assistant","電子駐車煞車 Electric park brake"]],
+      ["Digital Package 數位套件",{STD:2399.66},4,["駕駛艙自動空調 Automatic cab air conditioning","無線手機充電 Wireless smartphone charging","10吋 收音機 & 導航 DAB+ 10\" radio and navigation system DAB+","7吋 TFT 彩色數位儀表 7\" TFT colour display","倒車攝影機（搭配動態停車輔助線）Rear view camera with dynamic grid lines"]],
+      ["Safety Pack 安全套件",{STD:797.92},null,["煞車輔助（行人 & 自行車偵測）Full Brake Control incl. pedestrian and cyclist detection","雨滴 / 光線感應器 Rain and light sensor","車道維持輔助 Lane control","交通標誌辨識 Traffic sign recognition","駕駛疲勞偵測 Driver Drowsiness Detection","智慧速度輔助 Intelligent Speed Assist"]],
+      ["安全包 + ACC Safety Pack + ACC",{STD:1249.01},null,["煞車輔助（行人 & 自行車偵測）Full Brake Control incl. pedestrian and cyclist detection","雨滴 / 光線感應器 Rain and light sensor","車道維持輔助 Lane control","交通標誌辨識 Traffic sign recognition","駕駛疲勞偵測 Driver Drowsiness Detection","智慧速度輔助 Intelligent Speed Assist","主動車距巡航 Adaptive Cruise Control >30 km/h"]],
+      ["副駕駛包（安全包 + ACC PLUS）",{STD:1748.91},null,["ACC 含 Stop & Go","車道置中 Lane centering","塞車輔助 Traffic jam assist","煞車輔助（行人 & 自行車偵測）Full Brake Control incl. pedestrian and cyclist detection","雨滴 / 光線感應器 Rain and light sensor","車道維持輔助 Lane control","交通標誌辨識 Traffic sign recognition","駕駛疲勞偵測 Driver Drowsiness Detection","智慧速度輔助 Intelligent Speed Assist"]],
     ]],
   ];
 }
@@ -2163,21 +2206,23 @@ const CLIFF_FOOTNOTES=[
   {t:"僅能與自排變速箱、Chassis Pack 及 Digital Pack 同時選配。 Only in conjunction with automatic gearbox, Chassis Pack and Digital Pack."}
 ];
 const CLIFF_FN_MARK={
-  "Maxi 底盤 140hp 6速手排":"⁴⁾","Maxi 底盤 180hp 8速自排":"⁴⁾",
-  "CLIFF RT-Pack 車頂床（含 RT 貼紙）":"⁵⁾","轉換床":"⁶⁾",
-  "太陽能預接線":"⁷⁾","太陽能板 100W（含 MPPT 控制器）":"⁵⁾⁷⁾",
-  "黑色鋁圈套件 Black alloy wheels Pack":"⁸⁾","安全包 + ACC":"⁹⁾","副駕駛包（安全包 + ACC PLUS）":"¹⁰⁾"
+  "Maxi 底盤 140hp 6速手排 Maxi Chassis 3.5t 140 BHP 6-speed manual":"⁴⁾","Maxi 底盤 180hp 8速自排 Maxi Chassis 3.5t 180 BHP 8-speed automatic":"⁴⁾",
+  "CLIFF RT-Pack 車頂床（含 RT 貼紙）":"⁵⁾","轉換床 Bed conversion for seating area":"⁶⁾",
+  "太陽能預接線 Pre-cabling solar system":"⁷⁾","太陽能板 100W（含 MPPT 控制器）Solar system 100 Watt incl. MPPT controller":"⁵⁾⁷⁾",
+  "黑色鋁圈套件 Black alloy wheels Pack":"⁸⁾","安全包 + ACC Safety Pack + ACC":"⁹⁾","副駕駛包（安全包 + ACC PLUS）":"¹⁰⁾"
 };
 function cfMark(label){
   if(typeof cur==="undefined"||!cur||cur.line!=="cliff") return "";
   const map = cur.peu ? (typeof CLIFF_FN_MARK_PEU!=="undefined"?CLIFF_FN_MARK_PEU:{}) : CLIFF_FN_MARK;
-  return map[label]||"";
+  if(map[label]) return map[label];
+  for(const k in map){ if(label.indexOf(k)===0) return map[k]; }   /* 品項名後來加了英文 → 開頭符合也認得 */
+  return "";
 }
 function cliffStd(model){
   const heat = model==="601"
-    ? ["瓦斯控制閥集中易取","2×5kg 瓦斯瓶櫃 Gas bottle locker","Combi 4 柴油暖氣 Diesel heating"]
-    : ["瓦斯控制閥集中易取","2×11kg 瓦斯瓶櫃 Gas bottle locker","Combi 4 瓦斯暖氣 Gas heating"];
-  const drop = (model==="540"||model==="602") ? ["寬敞衣櫃","爐後檯面","彈性掛桿系統含兩掛勾"] : [];
+    ? ["瓦斯控制閥集中易取 Gas control valves easily accessible and centrally arranged","2×5kg 瓦斯瓶櫃 Gas bottle locker","Combi 4 柴油暖氣 Diesel heating"]
+    : ["瓦斯控制閥集中易取 Gas control valves easily accessible and centrally arranged","2×11kg 瓦斯瓶櫃 Gas bottle locker","Combi 4 瓦斯暖氣 Gas heating"];
+  const drop = (model==="540"||model==="602") ? ["寬敞衣櫃 Spacious wardrobe","爐後檯面 Worktop behind cooker","彈性掛桿系統含兩掛勾 Flexible railing system with two hooks"] : [];
   return [
     ["Adventure 配備 Adventure Equipment",[
       "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6",
@@ -2188,41 +2233,41 @@ function cliffStd(model){
       "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6",
       "Start & Stop（含充電增壓 booster）","60L 柴油油箱 60l fuel tank","手動駕駛艙冷氣 Manual cab A/C",
       "定速巡航 Cruise control","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
-      "LED 日行燈（整合於頭燈）","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊",
-      "碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖",
-      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制","ESC Setup",
-      "Traction+（含陡坡緩降 hill descent）","電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡",
-      "DAB 天線整合於後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組",
-      "行車電腦（含外溫顯示）","中央置杯架","USB 充電（A+C）",
-      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","駕駛 & 副駕座椅可旋轉","駕駛 & 副駕座椅腰靠","駕駛 & 副駕座椅高低 & 傾角可調"
+      "LED 日行燈（整合於頭燈）Daytime running lights integrated in headlights","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊 Driver and passenger airbag",
+      "碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖 Disc brakes, stabilisers, heat convection, tachometer, power steering, height-adjustable headlights, immobiliser",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制 incl. ASR, hill holder, crosswind assist, trailer stability control","ESC Setup",
+      "Traction+（含陡坡緩降 hill descent）","電動車窗 & 中控鎖（駕駛艙）Electric operated cab windows and central locking","電動加熱後視鏡 Electric and heated mirrors",
+      "DAB 天線整合於後視鏡 Radio aerial integrated in mirror","音響預接線含喇叭 Radio pre-wiring incl. speakers","多功能方向盤 Multifunction steering wheel","Fix & Go 補胎組 Fix & Go breakdown kit",
+      "行車電腦（含外溫顯示）On-board computer incl. outside temperature display","中央置杯架 Central cup holder","USB 充電（A+C）USB charger (A+C)",
+      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","駕駛 & 副駕座椅可旋轉 Driver and passenger seats swivel","駕駛 & 副駕座椅腰靠 Seats with lumbar support","駕駛 & 副駕座椅高低 & 傾角可調 Height and rake adjustment for both seats"
     ]],
     ["外觀塗裝 Painting",[ "Fiat 原廠白 Fiat white" ]],
     ["車體改裝 Conversion",[
-      "7 年滲水保固 7-year water ingress warranty ³⁾","雙層中空掀開式車窗（起居區 & 廚房，含卡匣遮光簾 + 紗窗）",
-      ...(model==="601"?[]:["左側行進方向後掀窗（含遮光簾 + 紗窗）"]),
-      "兩側後門含掀開式車窗（含捲簾）","臥室 40×40cm 天窗（含紗窗 + 遮光簾）","起居區 40×40cm 天窗（含紗窗 + 遮光簾）","後置物空間含 4 個整合式綁點"
+      "7 年滲水保固 7-year water ingress warranty ³⁾","雙層中空掀開式車窗（起居區 & 廚房，含卡匣遮光簾 + 紗窗）Double glazed hinged windows in living area and kitchen with cassette blinds and fly screens",
+      ...(model==="601"?[]:["左側行進方向後掀窗（含遮光簾 + 紗窗）Rear hinged window on left side with blind and fly screen"]),
+      "兩側後門含掀開式車窗（含捲簾）Both rear doors with hinged window incl. roller blind","臥室 40×40cm 天窗（含紗窗 + 遮光簾）Roof light 40×40 cm over bedroom with fly screen and blinds","起居區 40×40cm 天窗（含紗窗 + 遮光簾）Roof light 40×40 cm over living area with fly screen and blinds","後置物空間含 4 個整合式綁點 Rear storage space with 4 integrated lashing rings"
     ]],
     ["舒適 Comfort",[
-      "駕駛艙上方大置物櫃","2 座 Isofix","後雙人床隔板含踏階","起居區底座含整合置物櫃","半餐廳區含整合置物櫃",
-      "後床部分板條式床架","高品質床墊（提升躺臥舒適）","人體工學座墊（提升乘坐舒適）","多處寬敞置物空間 & 收納",
-      "寬敞衣櫃","後門 & 滑門置物空間","紗門","駕駛艙布質遮陽簾",
+      "駕駛艙上方大置物櫃 Spacious storage compartment above driver's cab","2 座 Isofix","後雙人床隔板含踏階 Bulkhead incl. step for rear double bed","起居區底座含整合置物櫃 Pedestal in lounging area with integrated storage compartment","半餐廳區含整合置物櫃 Half dinette with integrated storage compartment",
+      "後床部分板條式床架 Rear bed with partly slatted frame","高品質床墊（提升躺臥舒適）High quality mattresses","人體工學座墊（提升乘坐舒適）Ergonomically shaped upholstery","多處寬敞置物空間 & 收納 Spacious storage compartments and storage options",
+      "寬敞衣櫃 Spacious wardrobe","後門 & 滑門置物空間 Storage space in rear and sliding doors","紗門 Flyscreen door","駕駛艙布質遮陽簾 Textile cab blinds",
       "家具飾面 Cozy Cottage / Black Flow / Dyna White / Active Grey","地板 Mountain Lodge"
     ]],
     ["電力 Installations",[
-      "可調式燈軌含獨立可調 LED 閱讀燈","起居 & 浴室嵌入式 LED 聚光燈","起居區底座照明",
-      "高效免保養輔助電池（95Ah AGM）","板控面板顯示水位 & 電量","輔助 & 車輛電池充電器 12V / 18A",
-      "CEE 230V 外部插座（含安全裝置）","插座 3×230V、1×USB（雙口）"
+      "可調式燈軌含獨立可調 LED 閱讀燈 Flexible light bar with individually adjustable LED reading spots","起居 & 浴室嵌入式 LED 聚光燈 Recessed LED spotlights in living room and bathroom","起居區底座照明 Illuminated pedestal in lounging area",
+      "高效免保養輔助電池（95Ah AGM）Maintenance-free leisure battery 95 Ah AGM","板控面板顯示水位 & 電量 Board control panel: filling levels and battery capacity","輔助 & 車輛電池充電器 12V / 18A Electric charger for leisure and vehicle battery 12 V / 18 A",
+      "CEE 230V 外部插座（含安全裝置）CEE 230 V external socket with safety device","插座 3×230V、1×USB（雙口）Sockets 3 × 230 V, 1 × USB (double)"
     ]],
     ["暖氣 / 瓦斯 Heating / Gas",heat],
     ["廚房 Kitchen",[
-      "人體工學廚房含寬敞檯面","廚櫃大抽屜（緩衝關閉）","彈性掛桿系統含兩掛勾","雙口瓦斯爐（電子點火、玻璃蓋）",
-      "爐後檯面","清水箱 100L / 廢水箱 90L","壓縮機冰箱 84L","LED 燈管"
+      "人體工學廚房含寬敞檯面 Ergonomically arranged kitchen with spacious work top","廚櫃大抽屜（緩衝關閉）Large drawer with soft-close in the kitchen unit","彈性掛桿系統含兩掛勾 Flexible railing system with two hooks","雙口瓦斯爐（電子點火、玻璃蓋）2-burner hob with electrical ignition and glass lid",
+      "爐後檯面 Worktop behind cooker","清水箱 100L / 廢水箱 90L Water tank 100 l / waste water tank 90 l","壓縮機冰箱 84L Compressor fridge 84 l","LED 燈管 LED light tube"
     ]],
-    ["浴室 Bathroom",[ "固定洗手台","寬敞置物區","卡匣式馬桶 C223","天窗含紗窗" ]],
+    ["浴室 Bathroom",[ "固定洗手台 Fixed washbasin","寬敞置物區 Spacious storage area","卡匣式馬桶 C223 Cassette toilet C 223","天窗含紗窗 Roof light with fly screen" ]],
     ["布材 Soft furnishing",[ "Adventure 布材套組 Soft furnishing Adventure" ]],
-    ["標配套件 · Basic-Pack 基本套件",[ "全景天窗 70×50 cm","淋浴設備","浴室窗戶","浴室掛衣桿","寬版入口踏階","座椅區餐桌延伸旋轉板" ]],
-    ["標配套件 · 烤漆前保桿 Painted bumper",[ "烤漆前保險桿","黑色底盤護板 Skid Plate","霧燈" ]],
-    ["標配套件 · 雙色鋁圈 Two-colour alloy",[ "真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 雙色鋁圈" ]],
+    ["標配套件 · Basic-Pack 基本套件",[ "全景天窗 70×50 cm Panoramic roof light 70 × 50 cm","淋浴設備 Shower equipment","浴室窗戶 Window in bathroom","浴室掛衣桿 Clothes rail in bathroom","寬版入口踏階 Wide entrance step","座椅區餐桌延伸旋轉板 Rotating plate for table extension in seating area" ]],
+    ["標配套件 · 烤漆前保桿 Painted bumper",[ "烤漆前保險桿 Painted front bumper","黑色底盤護板 Skid Plate","霧燈 Fog lights" ]],
+    ["標配套件 · 雙色鋁圈 Two-colour alloy",[ "真皮方向盤 & 排檔頭 Leather steering wheel and gear knob","銀色出風口飾件 Techno-Trim","16吋 雙色鋁圈 16\" two-colour alloy wheels" ]],
   ].map(([g,items])=>[g, items.filter(i=>!drop.includes(i))]);
 }
 function cliffTech(model){
@@ -2299,47 +2344,47 @@ function cliffStdX(){
       "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6",
       "Fiat 原廠白車身 Fiat white","Adventure 車身貼紙 Adventure Decals","Adventure 布材套組 Soft furnishing",
       "頂置櫃 LED 照明 LED lighting for overhead lockers","後方環繞頂置櫃 Overhead locker all around rear",
-      "Skyview 天窗","氣密窗","Variobath 衛浴",
+      "Skyview 天窗","氣密窗 Framed windows","Variobath 衛浴",
       "遮陽篷（黑）Awning (black)","Basic-Pack ²⁾","彩繪前保桿 Painted front bumper","雙色鋁圈套件 Two-colour alloy wheels"
     ]],
     ["基礎車輛 Fiat Base vehicle Fiat",[
       "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6",
       "Start & Stop（含充電增壓 booster）","60L 柴油油箱 60l fuel tank","手動駕駛艙冷氣 Manual cab A/C",
       "定速巡航 Cruise control","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
-      "LED 日行燈（整合於頭燈）","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊",
-      "碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖",
-      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制","ESC Setup",
-      "Traction+（含陡坡緩降 hill descent）","電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡",
-      "DAB 天線整合於後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組",
-      "行車電腦（含外溫顯示）","中央置杯架","USB 充電（A+C）",
-      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","駕駛 & 副駕座椅可旋轉","駕駛 & 副駕座椅腰靠","駕駛 & 副駕座椅高低 & 傾角可調"
+      "LED 日行燈（整合於頭燈）Daytime running lights integrated in headlights","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊 Driver and passenger airbag",
+      "碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖 Disc brakes, stabilisers, heat convection, tachometer, power steering, height-adjustable headlights, immobiliser",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制 incl. ASR, hill holder, crosswind assist, trailer stability control","ESC Setup",
+      "Traction+（含陡坡緩降 hill descent）","電動車窗 & 中控鎖（駕駛艙）Electric operated cab windows and central locking","電動加熱後視鏡 Electric and heated mirrors",
+      "DAB 天線整合於後視鏡 Radio aerial integrated in mirror","音響預接線含喇叭 Radio pre-wiring incl. speakers","多功能方向盤 Multifunction steering wheel","Fix & Go 補胎組 Fix & Go breakdown kit",
+      "行車電腦（含外溫顯示）On-board computer incl. outside temperature display","中央置杯架 Central cup holder","USB 充電（A+C）USB charger (A+C)",
+      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","駕駛 & 副駕座椅可旋轉 Driver and passenger seats swivel","駕駛 & 副駕座椅腰靠 Seats with lumbar support","駕駛 & 副駕座椅高低 & 傾角可調 Height and rake adjustment for both seats"
     ]],
     ["外觀塗裝 Painting",[ "Fiat 原廠白 Fiat white" ]],
     ["車體改裝 Conversion",[
-      "7 年滲水保固 7-year water ingress warranty ³⁾","Skyview 天窗","氣密窗",
-      "雙層中空掀開式車窗（含卡匣遮光簾 + 紗窗）","兩側後門含掀開式車窗（含捲簾）","臥室 40×40cm 天窗（含紗窗 + 遮光簾）","後置物空間含 4 個整合式綁點"
+      "7 年滲水保固 7-year water ingress warranty ³⁾","Skyview 天窗","氣密窗 Framed windows",
+      "雙層中空掀開式車窗（含卡匣遮光簾 + 紗窗）Double glazed hinged windows with cassette blinds and fly screens","兩側後門含掀開式車窗（含捲簾）Both rear doors with hinged window incl. roller blind","臥室 40×40cm 天窗（含紗窗 + 遮光簾）Roof light 40×40 cm over bedroom with fly screen and blinds","後置物空間含 4 個整合式綁點 Rear storage space with 4 integrated lashing rings"
     ]],
     ["舒適 Comfort",[
-      "駕駛艙上方大置物櫃","2 座 Isofix","後雙人床隔板含踏階","起居區底座含整合置物櫃","半餐廳區含整合置物櫃",
-      "後床部分板條式床架","高品質床墊（提升躺臥舒適）","人體工學座墊（提升乘坐舒適）","多處寬敞置物空間 & 收納",
-      "後方環繞頂置櫃 Overhead locker all around rear","寬敞衣櫃","後門 & 滑門置物空間","紗門","駕駛艙布質遮陽簾",
+      "駕駛艙上方大置物櫃 Spacious storage compartment above driver's cab","2 座 Isofix","後雙人床隔板含踏階 Bulkhead incl. step for rear double bed","起居區底座含整合置物櫃 Pedestal in lounging area with integrated storage compartment","半餐廳區含整合置物櫃 Half dinette with integrated storage compartment",
+      "後床部分板條式床架 Rear bed with partly slatted frame","高品質床墊（提升躺臥舒適）High quality mattresses","人體工學座墊（提升乘坐舒適）Ergonomically shaped upholstery","多處寬敞置物空間 & 收納 Spacious storage compartments and storage options",
+      "後方環繞頂置櫃 Overhead locker all around rear","寬敞衣櫃 Spacious wardrobe","後門 & 滑門置物空間 Storage space in rear and sliding doors","紗門 Flyscreen door","駕駛艙布質遮陽簾 Textile cab blinds",
       "家具飾面 Cozy Cottage / Black Flow / Dyna White / Active Grey","地板 Mountain Lodge"
     ]],
     ["電力 Installations",[
-      "可調式燈軌含獨立可調 LED 閱讀燈","起居 & 浴室嵌入式 LED 聚光燈","起居區底座照明","頂置櫃 LED 照明",
-      "高效免保養輔助電池（95Ah AGM）","板控面板顯示水位 & 電量","輔助 & 車輛電池充電器 12V / 18A",
-      "CEE 230V 外部插座（含安全裝置）","插座 3×230V、1×USB（雙口）"
+      "可調式燈軌含獨立可調 LED 閱讀燈 Flexible light bar with individually adjustable LED reading spots","起居 & 浴室嵌入式 LED 聚光燈 Recessed LED spotlights in living room and bathroom","起居區底座照明 Illuminated pedestal in lounging area","頂置櫃 LED 照明 LED lighting for overhead lockers",
+      "高效免保養輔助電池（95Ah AGM）Maintenance-free leisure battery 95 Ah AGM","板控面板顯示水位 & 電量 Board control panel: filling levels and battery capacity","輔助 & 車輛電池充電器 12V / 18A Electric charger for leisure and vehicle battery 12 V / 18 A",
+      "CEE 230V 外部插座（含安全裝置）CEE 230 V external socket with safety device","插座 3×230V、1×USB（雙口）Sockets 3 × 230 V, 1 × USB (double)"
     ]],
-    ["暖氣 / 瓦斯 Heating / Gas",[ "瓦斯控制閥集中易取","2×11kg 瓦斯瓶櫃 Gas bottle locker","Combi 4 瓦斯暖氣 Gas heating" ]],
+    ["暖氣 / 瓦斯 Heating / Gas",[ "瓦斯控制閥集中易取 Gas control valves easily accessible and centrally arranged","2×11kg 瓦斯瓶櫃 Gas bottle locker","Combi 4 瓦斯暖氣 Gas heating" ]],
     ["廚房 Kitchen",[
-      "人體工學廚房含寬敞檯面","廚櫃大抽屜（緩衝關閉）","彈性掛桿系統含兩掛勾","雙口瓦斯爐（電子點火、玻璃蓋）",
-      "爐後檯面","清水箱 100L / 廢水箱 90L","壓縮機冰箱 84L","LED 燈管"
+      "人體工學廚房含寬敞檯面 Ergonomically arranged kitchen with spacious work top","廚櫃大抽屜（緩衝關閉）Large drawer with soft-close in the kitchen unit","彈性掛桿系統含兩掛勾 Flexible railing system with two hooks","雙口瓦斯爐（電子點火、玻璃蓋）2-burner hob with electrical ignition and glass lid",
+      "爐後檯面 Worktop behind cooker","清水箱 100L / 廢水箱 90L Water tank 100 l / waste water tank 90 l","壓縮機冰箱 84L Compressor fridge 84 l","LED 燈管 LED light tube"
     ]],
-    ["浴室 Bathroom",[ "Variobath 衛浴","寬敞置物區","卡匣式馬桶 C223","天窗含紗窗" ]],
+    ["浴室 Bathroom",[ "Variobath 衛浴","寬敞置物區 Spacious storage area","卡匣式馬桶 C223 Cassette toilet C 223","天窗含紗窗 Roof light with fly screen" ]],
     ["布材 Soft furnishing",[ "Adventure 布材套組 Soft furnishing Adventure" ]],
-    ["標配套件 · Basic-Pack 基本套件",[ "全景天窗 70×50 cm","淋浴設備","浴室窗戶","浴室掛衣桿","寬版入口踏階","座椅區餐桌延伸旋轉板" ]],
-    ["標配套件 · 烤漆前保桿 Painted bumper",[ "烤漆前保險桿","黑色底盤護板 Skid Plate","霧燈" ]],
-    ["標配套件 · 雙色鋁圈 Two-colour alloy",[ "真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 雙色鋁圈" ]],
+    ["標配套件 · Basic-Pack 基本套件",[ "全景天窗 70×50 cm Panoramic roof light 70 × 50 cm","淋浴設備 Shower equipment","浴室窗戶 Window in bathroom","浴室掛衣桿 Clothes rail in bathroom","寬版入口踏階 Wide entrance step","座椅區餐桌延伸旋轉板 Rotating plate for table extension in seating area" ]],
+    ["標配套件 · 烤漆前保桿 Painted bumper",[ "烤漆前保險桿 Painted front bumper","黑色底盤護板 Skid Plate","霧燈 Fog lights" ]],
+    ["標配套件 · 雙色鋁圈 Two-colour alloy",[ "真皮方向盤 & 排檔頭 Leather steering wheel and gear knob","銀色出風口飾件 Techno-Trim","16吋 雙色鋁圈 16\" two-colour alloy wheels" ]],
   ];
 }
 // T 系列（Fiat 選配依 MY26 配備表；Citroën 版配備待補）
@@ -2361,54 +2406,54 @@ function tCats(code){
   return [
     ["底盤 & 動力 Base vehicle / Engine",[
       ["電子手煞車 Electric Park Brake",{STD:450.35},-9.4],
-      ["90 公升油箱",{STD:S},23],
-      ["胎壓偵測",{STD:S},0.8],
-      ["全 LED 頭燈（含動態方向燈、LED 日行燈）",{STD:812.71},0],
+      ["90 公升油箱 90l fuel tank",{STD:S},23],
+      ["胎壓偵測 Tyre pressure indicator",{STD:S},0.8],
+      ["全 LED 頭燈（含動態方向燈、LED 日行燈）Full LED headlamps incl. wiping indicators and LED daytime running lights",{STD:812.71},0],
     ]],
     ["增重 Weight Increase",[
-      ["Maxi 底盤 4,400kg 180hp 8速自排",{STD:maxi4400?6098.62:"na"},60],
+      ["Maxi 底盤 4,400kg 180hp 8速自排 Maxi Chassis 4.4t 180 BHP 8-speed automatic",{STD:maxi4400?6098.62:"na"},60],
     ]],
     ["外觀塗裝 Painting",[
-      ["車身黑（含側裙銀色亮面）",{STD:1393.21},2.5],
+      ["車身黑（含側裙銀色亮面）Chassis colour black with silver gloss side skirts",{STD:1393.21},2.5],
     ]],
     ["車體改裝 Conversion",[
-      ["隔熱廢水箱",{STD:132.37},8],
-      ["後方兩支車身撐腳",{STD:243.29},6],
+      ["隔熱廢水箱 Insulated waste water tank",{STD:132.37},8],
+      ["後方兩支車身撐腳 Two rear support legs",{STD:243.29},6],
     ]],
     ["舒適 Comfort",[
-      ["轉換床",{STD:bed},5],
-      ["下拉床",{STD:1182.45},44],
-      ["側長椅第 5 座位（含安全帶）³⁾",{STD:fifth},15],
-      ["浴室木地板隔扇",{STD:65.82},2],
-      ["地毯",{STD:213.71},5],
-      ["百褶聯",{STD:487.33},8],
+      ["轉換床 Bed conversion for seating area",{STD:bed},5],
+      ["下拉床 Pull-down bed",{STD:1182.45},44],
+      ["側長椅第 5 座位（含安全帶）5th seat on side bench with seat belt ³⁾",{STD:fifth},15],
+      ["浴室木地板隔扇 Wooden duckboard for the shower tray",{STD:65.82},2],
+      ["地毯 Carpet",{STD:213.71},5],
+      ["百褶聯 Foldable window blinds",{STD:487.33},8],
     ]],
     ["電力 Installations",[
-      ["12V 電視預接線 + 平板電視架",{STD:161.95},3],
+      ["12V 電視預接線 + 平板電視架 12V TV pre-cabling + flat TV bracket",{STD:161.95},3],
       ["行動網路（WiFi/LTE 天線含路由器）",{STD:738.76},1.4],
-      ["倒車顯影預接線",{STD:124.97},1],
-      ["太陽能預接線",{STD:124.97},2],
-      ["太陽能板 100W（含 MPPT 控制器）⁴⁾",{STD:516.91},null],
-      ["第二顆 AGM 電池 95Ah",{STD:243.29},27],
+      ["倒車顯影預接線 Pre-cabling reversing camera",{STD:124.97},1],
+      ["太陽能預接線 Pre-cabling solar system",{STD:124.97},2],
+      ["太陽能板 100W（含 MPPT 控制器）Solar system 100 Watt incl. MPPT controller ⁴⁾",{STD:516.91},null],
+      ["第二顆 AGM 電池 95Ah Additional AGM battery 95 Ah",{STD:243.29},27],
     ]],
     ["暖氣 / 瓦斯 Heating",[
-      ["地暖（起居區電暖）",{STD:369.01},6],
+      ["地暖（起居區電暖）Electric underfloor heating in living area",{STD:369.01},6],
       ["Combi 6 E 暖氣（含電熱、數位面板）",{STD:combi6e},2],
       ["Caramatic SafeDrive PLUS（雙鋼瓶系統，含瓦斯壓力調節器與撞擊感測器）",{STD:221.11},3.5],
     ]],
     ["廚房 Kitchen",[
-      ["廚房烤箱",{STD:391.19},12],
+      ["廚房烤箱 Kitchen oven",{STD:391.19},12],
     ]],
     ["布材 Soft furnishing（免費選色）",[
       ["Performance Grey 性能灰",{STD:0},0],
       ["Green Trail 綠色小徑",{STD:0},0],
     ]],
     ["套件 Packs",[
-      ["黑色鋁圈套件 Black alloy wheels Pack ⁵⁾",{STD:0},8,["真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 消光黑鋁圈"]],
-      ["Digital Package 數位套件",{STD:2399.66},4,["駕駛艙自動空調","無線手機充電","10吋 收音機 & 導航 DAB+","7吋 TFT 彩色數位儀表","倒車顯影（無軌跡線）"]],
-      ["Safety Pack 安全套件",{STD:797.92},0,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助"]],
-      ["安全包 + ACC",{STD:1249.01},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
-      ["露營遮陽篷 "+awn[0]+"（黑）",{STD:awn[1]},awn[2]],
+      ["黑色鋁圈套件 Black alloy wheels Pack ⁵⁾",{STD:0},8,["真皮方向盤 & 排檔頭 Leather steering wheel and gear knob","銀色出風口飾件 Techno-Trim","16吋 消光黑鋁圈 16\" alloy wheels black matt"]],
+      ["Digital Package 數位套件",{STD:2399.66},4,["駕駛艙自動空調 Automatic cab air conditioning","無線手機充電 Wireless smartphone charging","10吋 收音機 & 導航 DAB+ 10\" radio and navigation system DAB+","7吋 TFT 彩色數位儀表 7\" TFT colour display","倒車顯影（無軌跡線）Reversing camera without grid lines"]],
+      ["Safety Pack 安全套件",{STD:797.92},0,["煞車輔助（行人 & 自行車偵測）Full Brake Control incl. pedestrian and cyclist detection","雨滴 / 光線感應器 Rain and light sensor","車道維持輔助 Lane control","交通標誌辨識 Traffic sign recognition","駕駛疲勞偵測 Driver Drowsiness Detection","智慧速度輔助 Intelligent Speed Assist"]],
+      ["安全包 + ACC Safety Pack + ACC",{STD:1249.01},null,["煞車輔助（行人 & 自行車偵測）Full Brake Control incl. pedestrian and cyclist detection","雨滴 / 光線感應器 Rain and light sensor","車道維持輔助 Lane control","交通標誌辨識 Traffic sign recognition","駕駛疲勞偵測 Driver Drowsiness Detection","智慧速度輔助 Intelligent Speed Assist","主動車距巡航 Adaptive Cruise Control >30 km/h"]],
+      ["露營遮陽篷 "+awn[0]+"（黑）Awning (black)",{STD:awn[1]},awn[2]],
       ["Pack One（遮陽篷 "+awn[0]+" + 自行車架（可載三部自行車））",{STD:packOne.p},packOne.w],
       ["Pack All-In-One（遮陽篷 "+awn[0]+" + 自行車架 + 更多配備）",{STD:allIn.p},allIn.w],
     ]],
@@ -2466,42 +2511,42 @@ function tStd(code){
   return [
     ["Adventure 配備 Adventure Equipment", F([
       "Fiat Ducato 3,500kg · 2.2 Multijet 140hp · 6速手排 Euro6","Fiat 原廠白 Fiat white","Adventure 車身貼紙 Adventure Decals","Adventure 布材套組",
-      "高位後燈組 High-level rear light cluster","駕駛艙天窗 Cab sunroof","氣密窗",
+      "高位後燈組 High-level rear light cluster","駕駛艙天窗 Cab sunroof","氣密窗 Framed windows",
       has2ndDoor && "第二外部置物門（尺寸依車型）2nd external storage door",
       seatBedStd && "起居區床舖轉換 Bed conversion for seating area",
       single2dbl && "單人床轉雙人床 Bed conversion single to double bed",
       "Basic Pack","彩繪前保桿 Painted front bumper","雙色鋁圈套件 Two-colour alloy wheels"
     ])],
     ["基礎車輛 Fiat Base vehicle",[
-      "Start & Stop（含 booster）","60L 柴油油箱","手動駕駛艙冷氣","定速巡航","M+S* Camping 雪地胎（雪花標）","前輪驅動 FWD","寬軌底盤 Wide-track chassis",
-      "LED 日行燈（整合頭燈）","黑框頭燈","駕駛 & 副駕安全氣囊","碟煞・暖氣對流・轉速表・動力方向盤・防盜鎖・三點式安全帶",
-      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車","Traction+（含陡坡緩降）",
-      "電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡","DAB 天線整合後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組","中央置杯架","前後軸穩定桿","USB 充電（A+C）",
-      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉","座椅腰靠","座椅高低 & 傾角可調"
+      "Start & Stop（含 booster）","60L 柴油油箱 60l fuel tank","手動駕駛艙冷氣 Manual cab air conditioning","定速巡航 Cruise control","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive","寬軌底盤 Wide-track chassis",
+      "LED 日行燈（整合頭燈）Daytime running lights integrated in headlights","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊 Driver and passenger airbag","碟煞・暖氣對流・轉速表・動力方向盤・防盜鎖・三點式安全帶 Disc brakes, heat convection, tachometer, power steering, immobiliser, 3-point seat belts",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車 incl. ASR, hill holder, crosswind assist, trailer stability control, post-collision braking","Traction+（含陡坡緩降）",
+      "電動車窗 & 中控鎖（駕駛艙）Electric operated cab windows and central locking","電動加熱後視鏡 Electric and heated mirrors","DAB 天線整合後視鏡 Radio aerial integrated in mirror","音響預接線含喇叭 Radio pre-wiring incl. speakers","多功能方向盤 Multifunction steering wheel","Fix & Go 補胎組 Fix & Go breakdown kit","中央置杯架 Central cup holder","前後軸穩定桿 Front and rear axle stabilisers","USB 充電（A+C）USB charger (A+C)",
+      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉 Swivel driver and passenger seats","座椅腰靠 Seats with lumbar support","座椅高低 & 傾角可調 Height and rake adjustable seats"
     ]],
     ["外觀塗裝 Painting",[ "Fiat 原廠白 Fiat white" ]],
     ["車體改裝 Conversion",[
-      "7 年滲水保固 ²⁾","GRP 玻璃纖維車頂 & 後牆","鋁製側牆","車頂/側牆 34mm、地板 42.5mm","三段式全 LED 後燈設計","高品質入口門（內外人體工學把手）",
-      "雙層中空掀開式車窗（含卡匣遮光簾 + 紗窗，浴室除外）","車頂天窗（霧面 + 紗窗）","電動入口踏階","大型後車庫（降低式框架、綁點、內部照明，依車型）","外部置物與門防濺水封條","車庫載重可達 150kg"
+      "7 年滲水保固 7-year water ingress warranty ²⁾","GRP 玻璃纖維車頂 & 後牆 GRP roof and rear wall","鋁製側牆 Aluminium side walls","車頂/側牆 34mm、地板 42.5mm Insulation roof/side walls 34 mm, floor 42.5 mm","三段式全 LED 後燈設計 Three-part full LED rear lights","高品質入口門（內外人體工學把手）High quality entrance door with ergonomic handles",
+      "雙層中空掀開式車窗（含卡匣遮光簾 + 紗窗，浴室除外）Double glazed hinged windows with cassette blinds and fly screens (except bathroom)","車頂天窗（霧面 + 紗窗）Roof light frosted with fly screen","電動入口踏階 Electric entrance step","大型後車庫（降低式框架、綁點、內部照明，依車型）Large rear garage with lowered frame, lashing points and interior light","外部置物與門防濺水封條 Splash-proof seals on external storage and doors","車庫載重可達 150kg Garage load capacity up to 150 kg"
     ]],
     ["舒適 Comfort", F([
-      "人體工學座墊","2 座 Isofix",
+      "人體工學座墊 Ergonomically shaped upholstery","2 座 Isofix",
       lShape && "L 型起居區含可移動旋轉餐桌 L-shape lounge",
       tableExt && "餐桌延伸 Table extension",
-      "所有床舖高品質床墊","可拆洗床墊套","固定床板條式床架","寬敞置物空間",
-      "置物櫃 & 椅背通風","鏡子（間接照明 + 掛勾）","家具飾面 Cozy Cottage / Black Flow / Dyna White / Active Grey","地板 Mountain Lodge",
+      "所有床舖高品質床墊 High quality mattresses on all beds","可拆洗床墊套 Removable washable mattress covers","固定床板條式床架 Fixed beds with slatted frame","寬敞置物空間 Spacious storage area",
+      "置物櫃 & 椅背通風 Ventilated lockers and seat backs","鏡子（間接照明 + 掛勾）Mirror with indirect lighting and hooks","家具飾面 Cozy Cottage / Black Flow / Dyna White / Active Grey","地板 Mountain Lodge",
       single2dbl && "單人床轉雙人床 Bed conversion single to double bed"
     ])],
     ["電力 Installations",[
-      "頂置櫃含整合 LED 照明","高效免保養輔助電池（95Ah AGM）","板控面板顯示水位 & 電量","起動/輔助電池 & 冰箱自動切換分離系統","輔助 & 車輛電池充電器 12V/18A",
-      "CEE 230V 外部插座（含安全裝置）","漏電斷路器 RCD","LED 室內燈","LED 遮陽篷燈","USB 插座 3×A / 1×C（依車型）"
+      "頂置櫃含整合 LED 照明 Overhead lockers with integrated LED lighting","高效免保養輔助電池（95Ah AGM）Maintenance-free leisure battery 95 Ah AGM","板控面板顯示水位 & 電量 Board control panel: filling levels and battery capacity","起動/輔助電池 & 冰箱自動切換分離系統 Automatic cut-off system for starter/leisure battery and fridge","輔助 & 車輛電池充電器 12V/18A Electric charger for leisure and vehicle battery 12 V / 18 A",
+      "CEE 230V 外部插座（含安全裝置）CEE 230 V external socket with safety device","漏電斷路器 RCD Residual current device","LED 室內燈 LED interior lighting","LED 遮陽篷燈 LED awning light","USB 插座 3×A / 1×C（依車型）USB sockets 3×A / 1×C (model-dependent)"
     ]],
     ["暖氣 / 瓦斯 Heating / Gas",[
-      "瓦斯控制閥集中易取","2×11kg 瓦斯瓶櫃", isT58?"Combi 4 瓦斯暖氣":"Combi 6 瓦斯暖氣"
+      "瓦斯控制閥集中易取 Gas control valves easily accessible and centrally arranged","2×11kg 瓦斯瓶櫃 Gas bottle locker for 2 × 11 kg", isT58?"Combi 4 瓦斯暖氣":"Combi 6 瓦斯暖氣"
     ]],
     ["廚房 Kitchen", F([
-      "雙口瓦斯爐（12V 點火、玻璃蓋）","人體工學廚房含寬敞檯面","廚櫃大抽屜（緩衝關閉）","大型圓形不鏽鋼水槽","清水箱含熱水器 122L、廢水箱 92L",
-      fridge,"LED 燈管","垃圾桶",
+      "雙口瓦斯爐（12V 點火、玻璃蓋）2-burner hob with 12 V ignition and glass lid","人體工學廚房含寬敞檯面 Ergonomically arranged kitchen with spacious work top","廚櫃大抽屜（緩衝關閉）Large drawer with soft-close in the kitchen unit","大型圓形不鏽鋼水槽 Large round stainless steel sink","清水箱含熱水器 122L、廢水箱 92L Fresh water tank incl. boiler 122 l, waste water tank 92 l",
+      fridge,"LED 燈管 LED light tube","垃圾桶 Waste bin",
       kitchenRail && "彈性掛桿系統含兩掛勾 Flexible railing"
     ])],
     ["浴室 Bathroom", F([
@@ -2509,9 +2554,9 @@ function tStd(code){
       benchBath && "含長凳馬桶與整合式淋浴間 Bench toilet + integrated shower cubicle",
       spaciousBath && "對側獨立淋浴的寬敞浴室 Spacious bathroom w/ separate shower",
       swivelWC && "可旋轉卡匣式馬桶（電動沖水）Swivel cassette toilet",
-      "車頂通風含紗窗遮光簾（依車型）","大鏡子","浴室掛衣桿",
+      "車頂通風含紗窗遮光簾（依車型）Roof vent with fly screen and blind (model-dependent)","大鏡子 Large mirror","浴室掛衣桿 Clothes rail in bathroom",
       bathRail && "彈性掛桿系統含兩掛勾 Flexible railing",
-      "淋浴間內襯"
+      "淋浴間內襯 Shower cubicle lining"
     ])],
     ["布材 Soft furnishing",[ "Adventure 布材套組 Soft furnishing Adventure" ]],
     ["標配套件 Packs",[ "Basic Pack","彩繪前保桿 Painted front bumper","雙色鋁圈套件 Two-colour alloy wheels" ]],
@@ -2529,6 +2574,161 @@ const CLIFF_540V=mkCliff("540v","CLIFF 540 V Adventure",45277,"Fiat Ducato · Ad
 const CLIFF_600J=mkCliff("600j","CLIFF 600 20 Jahre 20 週年",43631,"Fiat Ducato · 20 週年紀念",FIAT_ADV,cliffCats("600"),CLIFF_STD,"CLIFF 20 Jahre · Fiat","25");
 const CLIFF_600X=mkCliff("600x","CLIFF 600 Cliff X",44753,"599cm · Fiat Ducato",FIAT_X,cliffCats("600","x"),CLIFF_STD,REF_X,"both");
 const CLIFF_640X=mkCliff("640x","CLIFF 640 Cliff X",46398,"636cm · Fiat Ducato",FIAT_X,cliffCats("640","x"),CLIFF_STD,REF_X,"both");
+/* ===== CLIFF X MY27（2026-09-04 由「Cliff X_MY27.xlsx」＋「底價 MY27.pdf」匯入；MY26 保留並列）=====
+   價格為經銷 EUR。與 MY26 的差異：新增 602X 車型；胎壓偵測等安全配備改列標配（原 Safety Pack 取消）；
+   套件改版（車身包縮編降價、新增 ACC 套件與 7"/10" 影音套件）；新增 TFT 儀表+無線充電、鋰電池選配、Combi 6 DE；
+   取消第二顆 AGM 電池；引擎名稱依原廠拿掉 Multijet 字樣。8速自排140hp／90L油箱／拖車電路預接照 MY26 做法列標配、
+   價金由後面的全域規則灌進車身底價。 */
+function cliffCatsX27(model){
+  const is640=model==="640";
+  return [
+    ["底盤 & 動力 Base vehicle / Engine",[
+      ["8速自排 140hp 8-speed automatic",{STD:S},60],
+      ["8速自排 180hp 8-speed automatic",{STD:4768.27},60],
+      ["Maxi 底盤 140hp 6速手排 Maxi Chassis 3.5t 140 BHP 6-speed manual",{STD:295.06},40],
+      ["Maxi 底盤 140hp 8速自排 Maxi Chassis 3.5t 140 BHP 8-speed automatic",{STD:2660.71},60],
+      ["Maxi 底盤 180hp 8速自排 Maxi Chassis 3.5t 180 BHP 8-speed automatic",{STD:5064.07},60],
+      ["Maxi 底盤 4,250kg 180hp 8速自排（HD）Maxi Chassis 4.25t 180 BHP 8-speed automatic (HD)",{STD:is640?5868.64:"na"},60],
+      ["全 LED 頭燈（含 LED 日行燈、動態方向燈）Full LED headlamps incl. wiping indicators and LED daytime running lights",{STD:812.71},0],
+      ["拖車電路預接 Electrical preparation for trailer coupling",{STD:S},0],
+      ["備胎（含固定架與千斤頂，取代 Fix & Go）Spare wheel incl. holder and car jack instead of Fix & Go kit",{STD:225.55},30],
+      ["90 公升油箱 90l fuel tank",{STD:S},23],
+      ["TFT 彩色數位儀表 & 手機無線充電 TFT color display and wireless smartphone charging",{STD:442.96},0],
+    ]],
+    ["外觀塗裝 Painting",[
+      ["黑色金屬 Chassis colour Black metallic",{STD:698.82},2.5],
+      ["Lanzarote Grey（深灰）",{STD:583.46},0],
+      ["Expedition Grey（卡其灰）",{STD:583.46},0],
+    ]],
+    ["車體改裝 Conversion",[
+      ["隔熱加熱廢水箱 Insulated and heated waste water tank",{STD:442.96},5],
+      ["自行車架（2 台，黑）Bike rack for 2 bikes (black)",{STD:405.98},11.5],
+      ["CLIFF RT-Pack 車頂床（含 RT 貼紙）Rooftop bed incl. RT decals",{STD:4214.39},160],
+    ]],
+    ["舒適 Comfort",[
+      ["轉換床 Bed conversion for seating area",{STD:258.08},5],
+      ["浴室木地板隔扇 Wooden duckboard for the shower tray",{STD:65.82},2],
+      ["百褶簾 Foldable window blinds",{STD:487.33},8],
+    ]],
+    ["電力 Installations",[
+      ["電視預接線 / 電視架 TV pre-cabling / TV holder",{STD:161.95},3],
+      ["行動網路（WiFi/LTE 天線含路由器）Mobile internet (WiFi/LTE antenna incl. router)",{STD:738.76},1.4],
+      ["倒車顯影預接線 Pre-cabling reversing camera",{STD:124.97},1],
+      ["太陽能預接線 Pre-cabling solar system",{STD:124.97},2],
+      ["太陽能板 100W（含 MPPT 控制器）Solar system 100 Watt incl. MPPT controller",{STD:516.91},7.3],
+      ["燈軌內 USB 插頭 USB-port in the light rail",{STD:43.63},0],
+      ["鋰電池 104Ah（取代 AGM 95Ah）Lithium battery 104 Ah",{STD:738.76},-15],
+      ["第二顆 104Ah 鋰電池 Additional 104 Ah lithium battery",{STD:960.61},10.5],
+    ]],
+    ["暖氣 / 瓦斯 Heating",[
+      ["Combi 4 柴油暖氣（含高度感測 + 數位面板）Diesel heating Combi 4 incl. altitude pressure sensor and digital control panel",{STD:561.28},4.6],
+      ["Combi 6 E 暖氣（含電熱、數位面板）Heating Combi 6 E with el. heating element incl. digital control panel",{STD:524.30},2],
+      ["Combi 6 DE 柴油暖氣（含電熱、高度感測、數位面板）Combi 6 DE diesel heater with el. heating element, altitude pressure sensor and digital control panel",{STD:1078.93},0.5],
+      ["Caramatic SafeDrive PLUS（雙鋼瓶系統，含瓦斯壓力調節器與撞擊感測器）Two-bottle system with gas pressure regulator and crash sensor",{STD:221.11},3.5],
+    ]],
+    ["布材 Soft furnishing（選色）",[
+      ["Performance Grey 性能灰",{STD:0},0],
+      ["Green Trail 綠色小徑",{STD:0},0],
+    ]],
+    ["套件 Packs",[
+      ["黑色鋁圈套件 Black alloy wheels Pack",{STD:0},8,["真皮方向盤 & 排檔頭 Leather steering wheel and gear knob","銀色出風口飾件 Techno-Trim","16吋 消光黑鋁圈 16\" alloy wheels black matt"]],
+      ["車身包 Chassis Package",{STD:1034.55},-8.3,["電動折疊後視鏡（含除霜）Electric folding and defrosting mirrors","盲點偵測輔助 Blind spot assistant","電子駐車煞車 Electric park brake"]],
+      ["ACC 套件 ACC Pack",{STD:516.91},0,["主動車距巡航 Adaptive Cruise Control >30 km/h","雨滴 / 光線感應器 Rain and light sensor"]],
+      ["副駕駛包 Co-Driver Package",{STD:1108.50},0.3,["ACC 含 Stop & Go ACC with stop & go","塞車輔助 Traffic jam assist","雨滴 / 光線感應器 Rain and light sensor"]],
+      ["7吋影音套件 7\" Infotainment package",{STD:812.71},0,["7吋收音機 7\" radio incl. Apple CarPlay / Android Auto","倒車攝影機（動態輔助線）Rear view camera with dynamic grid lines","駕駛艙自動空調 Automatic cab air conditioning"]],
+      ["10吋影音套件 10\" Infotainment package",{STD:1330.35},4,["10吋收音機 & 導航 DAB+ 10\" radio and navigation system (DAB+) incl. Apple CarPlay / Android Auto","倒車攝影機（動態輔助線）Rear view camera with dynamic grid lines","駕駛艙自動空調 Automatic cab air conditioning"]],
+    ]],
+  ];
+}
+function cliffTechX27(model){
+  const is640=model==="640";
+  return [
+    ["核准座位（含駕駛）Permitted seats","4"],
+    ["臥鋪數 Berths","2 – 4 OPT"],
+    ["長 / 寬 / 高 L / W / H (cm)",is640?"636 / 205 / 261":"599 / 205 / 261"],
+    ["室內站高 Headroom (cm)","190"],
+    ["標準底盤 Standard chassis","Fiat Ducato"],
+    ["標準引擎 Standard engine","2.2"],
+    ["功率 kW (hp)","103 (140)"],
+    ["行駛整備重量 Mass in running order (kg)","△ 依公告"],
+    ["選配可用重量 Mass for optional equipment (kg)","△ 依公告"],
+    ["技術總重上限 Max laden mass (kg)","3500"],
+    ["拖車重量 12% 煞車（未煞車）Towing (kg)","2500 OPT (750)"],
+    ["輪胎尺寸 Tire size","225/75 R 16 CP"],
+    ["軸距 Wheelbase (cm)","404"],
+    ["車頂床尺寸 Sleeping roof bed (cm)","206 x 143 OPT"],
+    ["中央床尺寸 Central bed (cm)",model==="602"?"185 x 87 – 63 OPT":"185 x 105 – 88 OPT"],
+    ["後床尺寸 Rear bed (cm)",is640?"192 x 108 – 56 / 184 x 86":"197 x 157 – 150"],
+    ["冰箱容積（含冷凍）Refrigerator (l)","84"],
+    ["暖氣型式 Heating type","Combi 4 Gas"],
+    ["清水箱總量 / 行駛時 Fresh water (l)","100 / 20 ¹⁾"],
+    ["廢水箱 Waste water tank (l)","90"],
+    ["230V 插座 Sockets 230V","3"],
+    ["USB 插座 Sockets USB","2"],
+    ["後床下置物 W×H×D (cm)",is640?"88 x 71 x 134":"90 x 68 x 138"],
+    ["瓦斯瓶置放（填充重）Gas cylinders","2 x 11kg"],
+  ];
+}
+function cliffStdX27(model){
+  const noWardrobe=model==="602";   // 602 無寬敞衣櫃（原廠標配表 –）
+  return [
+    ["CLIFF X 配備 CLIFF X Equipment",[
+      "Fiat Ducato 3,500kg · 2.2 140hp · 6速手排 Euro6",
+      "Fiat 原廠白車身 Fiat white","Adventure 車身貼紙 Adventure Decals","Adventure 布材套組 Soft furnishing",
+      "頂置櫃 LED 照明 LED lighting for overhead lockers","後方環繞頂置櫃 Overhead locker all around rear",
+      "OpenView 全景天窗 OpenView Panoramic window","氣密窗 Framed windows","Variobath 衛浴",
+      "遮陽篷（黑）Awning (black)","Basic-Pack ²⁾","彩繪前保桿套件 Package painted front bumper","雙色鋁圈套件 Two-colour alloy wheels"
+    ]],
+    ["基礎車輛 Fiat Base vehicle Fiat",[
+      "Fiat Ducato 3,500kg · 2.2 140hp · 6速手排 Euro6",
+      "Start & Stop（含充電增壓 booster）Start & Stop function incl. booster","60L 柴油油箱 60l fuel tank","手動駕駛艙冷氣 Manual cab A/C",
+      "定速巡航 Cruise control","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
+      "LED 日行燈（整合於頭燈）Daytime running lights integrated in headlights","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊 Driver and passenger airbag",
+      "碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖 Disc brakes, stabilisers, heat convection, tachometer, power steering, height-adjustable headlights, immobiliser",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制 incl. ASR, hill holder, crosswind assist, trailer stability control, post-collision braking","ESC Setup",
+      "Traction+（含陡坡緩降 hill descent）","電動車窗 & 中控鎖（駕駛艙）Electric operated cab windows and central locking","電動加熱後視鏡 Electric and heated mirrors",
+      "DAB 天線整合於後視鏡 Radio aerial integrated in mirror","音響預接線含喇叭 Radio pre-wiring incl. speakers","多功能方向盤 Multifunction steering wheel","Fix & Go 補胎組 Fix & Go breakdown kit",
+      "行車電腦（含外溫顯示）On-board computer incl. outside temperature display","中央置杯架 Central cup holder","USB 充電（A+C）USB charger (A+C)",
+      "胎壓偵測 Tyre pressure indicator","後方停車感測器 Parking sensors",
+      "煞車輔助（含行人偵測）Full Brake Control with Pedestrian Detection","駕駛疲勞偵測 Driver Drowsiness Detection",
+      "智慧速度輔助 Intelligent Speed Assist","車道維持輔助 Lane control","交通標誌辨識 Traffic sign recognition",
+      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","駕駛 & 副駕座椅可旋轉 Driver and passenger seats swivel","駕駛 & 副駕座椅腰靠 Seats with lumbar support","駕駛 & 副駕座椅高低 & 傾角可調 Height and rake adjustment for both seats"
+    ]],
+    ["外觀塗裝 Painting",[ "Fiat 原廠白 Fiat white" ]],
+    ["車體改裝 Conversion",[
+      "7 年滲水保固 7-year water ingress warranty ³⁾","OpenView 全景天窗 OpenView Panoramic window","氣密窗 Framed windows",
+      "雙層中空掀開式車窗（含卡匣遮光簾 + 紗窗）Double glazed hinged windows with cassette blinds and fly screens","兩側後門含掀開式車窗（含捲簾）Both rear doors with hinged window incl. roller blind","臥室 40×40cm 天窗（含紗窗 + 遮光簾）Roof light 40×40 cm over bedroom with fly screen and blinds","後置物空間含 4 個整合式綁點 Rear storage space with 4 integrated lashing rings"
+    ]],
+    ["舒適 Comfort",[
+      "駕駛艙上方大置物櫃 Spacious storage compartment above driver\u2019s cab","2 座 Isofix Isofix for 2 seats","後雙人床隔板含踏階 Bulkhead incl. step for rear double bed","起居區底座含整合置物櫃 Pedestal in lounging area with integrated storage compartment",
+      "後床部分板條式床架 Rear bed with partly slatted frame","高品質床墊（提升躺臥舒適）High quality mattresses","人體工學座墊（提升乘坐舒適）Ergonomically shaped upholstery","多處寬敞置物空間 & 收納 Spacious storage compartments and storage options"
+    ].concat(noWardrobe?[]:["寬敞衣櫃 Spacious wardrobe"]).concat([
+      "後門 & 滑門置物空間 Storage space in rear and sliding doors","紗門 Flyscreen door","駕駛艙布質遮陽簾 Textile cab blinds",
+      "家具飾面 Cozy Cottage / Black Flow / Dyna White / Active Grey","地板 Mountain Lodge"
+    ])],
+    ["電力 Installations",[
+      "可調式燈軌含獨立可調 LED 閱讀燈 Flexible light bar with individually adjustable LED reading spots","起居 & 浴室嵌入式 LED 聚光燈 Recessed LED spotlights in living room and bathroom","起居區底座照明 Illuminated pedestal in lounging area","頂置櫃 LED 照明 LED lighting for overhead lockers",
+      "高效免保養輔助電池（95Ah AGM）Maintenance-free leisure battery 95 Ah AGM","板控面板顯示水位 & 電量 Board control panel: filling levels and battery capacity","輔助 & 車輛電池充電器 12V / 18A Electric charger for leisure and vehicle battery 12 V / 18 A",
+      "CEE 230V 外部插座（含安全裝置）CEE 230 V external socket with safety device","插座 3×230V、1×USB（雙口）Sockets 3 × 230 V, 1 × USB (double)"
+    ]],
+    ["暖氣 / 瓦斯 Heating / Gas",[ "瓦斯控制閥集中易取 Gas control valves easily accessible and centrally arranged","2×11kg 瓦斯瓶櫃 Gas bottle locker","Combi 4 瓦斯暖氣 Gas heating" ]],
+    ["廚房 Kitchen",[
+      "人體工學廚房含寬敞檯面 Ergonomically arranged kitchen with spacious work top","廚櫃大抽屜（緩衝關閉）Large drawer with soft-close in the kitchen unit","彈性掛桿系統含兩掛勾 Flexible railing system with two hooks","雙口瓦斯爐（電子點火、玻璃蓋）2-burner hob with electrical ignition and glass lid",
+      "爐後檯面 Worktop behind cooker","清水箱 100L / 廢水箱 90L Water tank 100 l / waste water tank 90 l","壓縮機冰箱 84L Compressor fridge 84 l","LED 燈管 LED light tube"
+    ]],
+    ["衛浴 Bathroom",[ "Variobath 衛浴","寬敞置物空間 Spacious storage area","卡匣式馬桶 C 223 Cassette toilet C 223","天窗含紗窗 Roof light with fly screen" ]],
+    ["套件 Packs（標配）",[
+      "Basic-Pack ²⁾（全景天窗 70×50、淋浴配備、浴室窗、浴室掛衣桿、加寬入口踏階、餐桌延伸旋轉盤）",
+      "彩繪前保桿套件（彩繪保桿、黑色 Skid Plate、霧燈）",
+      "雙色鋁圈套件（真皮方向盤 & 排檔頭、銀色出風口飾件、16吋雙色鋁圈）Two-colour alloy wheels Pack: leather steering wheel and gear knob, Techno-Trim air outlets, 16\" two-colour alloy wheels"
+    ]],
+  ];
+}
+const FIAT_X27="Cliff X · Fiat Ducato", REF_X27="CLIFF X · Fiat · MY27";
+const CLIFF_600X27=mkCliff("600x27","CLIFF X 600",44753,"599cm · Fiat Ducato",FIAT_X27,cliffCatsX27("600"),cliffStdX27("600"),REF_X27,"27");
+const CLIFF_602X27=mkCliff("602x27","CLIFF X 602",45127,"599cm · Fiat Ducato",FIAT_X27,cliffCatsX27("602"),cliffStdX27("602"),REF_X27,"27");
+const CLIFF_640X27=mkCliff("640x27","CLIFF X 640",46398,"636cm · Fiat Ducato",FIAT_X27,cliffCatsX27("640"),cliffStdX27("640"),REF_X27,"27");
+CLIFF_600X27.tech=cliffTechX27("600");CLIFF_602X27.tech=cliffTechX27("602");CLIFF_640X27.tech=cliffTechX27("640");
 // ===== CLIFF Peugeot 標緻 MY26（CLIFF 540 / 600 / 640）=====
 function cliffTechPeu(model){
   const lwh={"540":"541 / 205 / 258","600":"599 / 205 / 258","640":"636 / 205 / 258"};
@@ -2564,31 +2764,31 @@ function cliffStdPeu(){
   return [
     ["基礎車輛 Peugeot Base vehicle",[
       "Peugeot Boxer 3,500kg · 2.2 BlueHDi 140hp · 6速手排 Euro6","Peugeot 原廠白 Peugeot white",
-      "Start & Stop（含 booster）","60L 柴油油箱","手動駕駛艙冷氣","定速巡航","15吋 鋼圈","M+S* Camping 雪地胎（雪花標）","前輪驅動 FWD",
-      "LED 日行燈（整合頭燈）","黑框頭燈","駕駛 & 副駕安全氣囊","碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖・三點式安全帶",
-      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車","ESC Setup","Traction+（含陡坡緩降）",
-      "行車電腦（含外溫顯示）","電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡","DAB 天線整合後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組","中央置杯架","USB 充電（A+C）",
-      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉","座椅腰靠","駕駛座高低 & 傾角可調"
+      "Start & Stop（含 booster）","60L 柴油油箱 60l fuel tank","手動駕駛艙冷氣 Manual cab air conditioning","定速巡航 Cruise control","15吋 鋼圈 Steel rims 15\"","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
+      "LED 日行燈（整合頭燈）Daytime running lights integrated in headlights","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊 Driver and passenger airbag","碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖・三點式安全帶 Disc brakes, stabilisers, heat convection, tachometer, power steering, height-adjustable headlights, immobiliser, 3-point seat belts",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車 incl. ASR, hill holder, crosswind assist, trailer stability control, post-collision braking","ESC Setup","Traction+（含陡坡緩降）",
+      "行車電腦（含外溫顯示）On-board computer incl. outside temperature display","電動車窗 & 中控鎖（駕駛艙）Electric operated cab windows and central locking","電動加熱後視鏡 Electric and heated mirrors","DAB 天線整合後視鏡 Radio aerial integrated in mirror","音響預接線含喇叭 Radio pre-wiring incl. speakers","多功能方向盤 Multifunction steering wheel","Fix & Go 補胎組 Fix & Go breakdown kit","中央置杯架 Central cup holder","USB 充電（A+C）USB charger (A+C)",
+      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉 Swivel driver and passenger seats","座椅腰靠 Seats with lumbar support","駕駛座高低 & 傾角可調 Height and rake adjustment for driver seat"
     ]],
     ["外觀塗裝 Painting",[ "Peugeot 原廠白 Peugeot white" ]],
     ["車體改裝 Conversion",[
-      "7 年滲水保固 7-year water ingress warranty ²⁾","雙層中空掀開式車窗（含卡匣遮光簾 + 紗窗）","兩側後門含掀開式車窗（含捲簾）",
-      "起居區 40×40cm 天窗（含紗窗 + 遮光簾）","臥室 40×40cm 天窗（含紗窗 + 遮光簾）","後置物空間含 4 個整合式綁點"
+      "7 年滲水保固 7-year water ingress warranty ²⁾","雙層中空掀開式車窗（含卡匣遮光簾 + 紗窗）Double glazed hinged windows with cassette blinds and fly screens","兩側後門含掀開式車窗（含捲簾）Both rear doors with hinged window incl. roller blind",
+      "起居區 40×40cm 天窗（含紗窗 + 遮光簾）Roof light 40×40 cm over living area with fly screen and blinds","臥室 40×40cm 天窗（含紗窗 + 遮光簾）Roof light 40×40 cm over bedroom with fly screen and blinds","後置物空間含 4 個整合式綁點 Rear storage space with 4 integrated lashing rings"
     ]],
     ["舒適 Comfort",[
-      "駕駛艙上方大置物櫃","2 座 Isofix","後雙人床隔板含踏階","起居區底座含整合置物櫃","半餐廳區含整合置物櫃","後床部分板條式床架",
-      "高品質床墊","人體工學座墊","多處寬敞置物空間","後門 & 滑門置物空間","寬敞衣櫃","紗門","駕駛艙布質遮陽簾",
+      "駕駛艙上方大置物櫃 Spacious storage compartment above driver's cab","2 座 Isofix","後雙人床隔板含踏階 Bulkhead incl. step for rear double bed","起居區底座含整合置物櫃 Pedestal in lounging area with integrated storage compartment","半餐廳區含整合置物櫃 Half dinette with integrated storage compartment","後床部分板條式床架 Rear bed with partly slatted frame",
+      "高品質床墊 High quality mattresses","人體工學座墊 Ergonomically shaped upholstery","多處寬敞置物空間 Spacious storage compartments","後門 & 滑門置物空間 Storage space in rear and sliding doors","寬敞衣櫃 Spacious wardrobe","紗門 Flyscreen door","駕駛艙布質遮陽簾 Textile cab blinds",
       "家具飾面 Cozy Cottage / Black Flow / Dyna White / Active Grey","地板 Mountain Lodge"
     ]],
     ["電力 Installations",[
-      "可調式燈軌含獨立可調 LED 閱讀燈","起居區底座照明","高效免保養輔助電池（95Ah AGM）","板控面板顯示水位 & 電量","輔助 & 車輛電池充電器 12V / 18A",
-      "CEE 230V 外部插座（含安全裝置）","插座 3×230V、1×USB（雙口）"
+      "可調式燈軌含獨立可調 LED 閱讀燈 Flexible light bar with individually adjustable LED reading spots","起居區底座照明 Illuminated pedestal in lounging area","高效免保養輔助電池（95Ah AGM）Maintenance-free leisure battery 95 Ah AGM","板控面板顯示水位 & 電量 Board control panel: filling levels and battery capacity","輔助 & 車輛電池充電器 12V / 18A Electric charger for leisure and vehicle battery 12 V / 18 A",
+      "CEE 230V 外部插座（含安全裝置）CEE 230 V external socket with safety device","插座 3×230V、1×USB（雙口）Sockets 3 × 230 V, 1 × USB (double)"
     ]],
-    ["暖氣 / 瓦斯 Heating / Gas",[ "瓦斯控制閥集中易取","2×11kg 瓦斯瓶櫃","Combi 4 瓦斯暖氣" ]],
+    ["暖氣 / 瓦斯 Heating / Gas",[ "瓦斯控制閥集中易取 Gas control valves easily accessible and centrally arranged","2×11kg 瓦斯瓶櫃 Gas bottle locker for 2 × 11 kg","Combi 4 瓦斯暖氣" ]],
     ["廚房 Kitchen",[
-      "人體工學廚房含寬敞檯面","廚櫃大抽屜（緩衝關閉）","彈性掛桿系統含兩掛勾","雙口瓦斯爐（電子點火、玻璃蓋）","爐後檯面","清水箱 100L / 廢水箱 90L","壓縮機冰箱 84L","LED 燈管"
+      "人體工學廚房含寬敞檯面 Ergonomically arranged kitchen with spacious work top","廚櫃大抽屜（緩衝關閉）Large drawer with soft-close in the kitchen unit","彈性掛桿系統含兩掛勾 Flexible railing system with two hooks","雙口瓦斯爐（電子點火、玻璃蓋）2-burner hob with electrical ignition and glass lid","爐後檯面 Worktop behind cooker","清水箱 100L / 廢水箱 90L Water tank 100 l / waste water tank 90 l","壓縮機冰箱 84L Compressor fridge 84 l","LED 燈管 LED light tube"
     ]],
-    ["浴室 Bathroom",[ "固定洗手台","寬敞置物區","卡匣式馬桶 C223","嵌入式 LED 聚光燈","天窗含紗窗" ]],
+    ["浴室 Bathroom",[ "固定洗手台 Fixed washbasin","寬敞置物區 Spacious storage area","卡匣式馬桶 C223 Cassette toilet C 223","嵌入式 LED 聚光燈 Recessed LED spotlights","天窗含紗窗 Roof light with fly screen" ]],
     ["布材 Soft furnishing",[ "Sandbar" ]],
   ];
 }
@@ -2597,24 +2797,24 @@ function cliffCatsPeu(model){
   return [
     ["底盤 & 動力 Base vehicle / Engine",[
       ["8速自排變速箱 8-speed automatic",{STD:S},60],
-      ["90 公升油箱",{STD:S},23],
+      ["90 公升油箱 90l fuel tank",{STD:S},23],
     ]],
     ["車體改裝 Conversion",[
-      ["隔熱加熱廢水箱",{STD:442.96},10.5],
-      ["自行車架（2 台，黑）",{STD:405.98},10],
-      ["露營遮陽篷 "+awn[0]+"（黑）",{STD:awn[1]},awn[2]],
+      ["隔熱加熱廢水箱 Insulated and heated waste water tank",{STD:442.96},10.5],
+      ["自行車架（2 台，黑）Bike rack for 2 bikes (black)",{STD:405.98},10],
+      ["露營遮陽篷 "+awn[0]+"（黑）Awning (black)",{STD:awn[1]},awn[2]],
     ]],
     ["舒適 Comfort",[
-      ["轉換床",{STD:258.08},5],
-      ["浴室木地板隔扇",{STD:65.82},2],
-      ["百褶聯",{STD:487.33},8],
+      ["轉換床 Bed conversion for seating area",{STD:258.08},5],
+      ["浴室木地板隔扇 Wooden duckboard for the shower tray",{STD:65.82},2],
+      ["百褶聯 Foldable window blinds",{STD:487.33},8],
     ]],
     ["電力 Installations",[
-      ["第二顆 AGM 輔助電池 95Ah",{STD:243.29},27],
-      ["電視預接線 / 電視架",{STD:161.95},3],
-      ["倒車顯影預接線",{STD:124.97},1],
-      ["太陽能預接線",{STD:124.97},2],
-      ["燈軌內 USB 插頭",{STD:43.63},0],
+      ["第二顆 AGM 輔助電池 95Ah Additional AGM leisure battery 95 Ah",{STD:243.29},27],
+      ["電視預接線 / 電視架 TV pre-cabling / TV holder",{STD:161.95},3],
+      ["倒車顯影預接線 Pre-cabling reversing camera",{STD:124.97},1],
+      ["太陽能預接線 Pre-cabling solar system",{STD:124.97},2],
+      ["燈軌內 USB 插頭 USB-port in the light rail",{STD:43.63},0],
     ]],
     ["暖氣 / 瓦斯 Heating",[
       ["Combi 6 E 暖氣（含電熱、數位面板）",{STD:524.30},2],
@@ -2623,8 +2823,8 @@ function cliffCatsPeu(model){
       ["Performance Grey 性能灰",{STD:161.95},0],
     ]],
     ["套件 Packs",[
-      ["Basic-Pack 基本套件",{STD:664.81},31.4,["全景天窗 70×50 cm","淋浴設備","浴室窗戶","浴室掛衣桿","寬版入口踏階","座椅區餐桌延伸旋轉板"]],
-      ["雙色鋁圈套件 Two-colour alloy wheels Pack",{STD:886.66},8,["真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 雙色鋁圈"]],
+      ["Basic-Pack 基本套件",{STD:664.81},31.4,["全景天窗 70×50 cm Panoramic roof light 70 × 50 cm","淋浴設備 Shower equipment","浴室窗戶 Window in bathroom","浴室掛衣桿 Clothes rail in bathroom","寬版入口踏階 Wide entrance step","座椅區餐桌延伸旋轉板 Rotating plate for table extension in seating area"]],
+      ["雙色鋁圈套件 Two-colour alloy wheels Pack",{STD:886.66},8,["真皮方向盤 & 排檔頭 Leather steering wheel and gear knob","銀色出風口飾件 Techno-Trim","16吋 雙色鋁圈 16\" two-colour alloy wheels"]],
     ]],
   ];
 }
@@ -2687,33 +2887,33 @@ function tStdCit(code){
   const F = a => a.filter(Boolean);
   return [
     ["基礎車輛 Citroën Base vehicle",[
-      "Citroën Jumper 3,500kg · 2.2 BlueHDi 140hp · 6速手排 Euro6","Start & Stop（含 booster）","60L 柴油油箱","手動駕駛艙冷氣","定速巡航","寬軌底盤 Wide-track chassis","15吋 鋼圈 Steel rims 15\"","M+S* Camping 雪地胎（雪花標）","前輪驅動 FWD",
-      "LED 日行燈（整合頭燈）","黑框頭燈","駕駛 & 副駕安全氣囊","碟煞・暖氣對流・轉速表・動力方向盤・防盜鎖・三點式安全帶",
-      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車","Traction+（含陡坡緩降）",
-      "電動車窗 & 中控鎖（駕駛艙）","電動加熱後視鏡","DAB 天線整合後視鏡","音響預接線含喇叭","多功能方向盤","Fix & Go 補胎組","中央置杯架","前後軸穩定桿","USB 充電（A+C）",
-      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉","座椅腰靠","座椅高低 & 傾角可調"
+      "Citroën Jumper 3,500kg · 2.2 BlueHDi 140hp · 6速手排 Euro6","Start & Stop（含 booster）","60L 柴油油箱 60l fuel tank","手動駕駛艙冷氣 Manual cab air conditioning","定速巡航 Cruise control","寬軌底盤 Wide-track chassis","15吋 鋼圈 Steel rims 15\"","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
+      "LED 日行燈（整合頭燈）Daytime running lights integrated in headlights","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊 Driver and passenger airbag","碟煞・暖氣對流・轉速表・動力方向盤・防盜鎖・三點式安全帶 Disc brakes, heat convection, tachometer, power steering, immobiliser, 3-point seat belts",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車 incl. ASR, hill holder, crosswind assist, trailer stability control, post-collision braking","Traction+（含陡坡緩降）",
+      "電動車窗 & 中控鎖（駕駛艙）Electric operated cab windows and central locking","電動加熱後視鏡 Electric and heated mirrors","DAB 天線整合後視鏡 Radio aerial integrated in mirror","音響預接線含喇叭 Radio pre-wiring incl. speakers","多功能方向盤 Multifunction steering wheel","Fix & Go 補胎組 Fix & Go breakdown kit","中央置杯架 Central cup holder","前後軸穩定桿 Front and rear axle stabilisers","USB 充電（A+C）USB charger (A+C)",
+      "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉 Swivel driver and passenger seats","座椅腰靠 Seats with lumbar support","座椅高低 & 傾角可調 Height and rake adjustable seats"
     ]],
     ["車體改裝 Conversion",[
-      "7 年滲水保固 ²⁾","GRP 玻璃纖維車頂 & 後牆","鋁製側牆","車頂/側牆 34mm、地板 42.5mm","三段式全 LED 後燈設計","高品質入口門（內外人體工學把手）",
-      "雙層中空掀開式車窗（含卡匣遮光簾 + 紗窗，浴室除外）","車頂天窗（霧面 + 紗窗）","電動入口踏階","大型後車庫（降低式框架、綁點、內部照明，依車型）","外部置物與門防濺水封條","車庫載重可達 150kg"
+      "7 年滲水保固 7-year water ingress warranty ²⁾","GRP 玻璃纖維車頂 & 後牆 GRP roof and rear wall","鋁製側牆 Aluminium side walls","車頂/側牆 34mm、地板 42.5mm Insulation roof/side walls 34 mm, floor 42.5 mm","三段式全 LED 後燈設計 Three-part full LED rear lights","高品質入口門（內外人體工學把手）High quality entrance door with ergonomic handles",
+      "雙層中空掀開式車窗（含卡匣遮光簾 + 紗窗，浴室除外）Double glazed hinged windows with cassette blinds and fly screens (except bathroom)","車頂天窗（霧面 + 紗窗）Roof light frosted with fly screen","電動入口踏階 Electric entrance step","大型後車庫（降低式框架、綁點、內部照明，依車型）Large rear garage with lowered frame, lashing points and interior light","外部置物與門防濺水封條 Splash-proof seals on external storage and doors","車庫載重可達 150kg Garage load capacity up to 150 kg"
     ]],
     ["舒適 Comfort", F([
-      "人體工學座墊","2 座 Isofix",
+      "人體工學座墊 Ergonomically shaped upholstery","2 座 Isofix",
       lShape && "L 型起居區含可移動旋轉餐桌 L-shape lounge",
       tableExt && "餐桌延伸 Table extension",
-      "所有床舖高品質床墊","可拆洗床墊套","固定床板條式床架","寬敞置物空間",
-      "置物櫃 & 椅背通風","鏡子（間接照明 + 掛勾）","家具飾面 Cozy Cottage / Black Flow / Dyna White / Active Grey","地板 Mountain Lodge"
+      "所有床舖高品質床墊 High quality mattresses on all beds","可拆洗床墊套 Removable washable mattress covers","固定床板條式床架 Fixed beds with slatted frame","寬敞置物空間 Spacious storage area",
+      "置物櫃 & 椅背通風 Ventilated lockers and seat backs","鏡子（間接照明 + 掛勾）Mirror with indirect lighting and hooks","家具飾面 Cozy Cottage / Black Flow / Dyna White / Active Grey","地板 Mountain Lodge"
     ])],
     ["電力 Installations",[
-      "頂置櫃含整合 LED 照明","高效免保養輔助電池（95Ah AGM）","板控面板顯示水位 & 電量","起動/輔助電池 & 冰箱自動切換分離系統","輔助 & 車輛電池充電器 12V/18A",
-      "CEE 230V 外部插座（含安全裝置）","漏電斷路器 RCD","LED 遮陽篷燈","LED 室內燈","USB 插座 3×A / 1×C（依車型）"
+      "頂置櫃含整合 LED 照明 Overhead lockers with integrated LED lighting","高效免保養輔助電池（95Ah AGM）Maintenance-free leisure battery 95 Ah AGM","板控面板顯示水位 & 電量 Board control panel: filling levels and battery capacity","起動/輔助電池 & 冰箱自動切換分離系統 Automatic cut-off system for starter/leisure battery and fridge","輔助 & 車輛電池充電器 12V/18A Electric charger for leisure and vehicle battery 12 V / 18 A",
+      "CEE 230V 外部插座（含安全裝置）CEE 230 V external socket with safety device","漏電斷路器 RCD Residual current device","LED 遮陽篷燈 LED awning light","LED 室內燈 LED interior lighting","USB 插座 3×A / 1×C（依車型）USB sockets 3×A / 1×C (model-dependent)"
     ]],
     ["暖氣 / 瓦斯 Heating / Gas",[
-      "瓦斯控制閥集中易取","2×11kg 瓦斯瓶櫃", isT58?"Combi 4 瓦斯暖氣":"Combi 6 瓦斯暖氣"
+      "瓦斯控制閥集中易取 Gas control valves easily accessible and centrally arranged","2×11kg 瓦斯瓶櫃 Gas bottle locker for 2 × 11 kg", isT58?"Combi 4 瓦斯暖氣":"Combi 6 瓦斯暖氣"
     ]],
     ["廚房 Kitchen", F([
-      "雙口瓦斯爐（12V 點火、玻璃蓋）","人體工學廚房含寬敞檯面","廚櫃大抽屜（緩衝關閉）","大型圓形不鏽鋼水槽","清水箱含熱水器 122L、廢水箱 92L",
-      "LED 燈管","垃圾桶",
+      "雙口瓦斯爐（12V 點火、玻璃蓋）2-burner hob with 12 V ignition and glass lid","人體工學廚房含寬敞檯面 Ergonomically arranged kitchen with spacious work top","廚櫃大抽屜（緩衝關閉）Large drawer with soft-close in the kitchen unit","大型圓形不鏽鋼水槽 Large round stainless steel sink","清水箱含熱水器 122L、廢水箱 92L Fresh water tank incl. boiler 122 l, waste water tank 92 l",
+      "LED 燈管 LED light tube","垃圾桶 Waste bin",
       kitchenRail && "彈性掛桿系統含兩掛勾 Flexible railing",
       fridge
     ])],
@@ -2722,9 +2922,9 @@ function tStdCit(code){
       spaciousBath && "對側獨立淋浴的寬敞浴室 Spacious bathroom w/ separate shower",
       benchBath && "含長凳馬桶與整合式淋浴間 Bench toilet + integrated shower cubicle",
       swivelWC && "可旋轉卡匣式馬桶（電動沖水）Swivel cassette toilet",
-      "車頂通風含紗窗遮光簾（依車型）","大鏡子","浴室掛衣桿",
+      "車頂通風含紗窗遮光簾（依車型）Roof vent with fly screen and blind (model-dependent)","大鏡子 Large mirror","浴室掛衣桿 Clothes rail in bathroom",
       bathRail && "彈性掛桿系統含兩掛勾 Flexible railing",
-      "淋浴間內襯"
+      "淋浴間內襯 Shower cubicle lining"
     ])],
     ["布材 Soft furnishing",[ "Sandbar" ]],
   ];
@@ -2744,43 +2944,43 @@ function tCatsCit(code){
     ["底盤 & 動力 Base vehicle / Engine",[
       ["8速自排變速箱 8-speed automatic ³⁾",{STD:2365.65},60],
       ["電子手煞車 Electric Park Brake",{STD:450.35},-9.4],
-      ["90 公升油箱",{STD:S},23],
+      ["90 公升油箱 90l fuel tank",{STD:S},23],
     ]],
     ["車體改裝 Conversion",[
-      ["隔熱廢水箱",{STD:132.37},8],
-      ["第二外部置物門（尺寸依車型）",{STD:door2nd},3],
+      ["隔熱廢水箱 Insulated waste water tank",{STD:132.37},8],
+      ["第二外部置物門（尺寸依車型）2nd external storage door (size model-dependent)",{STD:door2nd},3],
       ["駕駛艙天窗 Cab sunroof",{STD:369.01},7],
     ]],
     ["舒適 Comfort",[
-      ["單人床轉雙人床",{STD:single2dbl},5],
-      ["轉換床",{STD:seatingBed},5],
-      ["下拉床",{STD:1182.45},44],
-      ["側長椅第 5 座位（含安全帶）⁴⁾",{STD:fifth},15],
-      ["浴室木地板隔扇",{STD:65.82},2],
+      ["單人床轉雙人床 Bed conversion single to double bed",{STD:single2dbl},5],
+      ["轉換床 Bed conversion for seating area",{STD:seatingBed},5],
+      ["下拉床 Pull-down bed",{STD:1182.45},44],
+      ["側長椅第 5 座位（含安全帶）5th seat on side bench with seat belt ⁴⁾",{STD:fifth},15],
+      ["浴室木地板隔扇 Wooden duckboard for the shower tray",{STD:65.82},2],
     ]],
     ["電力 Installations",[
-      ["12V 電視預接線 + 平板電視架",{STD:161.95},3],
+      ["12V 電視預接線 + 平板電視架 12V TV pre-cabling + flat TV bracket",{STD:161.95},3],
       ["行動網路（WiFi/LTE 天線含路由器）",{STD:738.76},1.4],
-      ["倒車顯影預接線",{STD:124.97},1],
-      ["太陽能預接線",{STD:124.97},2],
-      ["太陽能板 100W（含 MPPT 控制器）⁵⁾",{STD:516.91},null],
+      ["倒車顯影預接線 Pre-cabling reversing camera",{STD:124.97},1],
+      ["太陽能預接線 Pre-cabling solar system",{STD:124.97},2],
+      ["太陽能板 100W（含 MPPT 控制器）Solar system 100 Watt incl. MPPT controller ⁵⁾",{STD:516.91},null],
     ]],
     ["暖氣 / 瓦斯 Heating",[
       ["Caramatic SafeDrive PLUS（雙鋼瓶系統，含瓦斯壓力調節器與撞擊感測器）",{STD:221.11},3.5],
     ]],
     ["廚房 Kitchen",[
-      ["大型冰箱 156L（含獨立冷凍 29L）",{STD:fridge156},13],
+      ["大型冰箱 156L（含獨立冷凍 29L）Large 156 l fridge incl. separate 29 l freezer",{STD:fridge156},13],
     ]],
     ["布材 Soft furnishing（選色）",[
       ["Green Trail 綠色小徑",{STD:161.95},0],
       ["Performance Grey 性能灰",{STD:161.95},0],
     ]],
     ["套件 Packs",[
-      ["Basic Pack 基本套件",{STD:783.13},14.3,["Bridge Light","舒適入口門含車窗","一體式紗門","全景天窗 70×50 cm","透明天窗 40×40 cm"]],
-      ["雙色鋁圈套件 Two-colour alloy wheels Pack",{STD:886.66},8,["真皮方向盤 & 排檔頭","銀色出風口飾件 Techno-Trim","16吋 雙色鋁圈"]],
-      ["Safety Pack 安全套件",{STD:797.92},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌 & 遠光燈辨識","駕駛疲勞偵測","智慧速度輔助"]],
-      ["安全包 + ACC",{STD:1647.60},null,["煞車輔助（行人 & 自行車偵測）","雨滴 / 光線感應器","車道維持輔助","交通標誌 & 遠光燈辨識","駕駛疲勞偵測","智慧速度輔助","主動車距巡航 ACC >30 km/h"]],
-      ["露營遮陽篷 "+awn[0]+"（黑）",{STD:awn[1]},awn[2]],
+      ["Basic Pack 基本套件",{STD:783.13},14.3,["Bridge Light","舒適入口門含車窗 Comfort entrance door with window","一體式紗門 Integrated flyscreen door","全景天窗 70×50 cm Panoramic roof light 70 × 50 cm","透明天窗 40×40 cm Clear roof light 40 × 40 cm"]],
+      ["雙色鋁圈套件 Two-colour alloy wheels Pack",{STD:886.66},8,["真皮方向盤 & 排檔頭 Leather steering wheel and gear knob","銀色出風口飾件 Techno-Trim","16吋 雙色鋁圈 16\" two-colour alloy wheels"]],
+      ["Safety Pack 安全套件",{STD:797.92},null,["煞車輔助（行人 & 自行車偵測）Full Brake Control incl. pedestrian and cyclist detection","雨滴 / 光線感應器 Rain and light sensor","車道維持輔助 Lane control","交通標誌 & 遠光燈辨識 Traffic sign recognition and high beam assist","駕駛疲勞偵測 Driver Drowsiness Detection","智慧速度輔助 Intelligent Speed Assist"]],
+      ["安全包 + ACC Safety Pack + ACC",{STD:1647.60},null,["煞車輔助（行人 & 自行車偵測）Full Brake Control incl. pedestrian and cyclist detection","雨滴 / 光線感應器 Rain and light sensor","車道維持輔助 Lane control","交通標誌 & 遠光燈辨識 Traffic sign recognition and high beam assist","駕駛疲勞偵測 Driver Drowsiness Detection","智慧速度輔助 Intelligent Speed Assist","主動車距巡航 Adaptive Cruise Control >30 km/h"]],
+      ["露營遮陽篷 "+awn[0]+"（黑）Awning (black)",{STD:awn[1]},awn[2]],
       ["Pack One（遮陽篷 "+awn[0]+" + 自行車架（可載三部自行車））",{STD:packOne.p},packOne.w],
       ["Pack All-In-One（遮陽篷 "+awn[0]+" + 自行車架 + 22\" Smart TV + Teleco Flatsat）",{STD:allIn.p},allIn.w],
     ]],
@@ -3148,12 +3348,14 @@ const T_FOOTNOTES_CIT=[
 ];
 const CARS=[CAR_170,CAR_340,CAR_NUR,CAR_SS,
   CLIFF_540,CLIFF_600,CLIFF_601,CLIFF_602,CLIFF_640,CLIFF_540V,CLIFF_600J,
-  CLIFF_600X,CLIFF_640X,CLIFF_540P,CLIFF_600P,CLIFF_640P].concat(T_CARS);
+  CLIFF_600X,CLIFF_640X,CLIFF_600X27,CLIFF_602X27,CLIFF_640X27,
+  CLIFF_540P,CLIFF_600P,CLIFF_640P].concat(T_CARS);
 // Sunlight 價格明細：DPP 底價（EUR）、掛牌文件、全險（各車固定）
 const SUN_REG=158.82, SUN_INS=95.00;
 const CLIFF_DPP={
   "540":41058.92,"600":41881.61,"601":42704.29,"602":42255.55,"640":43526.98,
-  "600x":44499.25,"640x":46144.63,"540v":45022.78,"600j":43377.40
+  "600x":44499.25,"640x":46144.63,"540v":45022.78,"600j":43377.40,
+  "600x27":44499.25,"602x27":44873.20,"640x27":46144.63   /* MY27（底價 MY27.pdf，與 MY26 同價、602X 為新款） */
 };
 CARS.forEach(c=>{ if(c.brandId==="sunlight" && c.id.indexOf("cliff")===0){ const k=c.id.replace("cliff",""); if(CLIFF_DPP[k]!=null) c.dpp=CLIFF_DPP[k]; } });
 /* ===== ERIBA 拖車式露營車（2026-08-31 由 eriba_catalog.json 匯入；MJ2027 價目，2026-07-01 起適用）=====
@@ -3181,6 +3383,273 @@ const ERIBA_CARS=[
 ];
 ERIBA_CARS.forEach(c=>CARS.push(c));
 
+/* ===== CROSSCAMP 露營廂型車（2026-09-16 由「CC Preisliste ELMNT 27」匯入；MJ27 德國售價表，2026-04-01 起適用）=====
+   ⚠️ 原廠這份只有「德國含稅零售價 EUR」，沒有經銷價；dpp 先暫用同一數字，拿到原廠經銷價後要回來更新。 */
+function ccTech(m){
+  const t={
+    "541":{len:"541",h:"265 / 282",cb:"188 x 133",rb:null,seats:"2",slp:"2 / 4",waste:"10",fresh:"10",wb:"345",mass:"2610（2480–2741）",opt:"738"},
+    "54": {len:"541",h:"258 / 278",cb:"185 x 87 – 63",rb:"195 x 133 – 130",seats:"4",slp:"2 / 5",waste:"90",fresh:"100 / 20",wb:"345",mass:"2651（2518–2784）",opt:"504"},
+    "60": {len:"599",h:"258 / 278",cb:"185 x 105 – 88",rb:"197 x 157 – 150",seats:"4",slp:"2 / 5",waste:"90",fresh:"100 / 20",wb:"404",mass:"2751（2613–2889）",opt:"402"},
+    "64": {len:"636",h:"258 / 278",cb:"185 x 105 – 88",rb:"192 – 184 x 195",seats:"4",slp:"2 / 5",waste:"90",fresh:"100 / 20",wb:"404",mass:"2836（2694–2978）",opt:"310"}
+  }[m];
+  const rows=[
+    ["核准座位（含駕駛）Permitted seats",t.seats],
+    ["臥鋪數（標準 / 最多）Berths",t.slp],
+    ["長 / 寬 / 高 L / W / H (cm)",t.len+" / 205 / "+t.h],
+    ["開頂後總高 Height with roof open (cm)","358"],
+    ["室內站高 Headroom (cm)","189"],
+    ["標準底盤 Standard chassis","Peugeot Boxer"],
+    ["標準引擎 Standard engine","2.2 BlueHDi"],
+    ["功率 kW (hp)","103 (140)"],
+    ["行駛整備重量 Mass in running order (kg)",t.mass],
+    ["選配可用重量 Mass for optional equipment (kg)",t.opt],
+    ["技術總重上限 Max laden mass (kg)",m==="541"?"3499":"3500"],
+    ["拖車重量（煞車 / 未煞車）Towing (kg)","2500 / 750"],
+    ["軸距 Wheelbase (cm)",t.wb],
+    ["升頂床尺寸 Roof bed (cm)","209 x 143"],
+    ["中央床尺寸 Centre bed (cm)",t.cb],
+    ["清水箱 Fresh water (l)",t.fresh],
+    ["廢水箱 Waste water (l)",t.waste],
+  ];
+  if(t.rb)rows.splice(15,0,["後床尺寸 Rear bed (cm)",t.rb]);
+  return rows;
+}
+const CC_STD_BASE=[
+  ["基礎車輛 Peugeot Base vehicle",[
+    "Peugeot Boxer BlueHDi 140（2.2L・140hp・103kW）3,499kg・6速手排",
+    "M+S Camping 全天候雪地胎 All-weather tyres","副駕安全氣囊 Passenger airbag","Captain Chair 座椅（含雙扶手）",
+    "定速巡航 Cruise control","中央置杯架 Cup holder","DAB 天線整合後視鏡・喇叭・方向盤音響控制","90L 柴油油箱 90l diesel tank",
+    "電動加熱後視鏡 Electric heated mirrors","駕駛/副駕座椅居家布材 Seats in living fabric","駕駛艙冷氣 Cab air conditioning",
+    "後方停車感測器 Parking sensors rear","胎壓偵測 Tyre pressure monitoring","Fix & Go 補胎組 Fix & Go kit",
+    "黑框頭燈 Headlights black frame","安全套件 New Pack Safety（煞車輔助含行人偵測、車道維持、交通標誌辨識、疲勞偵測、智慧速度輔助）",
+    "Traction+（含高負載 ESP）","USB 插座（B+C）USB socket"
+  ]],
+  ["外觀塗裝 Painting",[ "Expedition Grau 探險灰 Expedition Grey" ]],
+];
+const CC_CARS=[
+  {id:"cc541",brand:"Crosscamp",brandId:"crosscamp",line:"elmnt",name:"ELMNT 5.41",year:"541cm · Peugeot Boxer · 升頂帳露營車",my:"27",
+   ref:"CROSSCAMP ELMNT · MJ27",_curOverride:"€",variants:{STD:{label:"ELMNT · Peugeot Boxer",base:49999}},dpp:49999,
+   included:{STD:CC_STD_BASE.concat([
+     ["車體外觀 Body",["Midi-Heki 70×50cm 天窗（座位區，含紗窗遮光簾）","Mini-Heki 40×40cm 天窗（車尾，含紗窗遮光簾）","電動入口踏階 Electric entrance step","後門/廚房/座位區車窗（含紗窗遮光簾）","一體式紗門 Flyscreen door","氣密窗 Framed windows","16吋黑色鋁圈 16\" alloy black（手排）","真皮方向盤 & 排檔頭 Leather steering wheel","電子駐車煞車 Electric park brake","電動摺疊… 拖車電路預接 Trailer coupling preparation"]],
+     ["內裝 Interior",["雙口瓦斯爐（電子點火）2-burner hob","車頭上方大置物空間 Storage above cab","人體工學廚房含寬敞檯面 Ergonomic kitchen","駕駛艙摺疊遮陽（前擋+側窗）Folding cab blinds","Flexi 桌（車內外可用）Flexi table","多處置物空間 Storage","後置物空間含 4 綁點 Rear storage with lashing rings","可取出廚房模組（模組水箱）Removable kitchen module","車尾掛衣桿 Clothes rail","高質感側牆的舒適座位區","可取出沙發含床功能 Removable sofa with bed function","壓縮機冰箱 70L（雙向開門）Compressor fridge 70l","廚房底櫃含分層 Kitchen base unit","家具飾面 Makalu Pearl Grey","獨立水槽含設計水龍頭 Separate sink","Wohnwelt Canaima 布材"]],
+     ["暖氣 / 水 / 瓦斯 Heating / Water / Gas",["板控面板顯示水位 & 電量 Board control panel","柴油暖氣（底置 2kW 熱風）Diesel heating underfloor 2kW","CP Classic 暖氣控制面板","清水桶 10L＋廢水桶 10L Water canisters","瓦斯艙（2.8kg 瓶）Gas locker 2.8kg"]],
+     ["電力 Installations",["2×230V 插座、2×雙 USB Sockets","CEE 230V 外部插座（含保險）","可調光天花板/壁面照明 Dimmable lighting","充電器 12V/18A Charger","導航/倒車攝影預接線 Pre-wiring","高效免保養 AGM 電池 95Ah","開關位置優化（含入口處）Light switches"]],
+     ["保固 Warranty",["6 年滲水保固 6-year water ingress warranty"]]
+   ])},
+   tech:ccTech("541"),
+   cats:[
+     ["底盤 & 動力 Base vehicle / Engine",[
+       ["Boxer BlueHDi 140 自排 Automatic gearbox",{STD:3399},60],
+       ["Boxer BlueHDi 180 自排 Automatic gearbox",{STD:6499},60],
+     ]],
+     ["車體改裝 Conversion",[
+       ["升頂帳（黑，前端全開，含電動關閉輔助、紗網、鵝頸燈、USB、高級床墊）Pop-top roof black",{STD:5999},145.5],
+       ["遮陽篷 Markise（540）",{STD:1299},32.4],
+       ["模組衣櫃＋行動馬桶盒（含布簾隔間）Module wardrobe + toilet box",{STD:1499},27],
+     ]],
+     ["電力 Installations",[
+       ["鋰電池 150Ah ×1（取代 AGM 95Ah）Lithium battery 150Ah",{STD:1199},-6],
+       ["鋰電池 150Ah ×2（取代 AGM 95Ah）Lithium battery 150Ah ×2",{STD:2999},10],
+     ]],
+     ["套件 Packs",[
+       ["Chassis Paket 底盤套件",{STD:1799},null,["盲點偵測＋電動摺疊後視鏡 Blind spot + folding mirrors","全 LED 頭燈 Full LED headlights","車色保桿＋黑色 Skid Plate＋霧燈"]],
+       ["Chassis Paket ACC 底盤套件含 ACC",{STD:2199},null,["盲點偵測＋電動摺疊後視鏡","全 LED 頭燈","車色保桿＋黑色 Skid Plate","主動車距巡航 ACC >30km/h＋霧燈"]],
+       ["Elektro Paket 電力套件",{STD:599},4.9,["遮陽篷燈 Awning light","可調光間接照明 Indirect lighting","廚房 LED 燈條 LED strip","太陽能預接線 Solar preparation"]],
+     ]],
+     ["其他 Others",[ ["掛牌文件 Registration documents",{STD:189},0] ]],
+   ]},
+].concat(["54|5.4 DS|51999","60|6.0 DS|52999","64|6.4 ES|54999"].map(s=>{
+  const [code,label,price]=s.split("|");
+  return {id:"cc"+code,brand:"Crosscamp",brandId:"crosscamp",line:"elmnt",name:"ELMNT "+label,
+    year:(code==="54"?"541":code==="60"?"599":"636")+"cm · Peugeot Boxer",my:"27",
+    ref:"CROSSCAMP ELMNT · MJ27",_curOverride:"€",variants:{STD:{label:"ELMNT · Peugeot Boxer",base:Number(price)}},dpp:Number(price),
+    included:{STD:CC_STD_BASE.concat([
+      ["車體外觀 Body",["ELMNT 車身貼紙 Exterior decals","Mini-Heki 40×40cm 天窗 ×2（座位區＋車尾，含紗窗遮光簾）","浴室天窗（含防蟲捲簾）Bathroom roof light","後門/廚房/座位區車窗（含紗窗遮光簾）","一體式紗門 Flyscreen door","可外推窗 Hinged windows"]],
+      ["內裝 Interior",["雙口爐＋水槽一體（電子點火）Hob-sink combination","後門/滑門置物 Storage in doors","爐後檯面 Worktop behind cooker","座位區/廚房設計側牆 Design cladding","人體工學廚房 Ergonomic kitchen","人體工學座墊 Ergonomic upholstery","廚房底櫃含緩衝抽屜 Servo-Soft drawer","多處置物空間 Storage","後床部分板條床架 Rear bed partly slatted","後置物空間含 4 綁點","高品質床墊 High quality mattresses","CROSSCAMP 掛衣勾","壓縮機冰箱 84L 含冷凍 6.1L Compressor fridge 84l","廚房背牆多功能軌道 Multifunction rail","家具飾面 Makalu Pearl Grey / Cozy White / Trace Darkgrey","座位區底座含置物 Pedestal storage","隔板含上床踏階 Bulkhead with step","旋轉衛浴（捲簾門、旋轉牆、卡匣馬桶）Swivel bathroom","Wohnwelt Caroni 布材"]],
+      ["暖氣 / 水 / 瓦斯 Heating / Water / Gas",["板控面板 Board control panel","Combi 4 暖氣/熱水 Combi 4 heating","清水箱 100L、廢水箱 90L","瓦斯控制閥集中易取","2×11kg 瓦斯瓶櫃"]],
+      ["電力 Installations",["CEE 230V 外部插座（含保險）","充電器 12V/18A","車尾置物照明 Rear storage light","可調式 LED 閱讀燈 LED reading spots","廚房 LED 燈條（吊櫃）","AGM 電池 95Ah","底座間接照明含開門感應 Indirect lighting","插座 1×12V、3×230V、1×雙 USB"]],
+      ["保固 / 安全 Warranty / Safety",["6 年滲水保固 6-year water ingress warranty","2 座 Isofix"]]
+    ])},
+    tech:ccTech(code),
+    cats:[
+      ["底盤 & 動力 Base vehicle / Engine",[
+        ["Boxer BlueHDi 140 自排 Automatic gearbox",{STD:3399},60],
+        ["Boxer BlueHDi 180 自排 Automatic gearbox",{STD:6499},60],
+      ]],
+      ["車體改裝 Conversion",[
+        ["升頂帳（黑，前端全開，含電動關閉輔助、紗網、鵝頸燈、USB、高級床墊）Pop-top roof black",{STD:5999},160],
+        ["車頭全景窗改裝 Front conversion with panoramic window",{STD:2399},10.5],
+        ["左後車窗（含紗窗遮光簾）Rear window left",{STD:399},5.6],
+        ["遮陽篷 Markise",{STD:1299},32],
+      ]],
+      ["內裝 Interior",[
+        ["橫向客床（座位區）Guest bed transverse",{STD:349},13.9],
+        ["Wohnwelt Canaima 布材",{STD:219},2.2],
+      ]],
+      ["暖氣 / 水 / 瓦斯 Heating / Water / Gas",[
+        ["Combi 6E 瓦斯電力暖氣（含數位面板）Gas-electric heating Combi 6E",{STD:709},1],
+        ["隔熱加熱廢水箱 Insulated and heated waste water tank",{STD:599},11.5],
+        ["自動換瓶（含撞擊感測、EisEx）Automatic gas changeover",{STD:499},1.9],
+      ]],
+      ["電力 Installations",[
+        ["第二顆 AGM 電池 95Ah Additional AGM battery",{STD:329},27],
+      ]],
+      ["套件 Packs",[
+        ["Alu Kit 鋁圈套件（手排）",{STD:1199},5.6,["16吋黑色鋁圈 16\" alloy black","真皮方向盤 & 排檔頭","Techno Trim 飾件"]],
+        ["Alu Kit 鋁圈套件（自排）",{STD:1199},-9.4,["16吋雙色鋁圈 16\" alloy bicolor","真皮方向盤 & 排檔頭","Techno Trim 飾件"]],
+        ["Base Kit 基本套件",{STD:1999},26.9,["駕駛艙摺疊遮陽（前擋＋側窗）","Midi-Heki 70×50 天窗（座位區）","起居區氣密窗（後門可外推窗）","浴室窗 Window in bathroom","電動入口踏階","淋浴木地板隔扇","浴室掛衣桿","餐桌延伸旋轉板"]],
+        ["Style Kit 外觀套件",{STD:539},2,["車色保桿 Body-colour bumper","黑色 Skid Plate","霧燈 Fog lights"]],
+        ["Volt Kit 電力套件",{STD:399},3.8,["太陽能預接線","12V 電視預接＋TV 插座＋SAT 接頭","燈軌內 USB 插頭","倒車攝影預接線"]],
+      ]],
+      ["其他 Others",[ ["掛牌文件 Registration documents",{STD:189},0] ]],
+    ]};
+}));
+CC_CARS.forEach(c=>CARS.push(c));
+
+/* ===== Bürstner Habiton HMX（2026-09-16 由「MY27 Pricelist EXP Dealer Net」＋原廠技術資料匯入；經銷淨價 EUR）===== */
+function burTech(m){
+  const is61=m==="61";
+  return [
+    ["核准座位（含駕駛）Permitted seats",is61?"2 – 4":"4"],
+    ["臥鋪數（標準 / 最多）Berths",is61?"2 – 5":"2 – 4"],
+    ["長 / 寬 / 高 L / W / H (cm)","593 / 204 / 283（開頂 297）"],
+    ["室內站高 Headroom (cm)","190"],
+    ["標準底盤 Standard chassis","Mercedes-Benz Sprinter 419 CDI 4WD"],
+    ["功率 kW (hp)","140 (190)"],
+    ["驅動 Drive","AWD 四輪驅動・9G-TRONIC 自排"],
+    ["技術總重上限 Max laden mass (kg)","3880"],
+    ["行駛整備重量 Mass in running order (kg)","3055（2902–3208）"],
+    ["選配可用重量 Mass for optional equipment (kg)","480"],
+    ["連結車總重 Gross train weight (kg)","5500"],
+    ["軸距 Wheelbase (cm)","366.5"],
+    ["後床尺寸 Rear bed (cm)",is61?"202 x 140 – 124（橫向雙人）":"195 x 72 / 185 x 76（縱向單人 ×2）"],
+    ["升頂床尺寸 Roof bed (cm)","200 x 109"],
+    ["冰箱容積（含冷凍）Refrigerator (l)",is61?"90（冷凍 7）":"62（冷凍 7.5）"],
+    ["清水箱 / 行駛時 Fresh water (l)","110 / 20"],
+    ["廢水箱 Waste water (l)","90"],
+    ["瓦斯 Gas","1 × 2.75kg"],
+  ];
+}
+function burStd(m){
+  const is61=m==="61";
+  return [
+    ["底盤配備 Chassis Equipment",[
+      "Mercedes-Benz Sprinter 419 CDI 4WD・3.88t・190hp・Euro VI-E","9G-TRONIC 自排（含 HOLD）9G-TRONIC automatic",
+      "16吋銀色鋼圈（含輪蓋、全天候胎）16\" steel wheels all-season","93L 柴油油箱 93l diesel tank",
+      "ABS / ASR / EBFD / ESP","主動煞車輔助 Active brake assistant","主動車距巡航 DISTRONIC PLUS","主動車道維持 Active lane control",
+      "自適應煞車燈 Adaptive brake light","注意力輔助 Attention assist","盲點偵測 Blind spot assistant","側風輔助 Crosswind assist",
+      "定速巡航 Cruise control","ECO 起停 Start/stop","坡道起步輔助 Hill start assist","頭燈輔助 Headlight assistant",
+      "彩色儀表 Instrument cluster colour display","轉彎輔助 Turn assist","拖車電路預接 Trailer coupling preparation","道路救援服務 Breakdown services"
+    ]],
+    ["駕駛艙 Cab",[
+      "駕駛/副駕安全氣囊 Airbags","Mercedes Comfort 座椅（居家布材、可旋轉、高低傾角、雙扶手）","多功能方向盤 Multifunction steering wheel",
+      "半自動空調 Semi-automatic A/C","方向盤高低傾角可調","電動輔助暖風 Electric auxiliary heater","中央儀表台置物（掀蓋）","副駕開放式置物 Cockpit storage"
+    ]],
+    ["外觀塗裝 Painting",[ "Arctic White 極地白（標準）Paintwork arctic white" ]],
+    ["車體外觀 Exterior",[
+      "浴室窗 Bathroom window","電動入口踏階 Electric entrance step","滑門氣密窗 Framed window in sliding door","餐區氣密窗 Framed window",
+      "起居區天窗 40×40cm","臥區天窗 40×40cm","浴室天窗 Roof light in bathroom","後窗可外推 Rear window hinged","右側滑門 Sliding door right"
+    ]],
+    ["內裝 Interior",(is61
+      ?["橫向後雙人床 Transverse rear double bed","可轉換滑動餐座含 ISOFIX Convertible dinette with ISOFIX","摺疊桌 Folding table","後置物空間含綁點","三點式安全帶（面向前方）","單人休憩椅 Lounge seat"]
+      :["縱向單人床 ×2 Single beds lengthways","固定床含泡棉床墊 Fixed bed foam mattresses","立式固定桌 Free-standing table","後置物空間含綁點","三點式安全帶（面向前方）"])],
+    ["廚房 Kitchen",(is61
+      ?["雙口爐＋水槽一體（獨立玻璃蓋）2-burner cooker + sink","壓縮機冰箱 90L（冷凍 7L）Compressor fridge 90l"]
+      :["感應爐（雙加熱區）Induction hob 2 zones","壓縮機冰箱 62L（冷凍 7.5L）Compressor fridge 62l"])],
+    ["衛浴 Bathroom",[ "滑動式衛浴 Bathroom with sliding mechanism","摺疊洗手台 Folding washbasin","馬桶置物空間 Storage for toilets" ]],
+    ["電力 Installations",[
+      "7 吋控制面板 7\" control panel","充電增壓器 25A Charging booster","雙 USB（A+C）","LED 照明 LED lighting",
+      (is61?"鋰電池 2×150Ah Lithium battery":"輔助電池 95Ah Leisure battery"),"逆變器 Inverter","插座 ≥3 組 Power sockets"
+    ]],
+    ["暖氣 / 影音 Heating / Media",[
+      "Timberline 1.0 柴油複合暖氣（含控制面板）Diesel hybrid heating","數位收音機 Digital radio",
+      "MBUX 10.25吋多媒體（倒車攝影、語音、觸控）MBUX multimedia"
+    ]],
+  ];
+}
+function burCats(m){
+  const is61=m==="61";
+  return [
+    ["底盤 & 動力 Chassis",[
+      ["水箱罩飾框 & 保桿車身同色 Grille surround & bumpers in vehicle colour",{STD:1693},null],
+      ["總重升級至 4,100kg Weight upgrade to 4,100 kg",{STD:288},null],
+      ["總重降至 3.5t Reduction of gross weight to 3.5t",{STD:192},null],
+      ["停車套件含 360° 環景 Parking pack with 360° camera",{STD:954},null],
+      ["部分 LED 尾燈 Tail lights partial LED",{STD:214},null],
+      ["加熱前擋 Heated windshield",{STD:288},null],
+      ["霧燈含轉向照明 Fog lights with cornering light",{STD:214},null],
+      ["LED 高性能頭燈 LED high performance headlights",{STD:1472},null],
+      ["17吋黑色鋁圈（夏季胎）17\" alloy black",{STD:2211},null],
+      ["16吋銀色鋁圈（全天候胎）16\" alloy silver all-season",{STD:1028},null],
+      ["16吋銀色鋁圈（夏季胎）16\" alloy silver summer",{STD:1028},null],
+    ]],
+    ["外觀塗裝 Painting",[
+      ["Deep Black 深黑 Paintwork deep black",{STD:0},null],
+      ["Blue Grey 藍灰 Paintwork blue grey",{STD:584},null],
+      ["Stone Grey 石灰 Paintwork stone grey",{STD:584},null],
+    ]],
+    ["車體外觀 Exterior",[
+      ["全景天窗（不可與升頂帳併用）Panoramic roof light",{STD:732},null],
+      ["升頂帳（白，可加熱）Heated pop-top roof white",{STD:5169},null],
+      ["升頂帳（車身同色，可加熱）Heated pop-top roof body colour",{STD:5539},null],
+      ["拖車勾（2.8t）Trailer hitch 2.8t",{STD:1398},null],
+      ["拖車勾（3.5t，不可與 AWD 併用）Trailer hitch 3.5t",{STD:1472},null],
+      ["拖車勾（2.0t 可拆）Trailer hitch 2.0t detachable",{STD:1250},null],
+      ["遮陽篷 3m（煤灰，LED 調光，配升頂帳）Awning 3m",{STD:1102},null],
+      ["遮陽篷 3.25m（煤灰，LED 調光，無升頂帳）Awning 3.25m",{STD:1176},null],
+      ["Back Rack 底架（左右）Base carrier",{STD:887},null],
+      ["Back Rack 全套 All-in kit",{STD:2957},null],
+      ["車身貼紙（金 / 橘 / 紅 / 海洋色任選）Design sticker",{STD:961},null],
+      ["Midi Heki 50×70cm 天窗",{STD:436},null],
+    ]],
+    ["內裝 & 設計 Interior & Design",[
+      ["床包組 Fitted sheets",{STD:89},null],
+      is61?["休憩椅安全帶（共 3 條）Seat belt for lounge seat",{STD:732},null]:null,
+      is61?["摺疊座位區含 Isofix（共 4 條安全帶）Foldable seating with Isofix",{STD:1472},null]:null,
+      is61?null:["摺疊桌支撐腳 Support leg for folding table",{STD:67},null],
+      ["Earth / Jura 車體飾色（Pine / Oak / Walnut / Snow 前飾板）Design colours",{STD:0},null],
+      ["Black / Grey Fabric 布材",{STD:0},null],
+      ["Leather Pure 真皮（黑 / 米）Leather Pure",{STD:961},null],
+      ["全皮縫線（黑蜂巢 / 米波紋）Full leather quilting",{STD:1256},null],
+    ].filter(Boolean)],
+    ["電力 & 駕駛艙 Electrical & Cab",[
+      ["燈軌組（2×USB、2×聚光燈）Power rail set",{STD:95},null],
+      ["太陽能預接線 Preparation for solar panel",{STD:155},null],
+      ["THERMOTRONIC 自動恆溫空調",{STD:436},null],
+      ["Bürstner Connect 控制單元",{STD:954},null],
+      ["WiFi Pioneer 路由器",{STD:584},null],
+      ["MBUX 導航 Navigation for MBUX",{STD:658},null],
+    ]],
+    ["衛浴 Sanitation",[
+      ["Trelino 乾式分離馬桶 Composting toilet",{STD:584},null],
+      ["Clesana X1 密封式馬桶 Mobile sealing toilet",{STD:954},null],
+      ["Porta Potti 行動馬桶",{STD:185},null],
+      ["戶外淋浴（整合於家具）Outdoor shower",{STD:192},null],
+    ]],
+    ["套件 Packs",[
+      is61?null:["自給自足套件 Self-Sufficiency pack (6.0)",{STD:1127},null,["Smart 鋰電池 150Ah","太陽能 150W","強化充電增壓 45A"]],
+      ["冬季套件 Winter pack (Bürstner)",{STD:824},null,["廢水箱電熱棒","廢水箱電動排水閥","排水軟管組","柴油熱水電熱棒"]],
+      ["舒適套件（底盤）Comfort pack (chassis)",{STD:1127},null,["前置杯架","左右置物掀蓋","儀表台充電套件","電子駐車煞車","遠光燈輔助","Chrome 內裝飾件","智慧手機整合","無線充電"]],
+      ["冬季套件（底盤）Winter pack (chassis)",{STD:749},null,["原廠座椅加熱","Wet Wiper 雨刷（整合噴嘴）","方向盤加熱","駕駛艙隔熱"]],
+      is61?null:["舒適套件 6.0 Comfort pack",{STD:2261},null,["布質內襯","駕駛艙摺疊遮陽","滑門百褶紗窗","單人床併雙人床墊","廚房檯面延伸","氣密窗","間接照明","Smart 鋰電池 100Ah"]],
+      is61?null:["舒適套件 6.0（與自給自足套件併購）Comfort pack w/ Self-Sufficiency",{STD:1883},null,["布質內襯","駕駛艙摺疊遮陽","滑門百褶紗窗","單人床併雙人床墊","廚房檯面延伸","氣密窗","間接照明"]],
+      is61?["舒適套件 6.1 Comfort pack",{STD:1732},null,["布質內襯","駕駛艙摺疊遮陽","滑門紗窗","廚房檯面延伸","氣密窗","間接照明"]]:null,
+      ["越野套件 Offroad pack",{STD:3396},null,["16吋黑色鋼圈越野胎","陡坡緩降","引擎護板 Skid plate","電動越野踏階（可收）","前防撞桿","限速 130/120 km/h"]],
+      ["無瓦斯套件 Gas Free pack",{STD:3396},null,["Smart 鋰電池 540Ah","逆變器 3,600W / 230V","充電增壓 70A"]],
+      ["無瓦斯旗艦套件 Gas Free Premium pack",{STD:5665},null,["Smart 鋰電池 700Ah（2×350）","逆變器 3,600W / 230V","充電增壓 70A","太陽能 2×150W（升頂帳）或 3×100W","戶外行動太陽能插座"]],
+    ].filter(Boolean)],
+  ];
+}
+const BUR_CARS=[
+  {id:"hmx60",brand:"Bürstner",brandId:"burstner",line:"habiton",name:"Habiton HMX 6.0",year:"593cm · Mercedes Sprinter 4WD",my:"27",
+   ref:"Bürstner Habiton · MY27",_curOverride:"€",variants:{STD:{label:"Habiton HMX · Sprinter AWD",base:68058}},dpp:68058,
+   included:{STD:burStd("60")},tech:burTech("60"),cats:burCats("60")},
+  {id:"hmx61",brand:"Bürstner",brandId:"burstner",line:"habiton",name:"Habiton HMX 6.1",year:"593cm · Mercedes Sprinter 4WD",my:"27",
+   ref:"Bürstner Habiton · MY27",_curOverride:"€",variants:{STD:{label:"Habiton HMX · Sprinter AWD",base:71117}},dpp:71117,
+   included:{STD:burStd("61")},tech:burTech("61"),cats:burCats("61")},
+];
+BUR_CARS.forEach(c=>CARS.push(c));
+
 /* 8速自排（140hp/變速箱）標配：對 cats 裡有這個自排選項的 Sunlight 車，把 £2,365.65 灌進車身底價＋成本（選項已改標配、價錢改由車身承擔、對客戶隱藏）*/
 CARS.forEach(c=>{
   if(c.brandId!=="sunlight" || !Array.isArray(c.cats)) return;
@@ -3193,7 +3662,7 @@ CARS.forEach(c=>{
 /* 胎壓偵測（€210.76）／ 90 公升油箱（€36.24）標配：對 cats 有這兩項的 Sunlight 車（CLIFF＋T），把價錢灌進車身底價＋成本（選項已改標配、對客戶隱藏價格）。Peugeot / Citroën 無胎壓偵測選項，故那些車只灌油箱。*/
 CARS.forEach(c=>{
   if(c.brandId!=="sunlight" || !Array.isArray(c.cats)) return;
-  const has=name=>c.cats.some(cat=>Array.isArray(cat[1]) && cat[1].some(o=>o&&o[0]===name));
+  const has=name=>c.cats.some(cat=>Array.isArray(cat[1]) && cat[1].some(o=>o&&typeof o[0]==="string"&&o[0].indexOf(name)===0));   /* 開頭符合即可：品項名後面加英文也照樣認得 */
   let bake=0;
   if(has("胎壓偵測")) bake += 210.76;
   if(has("90 公升油箱")) bake += 36.24;
@@ -3249,7 +3718,9 @@ const esc=s=>(s||"").replace(/'/g,"\\'").replace(/"/g,"&quot;");
 const BRANDS=[
   {id:"caterham",label:"Caterham",sub:"Seven 系列輕量跑車"},
   {id:"sunlight",label:"Sunlight",sub:"露營車 / 房車"},
-  {id:"eriba",label:"ERIBA",sub:"拖車式露營車",cur:"€"}
+  {id:"eriba",label:"ERIBA",sub:"拖車式露營車",cur:"€"},
+  {id:"crosscamp",label:"Crosscamp",sub:"ELMNT 露營廂型車",cur:"€"},
+  {id:"burstner",label:"Bürstner",sub:"Habiton HMX",cur:"€"}
 ];
 let curBrand="caterham";
 let brandLock=null;   // VIP 從入口頁帶進來時鎖定品牌："caterham"/"sunlight"（隱藏品牌切換鈕）
@@ -3532,7 +4003,15 @@ function periodBar(allDeals,f,setFn){
 }
 function dealRev(d){ return (d.dealPrice&&+d.dealPrice>0)?+d.dealPrice:(+d.quote||0); }                 // 應收/營收：成交價優先，沒填用報價
 /* 奢侈稅：課在「完稅價」＝(成本＋選配成本[僅Sunlight]＋運費)×匯率×完稅倍率（Caterham 1.545／Sunlight 1.61），不吃車身/配備係數；完稅價≥300萬才課10% */
-function luxMarkupFor(car){ return (car&&car.brandId==="sunlight")?1.61:1.545; }
+/* 完稅倍率＝關稅 17.5% × 貨物稅 × 營業稅 5%（尾數含推廣貿易服務費等零頭）
+   貨物稅看排氣量：≤2000cc 課 25% → 1.175×1.25×1.05 ≈ 1.5422（系統用 1.545）
+                  >2000cc 課 30% → 1.175×1.30×1.05 ≈ 1.6039（系統用 1.61）
+   Caterham 660cc / 1999cc → 1.545｜Sunlight Fiat Ducato 2.2 = 2184cc → 1.61
+   Crosscamp Peugeot Boxer 2.2 BlueHDi = 2184cc → 1.61（2026-09-16 由 1.545 更正）
+   Bürstner Sprinter 419 CDI（OM654 1950cc）→ 1.545
+   ERIBA 是無動力拖車、不課貨物稅，且完稅價離 300 萬門檻還很遠，先沿用 1.545 待報關行確認 */
+const LUX_MARKUP={caterham:1.545, sunlight:1.61, crosscamp:1.61, burstner:1.545, eriba:1.545};
+function luxMarkupFor(car){ var m=LUX_MARKUP[car&&car.brandId]; return (m!=null)?m:1.545; }
 function _fxForCar(car){ var isSun=!!(car&&car.brandId==="sunlight"); var sym=(car&&typeof _curSymForCar==="function")?_curSymForCar(car):(isSun?"€":"£"); return (sym==="€")?FX.EUR:FX.GBP; }
 function currentOptCost(){ try{ return (paintLine()?[paintLine()]:[]).concat(sigLine()?[sigLine()]:[]).concat(currentOptions()).concat(decalLines()).concat(sigOptLines()).concat(nurLines()).reduce(function(a,o){return a+(+o.price||0);},0); }catch(e){ return 0; } }
 function dutiableNT(carId, baseCost, optCost){ var car=(typeof CARS!=="undefined")?CARS.find(function(c){return c.id===carId;}):null; var isSun=!!(car&&car.brandId==="sunlight"); var fx=_fxForCar(car); var tr=(typeof transportFor==="function")?transportFor(carId):TRANSPORT_DEFAULT; var dutiableCost=(+baseCost||0)+(isSun?(+optCost||0):0); return Math.round((dutiableCost+tr)*fx*luxMarkupFor(car)); }
@@ -3780,8 +4259,12 @@ function renderBrands(){
 }
 function renderLineTabs(){
   if(curBrand==="eriba"){
+    /* 客戶端（與沒按「顯示隱藏車款」的業務端）只列出還有車可選的系列，避免點進去看到空白 */
+    const showAll=(role!=="vip" && STAFF_SHOW_HIDDEN);
+    const lines=showAll?ERIBA_LINES:ERIBA_LINES.filter(l=>CARS.some(c=>c.brandId==="eriba" && c.line===l.id && !custHiddenCar(c)));
+    if(lines.length && !lines.some(l=>l.id===curLine)) curLine=lines[0].id;
     lineTabs.style.display="";
-    lineTabs.innerHTML=ERIBA_LINES.map(l=>`<button class="yeartab ${l.id===curLine?'sel':''}" onclick="pickLine('${l.id}')">${l.label}</button>`).join("");
+    lineTabs.innerHTML=lines.map(l=>`<button class="yeartab ${l.id===curLine?'sel':''}" onclick="pickLine('${l.id}')">${l.label}</button>`).join("");
     return;
   }
   if(curBrand!=="sunlight"){ lineTabs.style.display="none"; lineTabs.innerHTML=""; return; }
@@ -3791,7 +4274,7 @@ function renderLineTabs(){
 function renderYearTabs(){
   if(curBrand!=="sunlight"){ yearTabs.style.display="none"; yearTabs.innerHTML=""; return; }
   yearTabs.style.display="";
-  yearTabs.innerHTML=[["26","MY26 · 2026 年式"]]
+  yearTabs.innerHTML=[["26","MY26 · 2026 年式"],["27","MY27 · 2027 年式"]]
     .map(([y,l])=>`<button class="yeartab ${y===curYear?'sel':''}" onclick="pickYear('${y}')">${l}</button>`).join("");
 }
 function resetSelectionUI(){
@@ -3834,7 +4317,19 @@ function pickYear(y){
   updateSummary();
 }
 /* 客戶端(VIP) Sunlight 只顯示這 11 台（T 系列 7 + CLIFF 4）；業務/管理端不受限、看全部 */
-const CUST_SUNLIGHT_WL = new Set(["t58c26","t66sc26","t67sc26","t58a26","t66sa26","t67sa26","t67a26","cliff540","cliff600","cliff601"]);
+const CUST_SUNLIGHT_WL = new Set(["t58c26","t66sc26","t67sc26","t58a26","t66sa26","t67sa26","t67a26","cliff540","cliff600","cliff601",
+  "cliff600x27","cliff602x27","cliff640x27"]);   /* MY27 Cliff X（2026-09-04 新增；要對客戶隱藏可在管理後台按隱藏） */
+/* 客戶端(VIP) Crosscamp 只顯示 ELMNT 5.41（2026-09-16）；5.4 DS / 6.0 DS / 6.4 ES 先隱藏，業務/管理端按「顯示隱藏車款」仍看得到 */
+const CUST_CROSSCAMP_WL = new Set(["cc541"]);
+/* 客戶端(VIP) ERIBA 只顯示 Touring 430 / 530（2026-09-16）；其餘 16 台先隱藏，Feeling / Novaline 兩個系列頁籤對客戶自動不顯示 */
+const CUST_ERIBA_WL = new Set(["eriba-touring-430","eriba-touring-530"]);
+/* 客戶看不到的車＝管理後台手動隱藏的，或 Sunlight／Crosscamp／ERIBA 不在各自白名單裡的 */
+function custHiddenCar(c){
+  return new Set(getHiddenCars()).has(c.id)
+    || (c.brandId==="sunlight"  && !CUST_SUNLIGHT_WL.has(c.id))
+    || (c.brandId==="crosscamp" && !CUST_CROSSCAMP_WL.has(c.id))
+    || (c.brandId==="eriba"     && !CUST_ERIBA_WL.has(c.id));
+}
 /* 業務端「顯示隱藏車款」開關：只存這台電腦(不上雲端)、客戶端永遠看不到隱藏車 */
 let STAFF_SHOW_HIDDEN = (function(){ try{ return localStorage.getItem("staff_show_hidden")==="1"; }catch(e){ return false; } })();
 function renderHidToggleBtn(){
@@ -3847,15 +4342,13 @@ function renderHidToggleBtn(){
 function toggleStaffHidden(){
   STAFF_SHOW_HIDDEN=!STAFF_SHOW_HIDDEN;
   try{ localStorage.setItem("staff_show_hidden", STAFF_SHOW_HIDDEN?"1":"0"); }catch(e){}
-  renderHidToggleBtn(); renderCars();
+  renderHidToggleBtn(); renderLineTabs(); renderCars();   /* 2026-09-16：也要重畫系列頁籤，否則 ERIBA 的 Feeling／Novaline 不會跟著出現 */
 }
 function renderCars(){
-  const _hid=new Set(getHiddenCars());
   const isVip=(role==="vip");
-  // 客戶看不到的車＝手動隱藏的，或 Sunlight 非白名單那 11 台以外的
-  const custHidden=(c)=> _hid.has(c.id) || (c.brandId==="sunlight" && !CUST_SUNLIGHT_WL.has(c.id));
+  const custHidden=custHiddenCar;
   let list=CARS.filter(c=>c.brandId===curBrand);
-  if(curBrand==="sunlight") list=list.filter(c=>c.line===curLine && (c.my==="both"||c.my===curYear));
+  if(curBrand==="sunlight") list=list.filter(c=>c.line===curLine && (c.my===curYear || (c.my==="both"&&curYear!=="27")));   /* my:"both" 是 MY25/26 時代的旗標，不含 MY27 */
   if(curBrand==="eriba") list=list.filter(c=>c.line===curLine);
   // 客戶端＋業務端預設：只看「客戶可見」；業務端按「顯示隱藏車款」才連隱藏車一起看
   const showAll=(!isVip && STAFF_SHOW_HIDDEN);
@@ -3879,7 +4372,7 @@ function renderCars(){
 }
 function pickCar(id){
   cur=CARS.find(c=>c.id===id); applyOptOverrides(cur); applyStdOverrides(cur); applyTechOverrides(cur); applyCarMeta(cur); variant=null; selected={}; selectedPaint=null; decalSel={items:{},pack:null}; sigSel=null; sigOptSel={}; nurSel={rollcage:false,keepDecals:true,keepNumber:true,raceNumber:"27"};
-  CURSYM = cur.brandId==="sunlight" ? "€" : "£";
+  CURSYM = symForBrand(cur.brandId);   /* 預設跟品牌走（Sunlight/ERIBA/Crosscamp/Bürstner=€、Caterham=£）；車輛管理個別設定可覆蓋 */
   if(cur && cur._curOverride) CURSYM = cur._curOverride;
   document.querySelectorAll(".car").forEach(el=>el.classList.toggle("sel",el.dataset.id===id));
   inclPanel.style.display=optPanel.style.display=paintPanel.style.display=decalPanel.style.display=sigPanel.style.display=sigOptPanel.style.display=custPanel.style.display="none";
@@ -4037,7 +4530,10 @@ function xgLockNow(){
   openXG(); toast("互斥設定已儲存並鎖定");
 }
 function xgUnlock(){ setXGLock(false); openXG(); toast("已解鎖，可以修改互斥設定"); }
-function xgOf(cat,label){ const m=getXGroups(); return (m[cat]&&m[cat][label])||""; }
+function xgOf(cat,label){ const m=getXGroups(); const cm=m[cat]; if(!cm) return "";
+  if(cm[label]) return cm[label];
+  for(const k in cm){ if(label.indexOf(k)===0 || k.indexOf(label)===0) return cm[k]; }   /* 品項名加了英文（或設定鍵較長）→ 開頭符合也認得 */
+  return ""; }
 function xgCatLabels(cat){
   if(typeof cur!=="undefined" && cur && cur.cats){ const c=cur.cats.find(x=>x[0]===cat); if(c) return c[1].map(o=>o[0]); }
   if(typeof SIG_INT_OPTS!=="undefined" && cat===SIG_CAT_INT) return SIG_INT_OPTS.map(o=>o.label);
@@ -5666,32 +6162,21 @@ function openFormula(){
   renderFormula(); window.scrollTo(0,0);
 }
 function _fmlCarObj(){ return (typeof CARS!=="undefined"?CARS:[]).find(function(c){return c.id===_fmlCar;}); }
-var _fmlCat=null;
-function _fmlCats(){ return [
-  {key:"cat170", label:"Caterham Seven 170", m:function(c){return c.brandId==="caterham" && /170/.test(c.name);}},
-  {key:"cat340", label:"Caterham Seven 340", m:function(c){return c.brandId==="caterham" && /340/.test(c.name) && !/rburgring/i.test(c.name);}},
-  {key:"catNur", label:"Caterham 340 Nurburgring", m:function(c){return c.brandId==="caterham" && /rburgring/i.test(c.name);}},
-  {key:"sunCliff", label:"Sunlight CLIFF 系列", m:function(c){return c.brandId==="sunlight" && (String(c.id).indexOf("cliff")===0 || /CLIFF/i.test(c.name));}},
-  {key:"sunT", label:"Sunlight T 系列", m:function(c){return c.brandId==="sunlight" && !(String(c.id).indexOf("cliff")===0 || /CLIFF/i.test(c.name));}}
-]; }
-function _fmlCarsInCat(key){ var cat=_fmlCats().filter(function(x){return x.key===key;})[0]; if(!cat) return []; return (typeof CARS!=="undefined"?CARS:[]).filter(cat.m); }
-function fmlPickCat(key){
-  _fmlCat=key;
-  var cars=_fmlCarsInCat(key);
-  var sel=document.getElementById("fml_car");
-  if(sel){ sel.innerHTML=""; cars.forEach(function(c){ var o=document.createElement("option"); o.value=c.id; var _yr=(c.my&&/^\d\d$/.test(c.my))?("MY20"+c.my):((c.year&&/^(MY)?\s*20\d\d$/.test(c.year))?c.year:""); o.textContent=c.name+(_yr?("　"+_yr):""); sel.appendChild(o); }); }
-  _fmlCar = cars.length?cars[0].id:null;
-  if(sel && _fmlCar) sel.value=_fmlCar;
-  _fmlVariant=null;
-  fmlSyncVariant(); fmlSyncCarKnobs(); renderFormulaPreview();
-}
-function fmlSaveCat(){
-  if(!_fmlCat){ toast("請先選分類"); return; }
-  var cars=_fmlCarsInCat(_fmlCat); if(!cars.length){ toast("這個分類沒有車"); return; }
-  cars.forEach(function(c){ ["bc","oc","tr","tw"].forEach(function(f){ var e=document.getElementById("fml_"+f); if(e) setPriceCfg(c.id, f, e.value); }); });
-  fmlSyncCarKnobs(); renderFormulaPreview();
-  var lbl=(_fmlCats().filter(function(x){return x.key===_fmlCat;})[0]||{}).label||"";
-  toast("已儲存「"+lbl+"」的係數，套用到 "+cars.length+" 台車");
+/* 車型下拉：全部品牌一起列，用 optgroup 分組（2026-09-16 取代原本的「分類」下拉，
+   原本那份寫死只有 Caterham 與 Sunlight，ERIBA／Crosscamp／Bürstner 根本選不到） */
+function _fmlYearOf(c){ return (c.my&&/^\d\d$/.test(c.my))?("MY20"+c.my):((c.year&&/^(MY)?\s*20\d\d$/.test(c.year))?c.year:""); }
+function fmlFillCarSelect(){
+  var sel=document.getElementById("fml_car"); if(!sel) return;
+  sel.innerHTML="";
+  (typeof BRANDS!=="undefined"?BRANDS:[]).forEach(function(b){
+    var cars=CARS.filter(function(c){return c.brandId===b.id;});
+    if(!cars.length) return;
+    var g=document.createElement("optgroup"); g.label=b.label+"（"+cars.length+" 台）";
+    cars.forEach(function(c){ var o=document.createElement("option"); o.value=c.id; var y=_fmlYearOf(c); o.textContent=c.name+(y?("　"+y):""); g.appendChild(o); });
+    sel.appendChild(g);
+  });
+  if(!_fmlCar || !CARS.some(function(c){return c.id===_fmlCar;})) _fmlCar=(CARS[0]||{}).id||null;
+  if(_fmlCar) sel.value=_fmlCar;
 }
 function renderFormula(){
   var s=getSettings();
@@ -5700,11 +6185,117 @@ function renderFormula(){
   setV("fml_fxEUR", (s.fxEUR!=null?s.fxEUR:FX.EUR));
   setV("fml_dep", (s.depositPct!=null?s.depositPct:DEPOSIT_PCT));
   var lux=document.getElementById("fml_lux"); if(lux) lux.checked=(s.luxTax!==false);
-  var csel=document.getElementById("fml_cat");
-  if(csel && csel.options.length===0){ _fmlCats().forEach(function(ct){ var o=document.createElement("option"); o.value=ct.key; o.textContent=ct.label+"（"+_fmlCarsInCat(ct.key).length+" 台）"; csel.appendChild(o); }); }
-  if(!_fmlCat){ _fmlCat=_fmlCats()[0].key; }
-  if(csel) csel.value=_fmlCat;
-  fmlPickCat(_fmlCat);
+  fmlFillCarSelect();
+  _fmlVariant=null; fmlSyncVariant(); renderFormulaPreview();
+  renderPriceTable();
+}
+
+/* ===== 定價總表（2026-09-16 新增）=====
+   每台車一列，車身係數／配備係數／運輸費／總價加權直接填，改完立刻存、立刻算出車價。
+   空白＝沿用預設值；存的位置跟舊的單台設定完全一樣（settings.priceCfg），會同步雲端。 */
+var PCT_SHOW_HIDDEN=false;
+function pctToggleHidden(){ PCT_SHOW_HIDDEN=!PCT_SHOW_HIDDEN; renderPriceTable(); }
+function pctBasePrice(c){ return Math.min.apply(null, Object.keys(c.variants).map(function(k){ return +c.variants[k].base||0; })); }
+function pctCalc(c){
+  var base=pctBasePrice(c), fx=_fxForCar(c), tr=transportFor(c.id);
+  var body=roundRetail((base+tr)*fx*bodyCoefFor(c.id));
+  var wt=roundRetail(totalWeightFor(c.id));
+  var total=roundTotal(body+wt);
+  var lux=luxTaxNT(c.id, base, 0);
+  return {base:base, sym:_curSymForCar(c), total:total, lux:lux, grand:total+lux};
+}
+function _pctNT(n){ return "NT$"+Math.round(n).toLocaleString("en-US"); }
+/* 格子裡要顯示的「你自己設的值」＝只看雲端存的那份；程式內建的預設（如 MY27 Cliff X）當成灰色預設字顯示 */
+function pctSaved(id){ return (id&&PRICE_CFG[id])?PRICE_CFG[id]:{}; }
+function pctDefaults(id){
+  var d=(id&&PRICE_CFG_DEFAULT[id])?PRICE_CFG_DEFAULT[id]:{};
+  var gTW=(typeof WEIGHT_MAP!=="undefined" && id && WEIGHT_MAP[id]!=null)?WEIGHT_MAP[id]:WEIGHT;
+  return { bc:(d.bc!=null?d.bc:COEF), oc:(d.oc!=null?d.oc:COEF), tr:(d.tr!=null?d.tr:TRANSPORT_DEFAULT), tw:(d.tw!=null?d.tw:gTW) };
+}
+function pctCell(id,field,val,ph,step){
+  var set=(val!=null&&val!=="");
+  return '<input class="pci'+(set?' pci-set':'')+'" id="pci_'+field+'_'+id+'" type="number" step="'+step+'" min="0" '
+    + 'value="'+(set?val:"")+'" placeholder="'+ph+'" onchange="pctSet(\''+id+'\',\''+field+'\',this)">';
+}
+function renderPriceTable(){
+  var tbl=document.getElementById("pctTbl"); if(!tbl) return;
+  var hb=document.getElementById("pctHidBtn");
+  if(hb){ hb.textContent=PCT_SHOW_HIDDEN?"✓ 含隱藏車款":"顯示隱藏車款";
+          hb.style.background=PCT_SHOW_HIDDEN?"#1b6e3a":"#222"; hb.style.borderColor=PCT_SHOW_HIDDEN?"#1b6e3a":"#555"; }
+  var html='<thead><tr>'
+    + '<th>車型</th><th class="pct-r">底價（成本）</th>'
+    + '<th class="pct-r">車身係數</th><th class="pct-r">配備係數</th><th class="pct-r">運輸費</th><th class="pct-r">總價加權 NT$</th>'
+    + '<th class="pct-r">車價（不含選配）</th><th class="pct-r">奢侈稅</th><th></th></tr></thead><tbody>';
+  (typeof BRANDS!=="undefined"?BRANDS:[]).forEach(function(b){
+    var cars=CARS.filter(function(c){return c.brandId===b.id;});
+    if(!PCT_SHOW_HIDDEN) cars=cars.filter(function(c){ return !custHiddenCar(c); });
+    if(!cars.length) return;
+    html+='<tr class="pct-grp"><td>'+b.label+'　<span style="font-weight:400;color:#888">'+cars.length+' 台</span></td>'
+      + '<td class="pct-num" style="color:#999">整組套用 →</td>'
+      + '<td class="pct-num"><input class="pci" id="pctb_'+b.id+'_bc" type="number" step="0.05" min="0" placeholder="－"></td>'
+      + '<td class="pct-num"><input class="pci" id="pctb_'+b.id+'_oc" type="number" step="0.05" min="0" placeholder="－"></td>'
+      + '<td class="pct-num"><input class="pci" id="pctb_'+b.id+'_tr" type="number" step="50" min="0" placeholder="－"></td>'
+      + '<td class="pct-num"><input class="pci" id="pctb_'+b.id+'_tw" type="number" step="10000" min="0" placeholder="－"></td>'
+      + '<td colspan="3"><button class="mini" onclick="pctApplyBrand(\''+b.id+'\')">套用整組</button></td></tr>';
+    cars.forEach(function(c){
+      var cfg=pctSaved(c.id), dft=pctDefaults(c.id), k=pctCalc(c), y=_fmlYearOf(c);
+      var hid=custHiddenCar(c);
+      html+='<tr id="pctr_'+c.id+'">'
+        + '<td><span class="pct-name">'+c.name+'</span>'
+          + (y?'<span class="pct-sub">'+y+'</span>':'')
+          + (hid?'<span class="pct-sub" style="color:#b1802a">隱藏</span>':'')+'</td>'
+        + '<td class="pct-num">'+k.sym+Math.round(k.base).toLocaleString("en-US")+'</td>'
+        + '<td class="pct-num">'+pctCell(c.id,"bc",cfg.bc,dft.bc,"0.05")+'</td>'
+        + '<td class="pct-num">'+pctCell(c.id,"oc",cfg.oc,dft.oc,"0.05")+'</td>'
+        + '<td class="pct-num">'+pctCell(c.id,"tr",cfg.tr,dft.tr,"50")+'</td>'
+        + '<td class="pct-num">'+pctCell(c.id,"tw",cfg.tw,dft.tw,"10000")+'</td>'
+        + '<td class="pct-price" id="pctp_'+c.id+'">'+_pctNT(k.total)+'</td>'
+        + '<td class="pct-num" id="pctl_'+c.id+'">'+(k.lux?_pctNT(k.lux):"—")+'</td>'
+        + '<td><button class="pct-x" onclick="pctClear(\''+c.id+'\')">清除</button></td></tr>';
+    });
+  });
+  tbl.innerHTML=html+'</tbody>';
+}
+function pctSyncRow(id){
+  var c=CARS.find(function(x){return x.id===id;}); if(!c) return;
+  var k=pctCalc(c);
+  var p=document.getElementById("pctp_"+id); if(p) p.textContent=_pctNT(k.total);
+  var l=document.getElementById("pctl_"+id); if(l) l.textContent=k.lux?_pctNT(k.lux):"—";
+  var cfg=pctSaved(id), dft=pctDefaults(id);
+  ["bc","oc","tr","tw"].forEach(function(f){
+    var e=document.getElementById("pci_"+f+"_"+id); if(!e) return;
+    var set=(cfg[f]!=null&&cfg[f]!=="");
+    e.value=set?cfg[f]:"";
+    e.placeholder=dft[f];
+    e.classList.toggle("pci-set",set);
+  });
+  var tr=document.getElementById("pctr_"+id);
+  if(tr){ tr.classList.add("pct-saved"); setTimeout(function(){ tr.classList.remove("pct-saved"); },800); }
+}
+function pctSet(id,field,el){
+  setPriceCfg(id,field,el.value);
+  pctSyncRow(id);
+  if(id===_fmlCar) renderFormulaPreview();
+}
+function pctClear(id){
+  ["bc","oc","tr","tw"].forEach(function(f){ setPriceCfg(id,f,""); });
+  pctSyncRow(id);
+  if(id===_fmlCar) renderFormulaPreview();
+}
+function pctApplyBrand(bid){
+  var vals={}, fields=[];
+  ["bc","oc","tr","tw"].forEach(function(f){
+    var e=document.getElementById("pctb_"+bid+"_"+f); var v=e?String(e.value).trim():"";
+    if(v!==""){ vals[f]=v; fields.push(f); }
+  });
+  if(!fields.length){ toast("先在這一列填要套用的數字（不想改的欄位留空）"); return; }
+  var cars=CARS.filter(function(c){return c.brandId===bid;});
+  var names={bc:"車身係數",oc:"配備係數",tr:"運輸費",tw:"總價加權"};
+  var what=fields.map(function(f){ return names[f]+" "+vals[f]; }).join("、");
+  if(!confirm("要把「"+what+"」套用到 "+brandLabelOf(bid)+" 全部 "+cars.length+" 台車嗎？\n沒填的欄位不會動。")) return;
+  cars.forEach(function(c){ fields.forEach(function(f){ setPriceCfg(c.id,f,vals[f]); }); });
+  renderPriceTable(); renderFormulaPreview();
+  toast("已套用到 "+brandLabelOf(bid)+" "+cars.length+" 台車");
 }
 function fmlPickCar(id){ _fmlCar=id; _fmlVariant=null; fmlSyncVariant(); renderFormulaPreview(); }
 function fmlPickVariant(vk){ _fmlVariant=vk; renderFormulaPreview(); }
@@ -5716,20 +6307,14 @@ function fmlSyncVariant(){
   if(!_fmlVariant || ks.indexOf(_fmlVariant)<0){ _fmlVariant=ks.length?ks[0]:null; }
   if(_fmlVariant) sel.value=_fmlVariant;
 }
-function fmlSyncCarKnobs(){
-  var c=getPriceCfg(_fmlCar);
-  var gTW=(typeof WEIGHT_MAP!=="undefined" && _fmlCar && WEIGHT_MAP[_fmlCar]!=null)?WEIGHT_MAP[_fmlCar]:WEIGHT;
-  var setV=function(id,v,ph){ var e=document.getElementById(id); if(!e)return; e.value=(v!=null?v:""); e.placeholder="預設 "+ph; };
-  setV("fml_bc", c.bc, COEF); setV("fml_oc", c.oc, COEF); setV("fml_tr", c.tr, TRANSPORT_DEFAULT); setV("fml_tw", c.tw, gTW);
-}
 function renderSunNew(){
   var box=document.getElementById("fml_sunResult"); if(!box) return;
   var car=_fmlCarObj();
   if(!car || !_fmlVariant || !car.variants || !car.variants[_fmlVariant]){ box.innerHTML='<div class="hint">選一台車，這裡會出現新公式試算。</div>'; return; }
   var sym=(typeof _curSymForCar==="function")?_curSymForCar(car):(car.brandId==="sunlight"?"€":"£");
   var fx=(sym==="€")?FX.EUR:FX.GBP;
-  var markup=(car.brandId==="sunlight")?1.61:1.545;
-  var brandName=(car.brandId==="sunlight")?"Sunlight":"Caterham";
+  var markup=luxMarkupFor(car);
+  var brandName=brandLabelOf(car.brandId);
   var base=+car.variants[_fmlVariant].base||0;
   var _k=_fmlKnobs(car.id); var coef=_k.bc, weight=_k.tw, tr=_k.tr;
   var chassisNT=base*coef*fx, transNT=tr*fx, optNT=0;
@@ -5755,7 +6340,7 @@ function renderSunNew(){
     ["＝ 含稅總價（新公式）", nt(grand), 2]
   ];
   box.innerHTML='<div style="font-size:12px;color:#888;margin-bottom:6px">品牌：'+brandName+'（倍率 '+markup+'）</div><table class="fml-tbl">'+rows.map(function(r){ return "<tr"+(r[2]?' class="fml-strong"':"")+"><td>"+r[0]+"</td><td class=\"fml-num\">"+r[1]+"</td></tr>"; }).join("")+"</table>"
-    +'<div class="hint" style="margin-top:8px">對照：這台<b>現在的實際報價（舊公式）＝ '+nt(oldPrice)+'</b>（你後台設的係數 '+bodyCoefFor(car.id)+'）。調上面「車身係數」讓新公式價格接近你要的，滿意後按「儲存」。</div>';
+    +'<div class="hint" style="margin-top:8px">對照：這台<b>現在的實際報價（舊公式）＝ '+nt(oldPrice)+'</b>（車身係數 '+bodyCoefFor(car.id)+'）。要調係數請到下面的「定價總表」，改完這裡會立刻跟著變。</div>';
 }
 function fmlSetGlobal(field,val){
   var s=getSettings();
@@ -5765,9 +6350,8 @@ function fmlSetGlobal(field,val){
   if(typeof loadSettings==="function") loadSettings();
   renderFormulaPreview();
 }
-function _fmlKnobs(carId){ function num(id,fb){ var e=document.getElementById(id); var v=e?parseFloat(e.value):NaN; return (isNaN(v)||v<0)?fb:v; } var gTW=(typeof WEIGHT_MAP!=="undefined" && carId && WEIGHT_MAP[carId]!=null)?+WEIGHT_MAP[carId]:WEIGHT; return { bc:num("fml_bc",COEF), oc:num("fml_oc",COEF), tr:num("fml_tr",TRANSPORT_DEFAULT), tw:num("fml_tw",gTW) }; }
-function fmlSaveCar(){ if(!_fmlCar){ toast("請先選一台車"); return; } ["bc","oc","tr","tw"].forEach(function(f){ var e=document.getElementById("fml_"+f); if(e) setPriceCfg(_fmlCar, f, e.value); }); fmlSyncCarKnobs(); renderFormulaPreview(); toast("已儲存這台車的係數"); }
-function fmlSetCar(field,val){ if(!_fmlCar) return; setPriceCfg(_fmlCar, field, val); fmlSyncCarKnobs(); renderFormulaPreview(); }
+/* 2026-09-16：改讀這台車實際生效的設定（原本讀畫面上那四個輸入框，輸入框已移到「定價總表」） */
+function _fmlKnobs(carId){ return { bc:bodyCoefFor(carId), oc:optCoefFor(carId), tr:transportFor(carId), tw:totalWeightFor(carId) }; }
 function renderFormulaPreview(){
   var box=document.getElementById("fml_preview"); if(!box) return;
   var car=_fmlCarObj();
@@ -5780,7 +6364,7 @@ function renderFormulaPreview(){
   var bodyRetail=bodyItem+weightItem;
   var total=roundTotal(bodyRetail);
   var luxOn=(typeof luxTaxOn==="function")?luxTaxOn():true;
-  var _dut=Math.round((base+tr)*fx*((car.brandId==="sunlight")?1.61:1.545));   // 完稅價（成本×匯率×完稅倍率，不吃車身係數）
+  var _dut=Math.round((base+tr)*fx*luxMarkupFor(car));   // 完稅價（成本×匯率×完稅倍率，不吃車身係數）
   var lux=(luxOn && _dut>=LUX_TAX_MIN)?Math.round(_dut*LUX_TAX_RATE):0;
   var grand=total+lux, dep=Math.round(grand*(DEPOSIT_PCT/100)), bal=Math.max(0,grand-dep);
   var nt=function(n){ return "NT$"+Math.round(n).toLocaleString("en-US"); };
@@ -6124,7 +6708,7 @@ function buildCustomCar(spec){
   if(spec && spec.__rich){ var _c=JSON.parse(JSON.stringify(spec)); delete _c.__rich; return _c; }
   const variants={}; const vs=(spec.variants&&spec.variants.length)?spec.variants:[{label:spec.name,base:0}];
   vs.forEach((v,i)=>{ const key=vs.length===1?"STD":("V"+i); variants[key]={label:v.label||("版本"+(i+1)),base:+v.base||0}; });
-  return { id:spec.id, brand:spec.brandId==="sunlight"?"Sunlight":"Caterham", brandId:spec.brandId,
+  return { id:spec.id, brand:brandLabelOf(spec.brandId), brandId:spec.brandId,
     line:spec.brandId==="sunlight"?(spec.line||"cliff"):undefined, name:spec.name||"未命名", year:spec.year||"",
     my:spec.brandId==="sunlight"?(spec.my||"both"):"both", ref:"自訂車型 Custom", variants, cats:[], custom:true };
 }
@@ -6171,6 +6755,10 @@ function getCustomBrands(){ try{return JSON.parse(localStorage.getItem(LS_BRANDS
 function setCustomBrands(a){ try{localStorage.setItem(LS_BRANDS,JSON.stringify(a));}catch(e){} }
 function loadCustomBrands(){ getCustomBrands().forEach(b=>{ if(!BRANDS.some(x=>x.id===b.id)) BRANDS.push({id:b.id,label:b.label,sub:b.sub||"",cur:b.cur||"£",custom:true}); }); }
 function symForBrand(brandId){ const b=BRANDS.find(x=>x.id===brandId); if(b&&b.cur) return b.cur; return brandId==="sunlight"?"€":"£"; }
+/* 品牌顯示名（自訂車型、後台試算用）；找不到就退回 Caterham */
+function brandLabelOf(brandId){ const b=BRANDS.find(x=>x.id===brandId); return (b&&b.label)||"Caterham"; }
+/* 產地（報價單/合約的「產地」欄預設值）：Caterham 英國，其餘四個品牌都是德國原廠 */
+function originOfBrand(brandId){ return brandId==="caterham" ? "英國 United Kingdom" : "德國 Germany"; }
 function applyStdOverrides(car){
   if(!car) return;
   if(!car._baseIncluded) car._baseIncluded=JSON.parse(JSON.stringify(car.included||{}));
@@ -6716,7 +7304,7 @@ function perfPrint(id){ closePerf(); if(typeof applyView==="function") applyView
 function quoteLines(r){
   if(Array.isArray(r.lines)&&r.lines.length) return r.lines;
   const car=CARS.find(c=>c.id===r.carId);
-  const fx=(car&&car.brandId==="sunlight")?FX.EUR:FX.GBP;
+  const fx=_fxForCar(car);   /* 2026-09-16：原本寫死「Sunlight 用歐元、其他一律英鎊」，ERIBA／Crosscamp／Bürstner 會被當英鎊換算 */
   const mk=(name,cost,key)=>({name,qty:1,costNT:Math.round((cost||0)*fx),retailNT:roundRetail((cost||0)*fx*coefFor(key))});
   const out=[ mk(`${r.carName||"—"}${r.variantLabel?" · "+r.variantLabel:""}`, r.base||0, r.carId+"|base") ];
   if(r.paint&&r.paint.price!=null){ const c=r.paint.colour||""; out.push(mk(`塗裝：${r.paint.tierLabel||""}${c?" – "+c:""}`, r.paint.price, r.carId+"|paint")); }
@@ -7361,7 +7949,7 @@ function openContract(){
   const col = selectedPaint ? (selectedPaint.colour||selectedPaint.hexName||selectedPaint.tierLabel||"") : "";
   setIfEmpty("k_color", col);
   setIfEmpty("k_fuel","汽油 Petrol");
-  setIfEmpty("k_origin", cur.brandId==="caterham"?"英國 United Kingdom":(cur.brandId==="sunlight"?"德國 Germany":""));
+  setIfEmpty("k_origin", originOfBrand(cur.brandId));
   setIfEmpty("k_court","臺灣臺中地方法院");
   // 三段付款建議金額：訂金＝車價 20%；二次款項累計付至車價 90%；尾款＝其餘（約 10%，交車付清）。業務可自行改成實際數字
   try{
@@ -7405,7 +7993,7 @@ function printContract(){
   const U="＿＿＿＿＿＿";
   const kName=g("k_name")||U, kId=g("k_id")||U, kPhone=g("k_phone")||U, kEmail=g("k_email")||U, kBirth=g("k_birth")||U,
         kAddr=g("k_addr")||"＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿", kReg=g("k_regname")||"同買方", kRegId=g("k_regid")||"—",
-        kColor=g("k_color")||U, kVin=g("k_vin")||"客製化新車（待生產）", kEngine=g("k_engine")||U, kFuel=g("k_fuel")||U, kOrigin=g("k_origin")||(cur.brandId==="caterham"?"英國 United Kingdom":(cur.brandId==="sunlight"?"德國 Germany":U)),
+        kColor=g("k_color")||U, kVin=g("k_vin")||"客製化新車（待生產）", kEngine=g("k_engine")||U, kFuel=g("k_fuel")||U, kOrigin=g("k_origin")||originOfBrand(cur.brandId)||U,
         kPay=g("k_pay")||U, kDeliver=g("k_deliver")||U, kReview=g("k_review")||"＿＿年＿＿月＿＿日", kCourt=g("k_court")||"臺灣臺中地方法院", kNote=g("k_note");
   const p2=n=>String(n).padStart(2,"0"); const now=new Date();
   const cno="C"+now.getFullYear()+p2(now.getMonth()+1)+p2(now.getDate())+p2(now.getHours())+p2(now.getMinutes());
@@ -7554,41 +8142,41 @@ function printQuote(){
         <div class="p-conm"><b>${name}</b>${nameEn?`<div class="en">${nameEn}</div>`:""}</div>
       </div>
       <div class="p-contact">
-        ${phone?`<div><span>電話</span>${phone}</div>`:""}
-        ${fax?`<div><span>傳真</span>${fax}</div>`:""}
-        ${email?`<div><span>信箱</span>${email}</div>`:""}
-        ${addr?`<div><span>地址</span>${addr}</div>`:""}
+        ${phone?`<div><span>電話 Tel</span>${phone}</div>`:""}
+        ${fax?`<div><span>傳真 Fax</span>${fax}</div>`:""}
+        ${email?`<div><span>信箱 Email</span>${email}</div>`:""}
+        ${addr?`<div><span>地址 Address</span>${addr}</div>`:""}
         ${addrEn?`<div class="en2">${addrEn}</div>`:""}
       </div>
     </div>
-    <div class="p-title">報　價　單</div>
+    <div class="p-title">報　價　單<div class="p-title-en">QUOTATION</div></div>
     <div class="p-info">
-      <div><span>報價單號</span>${qno}</div><div><span>業務</span>${spName}</div>
-      <div><span>報價日期</span>${today}</div><div><span>電話</span>${spPhone}</div>
-      <div><span>客戶</span>${nm||"—"}</div><div><span>信箱</span>${spEmail}</div>
-      <div><span>車型</span>${cur.brand} ${cur.name}</div><div><span>Line</span>${spLine}</div>
-      <div><span>車身碼</span>${c.vin||"—"}</div><div></div>
+      <div><span>報價單號<i class="pen">Quote No.</i></span>${qno}</div><div><span>業務<i class="pen">Sales Rep.</i></span>${spName}</div>
+      <div><span>報價日期<i class="pen">Date</i></span>${today}</div><div><span>電話<i class="pen">Tel</i></span>${spPhone}</div>
+      <div><span>客戶<i class="pen">Customer</i></span>${nm||"—"}</div><div><span>信箱<i class="pen">Email</i></span>${spEmail}</div>
+      <div><span>車型<i class="pen">Model</i></span>${cur.brand} ${cur.name}</div><div><span>Line</span>${spLine}</div>
+      <div><span>車身碼<i class="pen">VIN</i></span>${c.vin||"—"}</div><div></div>
     </div>
     ${includedPrintHTML()}
     <table class="p-items">
-      <thead><tr><th class="no">序號</th><th>品項</th><th class="qty">數量</th><th class="pr">單價</th></tr></thead>
+      <thead><tr><th class="no">序號<i class="pen">No.</i></th><th>品項<i class="pen">Item</i></th><th class="qty">數量<i class="pen">Qty</i></th><th class="pr">單價<i class="pen">Unit Price</i></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    ${luxTaxQ>0?`<div class="p-sub"><span>合計金額</span><span class="a">${totalStr}</span></div>
-    <div class="p-sub"><span>奢侈稅（達 300 萬・預估 10%）</span><span class="a">＋${_money(luxTaxQ)}</span></div>`:""}
-    <div class="p-sum"><span>${luxTaxQ>0?"合計（預估含奢侈稅）":"合計金額"}</span><span class="a">${_money(grandQ)}</span></div>
+    ${luxTaxQ>0?`<div class="p-sub"><span>合計金額 Subtotal</span><span class="a">${totalStr}</span></div>
+    <div class="p-sub"><span>奢侈稅（達 300 萬・預估 10%）Luxury Tax (est. 10%)</span><span class="a">＋${_money(luxTaxQ)}</span></div>`:""}
+    <div class="p-sum"><span>${luxTaxQ>0?"合計（預估含奢侈稅）Total (incl. est. Luxury Tax)":"合計金額 Total"}</span><span class="a">${_money(grandQ)}</span></div>
     <div class="p-dep">
       <div><span class="k">訂金 Deposit（${DEPOSIT_PCT}%）</span><span class="a">${depStr}</span></div>
       <div class="bal"><span class="k">交車前餘款 Balance</span><span class="a">${balStr}</span></div>
     </div>
     <div class="p-bottom">
-    ${c.notes?`<div class="p-cnote"><b>備註</b><div>${c.notes}</div></div>`:""}
+    ${c.notes?`<div class="p-cnote"><b>備註 Remarks</b><div>${c.notes}</div></div>`:""}
     <div class="p-sign"><div>客戶簽名 Customer signature</div><div>業務簽名 Sales signature</div></div>
-    <div class="p-notes"><b>注意事項</b><ol>
-      <li>本報價單有效期限為 14 天，逾期價格以現場另行報價為準。</li>
-      <li>實際項目及金額，以雙方確認簽認後為準。</li>
-      <li>前款付款後始安排出貨／施工，尾款於交車前結清。</li>
-      <li>保固依原廠或本公司規定辦理，人為損壞不在保固範圍。</li>
+    <div class="p-notes"><b>注意事項 Notes</b><ol>
+      <li>本報價單有效期限為 14 天，逾期價格以現場另行報價為準。<span class="p-note-en">This quotation is valid for 14 days; after expiry, prices are subject to re-quotation.</span></li>
+      <li>實際項目及金額，以雙方確認簽認後為準。<span class="p-note-en">Final items and amounts are subject to written confirmation by both parties.</span></li>
+      <li>前款付款後始安排出貨／施工，尾款於交車前結清。<span class="p-note-en">Shipment / work is arranged upon receipt of the deposit; the balance is due before delivery.</span></li>
+      <li>保固依原廠或本公司規定辦理，人為損壞不在保固範圍。<span class="p-note-en">Warranty follows the manufacturer's or our company's policy; damage caused by misuse is not covered.</span></li>
     </ol></div>
     </div>
   `;
