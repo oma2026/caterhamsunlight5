@@ -1663,7 +1663,10 @@ function curWeight(){ return weightForCar(typeof cur!=="undefined"&&cur?cur.id:n
 const PRICE_CFG_DEFAULT={
   "cliff600x27":{bc:2,oc:2.4,tw:400000},
   "cliff602x27":{bc:2,oc:2.4,tw:400000},
-  "cliff640x27":{bc:2,oc:2.4,tw:400000}
+  "cliff640x27":{bc:2,oc:2.4,tw:400000},
+  "cliff54027":{bc:2,oc:2.4,tw:400000},
+  "cliff60027":{bc:2,oc:2.4,tw:400000},
+  "cliff60127":{bc:2,oc:2.4,tw:400000}
 };
 function getPriceCfg(id){
   if(!id) return {};
@@ -2729,6 +2732,89 @@ const CLIFF_600X27=mkCliff("600x27","CLIFF X 600",44753,"599cm · Fiat Ducato",F
 const CLIFF_602X27=mkCliff("602x27","CLIFF X 602",45127,"599cm · Fiat Ducato",FIAT_X27,cliffCatsX27("602"),cliffStdX27("602"),REF_X27,"27");
 const CLIFF_640X27=mkCliff("640x27","CLIFF X 640",46398,"636cm · Fiat Ducato",FIAT_X27,cliffCatsX27("640"),cliffStdX27("640"),REF_X27,"27");
 CLIFF_600X27.tech=cliffTechX27("600");CLIFF_602X27.tech=cliffTechX27("602");CLIFF_640X27.tech=cliffTechX27("640");
+
+/* ===== CLIFF（標準版・非 X）Fiat MY27（CLIFF 540 / 600 / 601）=====
+   2026-09-16 由「Cliff系列_FIAT_MY27.xlsx」＋「底價 MY27.pdf」匯入。
+   底價與 MY26 完全相同（540=41058.92、600=41881.61、601=42704.29），
+   差在選配／套件：Safety 全套變標配、Digital Package 拆成 7吋/10吋影音套件、
+   新增 ACC 套件與 104Ah 鋰電池、Chassis Package 改 1034.55、Co-Driver 改 1108.50、
+   601 的 Combi 6 DE 因原本已標配柴油暖氣故較便宜（517.65 對 540/600 的 1078.93）。 */
+const CLIFF_STD_27 = CLIFF_STD.concat([
+  "MY27 標配安全配備：煞車輔助（含行人偵測）、車道維持、交通標誌辨識、駕駛疲勞偵測、智慧速限、後方停車感測、胎壓偵測 Standard safety (MY27): Full Brake Control w/ pedestrian detection, Lane control, Traffic sign recognition, Driver Drowsiness Detection, Intelligent Speed Assist, Parking sensors, Tyre pressure indicator"
+]);
+function cliffCats27(model){
+  const is540=model==="540", is601=model==="601";
+  const CHASSIS_PACK=["電動折疊後視鏡（含除霜）Electric folding and defrosting mirrors","盲點偵測輔助 Blind spot assistant","電子駐車煞車 Electric park brake"];
+  const ACC_PACK=["主動車距巡航 Adaptive Cruise Control >30 km/h","雨滴 / 光線感應器 Rain and light sensor"];
+  const CODRIVER=["ACC 含 Stop & Go ACC with stop & go","塞車輔助 Traffic jam assist","雨滴 / 光線感應器 Rain and light sensor"];
+  const INFO7=["7吋收音機 7\" radio incl. Apple CarPlay / Android Auto","倒車攝影機（動態輔助線）Rear view camera with dynamic grid lines","駕駛艙自動空調 Automatic cab air conditioning"];
+  const INFO10=["10吋收音機 & 導航 DAB+ 10\" radio and navigation system (DAB+) incl. Apple CarPlay / Android Auto","倒車攝影機（動態輔助線）Rear view camera with dynamic grid lines","駕駛艙自動空調 Automatic cab air conditioning"];
+  const ALLOY=["真皮方向盤 & 排檔頭 Leather steering wheel and gear knob","銀色出風口飾件 Techno-Trim","16吋 消光黑鋁圈 16\" alloy wheels black matt"];
+  return [
+    ["底盤 & 動力 Base vehicle / Engine",[
+      ["8速自排 140hp 8-speed automatic",{STD:S},60],
+      ["8速自排 180hp 8-speed automatic",{STD:4768.27},60],
+      ["Maxi 底盤 140hp 6速手排 Maxi Chassis 3.5t 140 BHP 6-speed manual",{STD:is540?"na":295.06},40],
+      ["Maxi 底盤 140hp 8速自排 Maxi Chassis 3.5t 140 BHP 8-speed automatic",{STD:is540?"na":2660.71},60],
+      ["Maxi 底盤 180hp 8速自排 Maxi Chassis 3.5t 180 BHP 8-speed automatic",{STD:is540?"na":5064.07},60],
+      ["全 LED 頭燈（含 LED 日行燈、動態方向燈）Full LED headlamps incl. wiping indicators and LED daytime running lights",{STD:812.71},0],
+      ["胎壓偵測 Tyre pressure indicator",{STD:S},0.8],
+      ["拖車電路預接 Electrical preparation for trailer coupling",{STD:S},0],
+      ["備胎（含固定架與千斤頂，取代 Fix & Go）Spare wheel incl. holder and car jack instead of Fix & Go kit",{STD:225.55},30],
+      ["90 公升油箱 90l fuel tank",{STD:S},23],
+      ["TFT 彩色數位儀表 & 手機無線充電 TFT color display and wireless smartphone charging",{STD:442.96},0],
+    ]],
+    ["外觀塗裝 Painting",[
+      ["黑色金屬 Chassis colour Black metallic",{STD:698.82},2.5],
+      ["Lanzarote Grey（深灰）",{STD:583.46},0],
+      ["Expedition Grey（卡其灰）",{STD:583.46},0],
+    ]],
+    ["車體改裝 Conversion",[
+      ["隔熱加熱廢水箱 Insulated and heated waste water tank",{STD:442.96},5],
+      ["自行車架（2 台，黑）Bike rack for 2 bikes (black)",{STD:405.98},11.5],
+      ["氣密窗 Framed windows",{STD:487.33},5],
+      ["CLIFF RT-Pack 車頂床（含 RT 貼紙）Rooftop bed incl. RT decals",{STD:4214.39},160],
+    ]],
+    ["舒適 Comfort",[
+      ["轉換床 Bed conversion for seating area",{STD:258.08},5],
+      ["浴室木地板隔扇 Wooden duckboard for the shower tray",{STD:65.82},2],
+      ["百褶簾 Foldable window blinds",{STD:487.33},8],
+    ]],
+    ["電力 Installations",[
+      ["電視預接線 / 電視架 TV pre-cabling / TV holder",{STD:161.95},3],
+      ["行動網路（WiFi/LTE 天線含路由器）Mobile internet (WiFi/LTE antenna incl. router)",{STD:738.76},1.4],
+      ["倒車顯影預接線 Pre-cabling reversing camera",{STD:124.97},1],
+      ["太陽能預接線 Pre-cabling solar system",{STD:124.97},2],
+      ["太陽能板 100W（含 MPPT 控制器）Solar system 100 Watt incl. MPPT controller",{STD:516.91},7.3],
+      ["燈軌內 USB 插頭 USB-port in the light rail",{STD:43.63},0],
+      ["鋰電池 104Ah（取代 AGM 95Ah）Lithium battery 104 Ah instead of AGM 95 Ah",{STD:738.76},-15],
+      ["第二顆 104Ah 鋰電池 Additional 104 Ah lithium battery",{STD:960.61},10.5],
+    ]],
+    ["暖氣 / 瓦斯 Heating",[
+      ["Combi 4 柴油暖氣（含高度感測 + 數位面板）Diesel heating Combi 4 incl. altitude pressure sensor and digital control panel",{STD:is601?"std":561.28},4.6],
+      ["Combi 6 E 暖氣（含電熱、數位面板）Heating Combi 6 E with el. heating element incl. digital control panel",{STD:is601?"na":524.30},2],
+      ["Combi 6 DE 柴油暖氣（含電熱、高度感測、數位面板）Combi 6 DE diesel heater with el. heating element, altitude pressure sensor and digital control panel",{STD:is601?517.65:1078.93},0.5],
+      ["Caramatic SafeDrive PLUS（雙鋼瓶系統，含瓦斯壓力調節器與撞擊感測器）Two-bottle system with gas pressure regulator and crash sensor",{STD:is601?"na":221.11},3.5],
+    ]],
+    ["布材 Soft furnishing（選色）",[
+      ["Performance Grey 性能灰",{STD:0},0],
+      ["Green Trail 綠色小徑",{STD:0},0],
+    ]],
+    ["套件 Packs",[
+      ["黑色鋁圈套件 Black alloy wheels Pack",{STD:0},8,ALLOY],
+      ["車身包 Chassis Package",{STD:1034.55},-8.3,CHASSIS_PACK],
+      ["ACC 套件 ACC Pack",{STD:516.91},0,ACC_PACK],
+      ["副駕駛包 Co-Driver Package",{STD:1108.50},0.3,CODRIVER],
+      ["7吋影音套件 7\" Infotainment package",{STD:812.71},0,INFO7],
+      ["10吋影音套件 10\" Infotainment package",{STD:1330.35},4,INFO10],
+    ]],
+  ];
+}
+const FIAT_ADV27="Adventure · Fiat Ducato", REF_ADV27="CLIFF Adventure · Fiat · MY27";
+const CLIFF_54027=mkCliff("54027","CLIFF 540 Adventure",41313,"Fiat Ducato · Adventure",FIAT_ADV27,cliffCats27("540"),CLIFF_STD_27,REF_ADV27,"27");
+const CLIFF_60027=mkCliff("60027","CLIFF 600 Adventure",42135,"Fiat Ducato · Adventure",FIAT_ADV27,cliffCats27("600"),CLIFF_STD_27,REF_ADV27,"27");
+const CLIFF_60127=mkCliff("60127","CLIFF 601 Adventure",42958,"Fiat Ducato · Adventure · 柴油暖氣",FIAT_ADV27,cliffCats27("601"),CLIFF_STD_27,REF_ADV27,"27");
+CLIFF_54027.tech=cliffTech("540");CLIFF_60027.tech=cliffTech("600");CLIFF_60127.tech=cliffTech("601");
 // ===== CLIFF Peugeot 標緻 MY26（CLIFF 540 / 600 / 640）=====
 function cliffTechPeu(model){
   const lwh={"540":"541 / 205 / 258","600":"599 / 205 / 258","640":"636 / 205 / 258"};
@@ -3349,13 +3435,15 @@ const T_FOOTNOTES_CIT=[
 const CARS=[CAR_170,CAR_340,CAR_NUR,CAR_SS,
   CLIFF_540,CLIFF_600,CLIFF_601,CLIFF_602,CLIFF_640,CLIFF_540V,CLIFF_600J,
   CLIFF_600X,CLIFF_640X,CLIFF_600X27,CLIFF_602X27,CLIFF_640X27,
+  CLIFF_54027,CLIFF_60027,CLIFF_60127,
   CLIFF_540P,CLIFF_600P,CLIFF_640P].concat(T_CARS);
 // Sunlight 價格明細：DPP 底價（EUR）、掛牌文件、全險（各車固定）
 const SUN_REG=158.82, SUN_INS=95.00;
 const CLIFF_DPP={
   "540":41058.92,"600":41881.61,"601":42704.29,"602":42255.55,"640":43526.98,
   "600x":44499.25,"640x":46144.63,"540v":45022.78,"600j":43377.40,
-  "600x27":44499.25,"602x27":44873.20,"640x27":46144.63   /* MY27（底價 MY27.pdf，與 MY26 同價、602X 為新款） */
+  "600x27":44499.25,"602x27":44873.20,"640x27":46144.63,   /* MY27 Cliff X（底價 MY27.pdf，與 MY26 同價、602X 為新款） */
+  "54027":41058.92,"60027":41881.61,"60127":42704.29   /* MY27 標準 Cliff 540/600/601（底價與 MY26 完全相同） */
 };
 CARS.forEach(c=>{ if(c.brandId==="sunlight" && c.id.indexOf("cliff")===0){ const k=c.id.replace("cliff",""); if(CLIFF_DPP[k]!=null) c.dpp=CLIFF_DPP[k]; } });
 /* ===== ERIBA 拖車式露營車（2026-08-31 由 eriba_catalog.json 匯入；MJ2027 價目，2026-07-01 起適用）=====
@@ -4318,7 +4406,8 @@ function pickYear(y){
 }
 /* 客戶端(VIP) Sunlight 只顯示這 11 台（T 系列 7 + CLIFF 4）；業務/管理端不受限、看全部 */
 const CUST_SUNLIGHT_WL = new Set(["t58c26","t66sc26","t67sc26","t58a26","t66sa26","t67sa26","t67a26","cliff540","cliff600","cliff601",
-  "cliff600x27","cliff602x27","cliff640x27"]);   /* MY27 Cliff X（2026-09-04 新增；要對客戶隱藏可在管理後台按隱藏） */
+  "cliff600x27","cliff602x27","cliff640x27",   /* MY27 Cliff X（2026-09-04 新增；要對客戶隱藏可在管理後台按隱藏） */
+  "cliff54027","cliff60027","cliff60127"]);   /* MY27 標準 Cliff 540/600/601（2026-09-16 新增） */
 /* 客戶端(VIP) Crosscamp 只顯示 ELMNT 5.41（2026-09-16）；5.4 DS / 6.0 DS / 6.4 ES 先隱藏，業務/管理端按「顯示隱藏車款」仍看得到 */
 const CUST_CROSSCAMP_WL = new Set(["cc541"]);
 /* 客戶端(VIP) ERIBA 只顯示 Touring 430 / 530（2026-09-16）；其餘 16 台先隱藏，Feeling / Novaline 兩個系列頁籤對客戶自動不顯示 */
