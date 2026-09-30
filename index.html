@@ -1535,6 +1535,12 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     const auth=getAuth(app);
     window.fbAuth=auth; window.fbApiKey=firebaseConfig.apiKey;
     window.fbStaffLogin=(email,pw)=>signInWithEmailAndPassword(auth,email,pw);
+    /* 2026-09-16：登入密碼改由系統「帳號管理」統一管（後台改一次、大家立刻用；密碼隨帳號表 ctm_accounts_v2 同步到所有電腦）。
+       Firebase 這邊只留一個固定的「背景資料帳號」，登入密碼對了之後自動連它，用來取得讀寫報價/案件的權限——同事看不到、不用管。
+       ⚠️ 此帳號需在 Firebase 後台建一次（Email 與密碼如下），之後永遠不用再碰 Firebase。 */
+    const CLOUD_DATA_EMAIL="cloudsync@quote.o-ma.com.tw";
+    const CLOUD_DATA_PW="oma-cloud-sync-2026";
+    window.fbCloudDataLogin=()=>signInWithEmailAndPassword(auth,CLOUD_DATA_EMAIL,CLOUD_DATA_PW);
     window.fbSignOutStaff=()=>{ try{ return signOut(auth).catch(()=>{}); }catch(e){} };
     window.fbChangePassword=async(oldPw,newPw)=>{
       const u=auth.currentUser; if(!u||!u.email) throw new Error("not-staff");
@@ -4187,18 +4193,7 @@ function renderCashierPanel(){
 }
 function changeRolePass(kind){
   const name=kind==="acct"?"會計":"出納";
-  if(window.fbAuth&&window.fbIsStaff){   /* 雲端版：只有用該身分登入時才能改它的密碼 */
-    const myEmail=((window.fbUser&&window.fbUser.email)||"").toLowerCase();
-    if(myEmail!==staffEmailForRole(kind)){ alert("請先用「"+name+"」身分登入，再從這裡改密碼。\n（忘記密碼請找 darren 到 Firebase 後台重設）"); return; }
-    const c=prompt("請輸入目前的"+name+"密碼"); if(c===null) return;
-    const np=prompt("請輸入新的"+name+"密碼（至少 6 碼）"); if(np===null) return;
-    const v=String(np).trim(); if(v.length<6){ toast("新密碼至少要 6 碼"); return; }
-    window.fbChangePassword(c,v).then(()=>toast(name+"密碼已更新")).catch((e)=>{
-      const cc=(e&&e.code)||"";
-      toast(cc.indexOf("invalid-credential")>=0||cc.indexOf("wrong-password")>=0?"目前密碼錯誤":"更新失敗，請檢查網路");
-    });
-    return;
-  }
+  /* 2026-09-16：一律改「帳號管理」的密碼欄（同步到所有電腦、立刻生效），不再走 Firebase。 */
   const field=kind==="acct"?"acctPass":"cashierPass";
   const a=getAccounts(); const cur_pw=a[field]||"123";
   const c=prompt("請輸入目前的"+name+"密碼"); if(c===null) return;
@@ -5449,27 +5444,26 @@ function doLogin(){
     if(document.getElementById("c_sales")) c_sales.value=[acc.title,acc.name].filter(Boolean).join(" ")+`（${acc.u}）`;
     toast(`已登入：${acc.u}`);
   };
-  if(window.fbAuth){
-    /* 正式作法：密碼由 Firebase 伺服器核對；成功後以員工權限重抓完整雲端資料 */
-    let email=null;
-    if(u==="__admin") email=staffEmailForRole("admin");
-    else if(u==="__acct") email=staffEmailForRole("acct");
-    else if(u==="__cashier") email=staffEmailForRole("cashier");
-    else { const acc=a.sales.find(s=>s.u===u); if(!acc){ err.textContent="找不到此業務"; err.style.display=""; return; } email=staffEmailForSales(acc); }
-    err.textContent="驗證中…"; err.style.display="";
-    window.fbStaffLogin(email,pass).then(async()=>{
-      err.style.display="none";
+  /* 2026-09-16：登入密碼一律用「帳號管理」那組在本機核對（後台改一次、隨帳號表同步到所有電腦、大家立刻用）。
+     密碼對了之後，若雲端在，自動連背景「資料帳號」取得讀寫報價/案件的權限；連不上就離線模式（仍可用、只是這台不同步）。
+     這樣的好處：① 密碼一個地方管 ② 密碼打錯只會擋在本機、不會像以前那樣被 Firebase 鎖到進不去。 */
+  let ok=false;
+  if(u==="__admin") ok=(pass===a.adminPass);
+  else if(u==="__acct") ok=(pass===(a.acctPass||"123"));
+  else if(u==="__cashier") ok=(pass===(a.cashierPass||"123"));
+  else { const acc=a.sales.find(s=>s.u===u); if(!acc){ err.textContent="找不到此業務"; err.style.display=""; return; } ok=(pass===acc.p); }
+  if(!ok){ err.textContent="密碼錯誤"; err.style.display=""; return; }
+  if(window.fbAuth && window.fbCloudDataLogin){
+    err.textContent="連線中…"; err.style.display="";
+    let done=false; const go=()=>{ if(done) return; done=true; err.style.display="none"; finish(); };   // finish 只跑一次
+    setTimeout(go, 7000);   // 保險：雲端 7 秒沒回應就先讓人進去（離線模式、仍可用），不卡在「連線中…」
+    window.fbCloudDataLogin().then(async()=>{
       if(window.CLOUD&&window.CLOUD.reloadAll){ try{ await window.CLOUD.reloadAll(); }catch(e){} }
-      finish();
-    }).catch((e)=>{ err.textContent=fbLoginErrText(e); err.style.display=""; });
+      go();
+    }).catch((e)=>{ console.warn("雲端資料帳號連線失敗，改離線模式：",e); go(); });
     return;
   }
-  /* 離線備援：Firebase 起不來（無網路等）時退回舊的本機密碼比對 */
-  if(u==="__admin"){ if(pass===a.adminPass){ finish(); } else { err.textContent="密碼錯誤"; err.style.display=""; } return; }
-  if(u==="__acct"){ if(pass===(a.acctPass||"123")){ finish(); } else { err.textContent="密碼錯誤"; err.style.display=""; } return; }
-  if(u==="__cashier"){ if(pass===(a.cashierPass||"123")){ finish(); } else { err.textContent="密碼錯誤"; err.style.display=""; } return; }
-  const acc=a.sales.find(s=>s.u===u);
-  if(acc && pass===acc.p){ finish(); } else { err.textContent="密碼錯誤"; err.style.display=""; }
+  finish();
 }
 /* 改密碼：target = 'admin'（後台自己）/ 'sales-self'（登入中的業務）/ 'sales-admin'（後台重設任一業務） */
 function openChangePw(target){
@@ -7503,30 +7497,7 @@ function renderPerf(){
 function doChangePw(){
   const a=getAccounts(); const err=document.getElementById("pwErr");
   const oldv=document.getElementById("pwOld").value, newv=document.getElementById("pwNew").value.trim();
-  if(window.fbAuth&&(pwTarget==="admin"||pwTarget==="sales-self")&&window.fbIsStaff){
-    /* 雲端版：改自己這個登入身分的 Firebase 密碼 */
-    if(newv.length<6){ err.textContent="新密碼至少要 6 碼"; err.style.display=""; return; }
-    err.textContent="更新中…"; err.style.display="";
-    window.fbChangePassword(oldv,newv).then(()=>{ closePw(); toast("密碼已更新"); }).catch((e)=>{
-      const c=(e&&e.code)||"";
-      err.textContent=(c.indexOf("invalid-credential")>=0||c.indexOf("wrong-password")>=0)?"目前密碼錯誤":"更新失敗，請檢查網路";
-      err.style.display="";
-    });
-    return;
-  }
-  if(window.fbAuth&&pwTarget==="sales-admin"){
-    /* 雲端版：老闆重設業務密碼 → 寄「重設密碼」信到該業務的信箱 */
-    const acc=a.sales.find(s=>s.u===document.getElementById("pwUser").value);
-    const em=acc?staffEmailForSales(acc):null;
-    if(!em||em.indexOf("@"+STAFF_EMAIL_DOMAIN)>=0){
-      err.textContent="此帳號沒有真實信箱，請找 darren 到 Firebase 後台重設密碼"; err.style.display=""; return;
-    }
-    err.textContent="寄送中…"; err.style.display="";
-    fbSendPwReset(em).then(()=>{ closePw(); toast("已寄出重設密碼信到 "+em); }).catch(()=>{
-      err.textContent="寄送失敗，請檢查網路（或找 darren 到 Firebase 後台重設）"; err.style.display="";
-    });
-    return;
-  }
+  /* 2026-09-16：改密碼一律寫進「帳號管理」的密碼欄（隨帳號表 ctm_accounts_v2 同步到所有電腦，大家立刻用），不再走 Firebase。 */
   if(!newv){ err.textContent="新密碼不可空白"; err.style.display=""; return; }
   if(pwTarget==="admin"){
     if(oldv!==a.adminPass){ err.textContent="目前密碼錯誤"; err.style.display=""; return; }
@@ -7736,12 +7707,8 @@ function smAdd(){
   setAccounts(a);
   const eu=document.getElementById("sm_addU"), en=document.getElementById("sm_addN"); if(eu)eu.value=""; if(en)en.value="";
   renderSalesMgr();
-  if(window.fbAuth){   /* 同步開立雲端登入帳號（初始密碼 oma2026，請他登入後自行修改） */
-    fbCreateStaff(authEmail,"oma2026").then(()=>toast("已新增業務："+u+"（初始登入密碼 oma2026 ・ 客戶輸入 "+getVipPrefix()+u+"）"))
-      .catch((e)=>alert("雲端帳號建立失敗（"+((e&&e.message)||"網路問題")+"）。\n請找 darren 到 Firebase 後台手動新增帳號："+authEmail));
-  }else{
-    toast("已新增業務："+u+"（客戶輸入 "+getVipPrefix()+u+"）");
-  }
+  /* 2026-09-16：新增業務＝只加進帳號表（同步到所有電腦），登入密碼預設 123、請到本頁改掉。不再另開 Firebase 帳號。 */
+  toast("已新增業務："+u+"（登入密碼預設 123，請在表格『登入密碼』欄改掉 ・ 客戶輸入 "+getVipPrefix()+u+"）");
 }
 function renderSalesMgr(){
   const a=getAccounts(); const el=document.getElementById("salesMgrBody"); if(!el) return;
@@ -7764,7 +7731,7 @@ function renderSalesMgr(){
     </tr>`);
   });
   el.innerHTML=`<div class="sm-wrap"><table class="sm-tbl">
-    <thead><tr><th>#</th><th>英文代號</th><th>中文姓名</th><th>職稱</th><th>電話</th><th>Email</th><th>LINE</th><th>登入密碼（舊版備用）</th><th>客戶登入代碼</th><th></th></tr></thead>
+    <thead><tr><th>#</th><th>英文代號</th><th>中文姓名</th><th>職稱</th><th>電話</th><th>Email</th><th>LINE</th><th>登入密碼</th><th>客戶登入代碼</th><th></th></tr></thead>
     <tbody>${rows.join("")}</tbody>
   </table></div>
   <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
@@ -7774,7 +7741,7 @@ function renderSalesMgr(){
   </div>
   <div class="hint" style="margin-top:12px;line-height:1.9">
     ・新增後客戶輸入「<b>${getVipPrefix()}＋英文代號</b>」即可進入該業務的選配頁（例：新增 John → 客戶輸入 <b>${getVipPrefix()}john</b>）。<br>
-    ・<b>員工登入密碼已改為雲端伺服器驗證</b>：新業務初始密碼 <b>oma2026</b>，請他登入後自行修改；忘記密碼可由老闆「重設業務密碼」寄信重設（需真實 Email），或找 darren 到 Firebase 後台重設。表格裡的「登入密碼（舊版備用）」只在離線備援時使用。<br>
+    ・<b>「登入密碼」就是這個業務登入系統要打的密碼</b>：直接在欄位裡改，<b>打完點旁邊空白處（或按 Tab）就自動存</b>，沒有另外的儲存鍵。改完會同步到所有電腦，那個業務下次就用新密碼登入。<br>
     ・改「英文代號」會一併更新登入與客戶代碼；歷史成交紀錄仍保留原本的名稱。<br>
     ・此設定會<b>同步到雲端</b>，業務端、客戶端、所有裝置都會即時一致。
   </div>`;
@@ -7782,7 +7749,7 @@ function renderSalesMgr(){
 function renderPwList(){
   const a=getAccounts(); const el=document.getElementById("s_pwList"); if(!el) return;
   const q=s=>(s==null?"":String(s)).replace(/"/g,"&quot;");
-  el.innerHTML = `<div class="hint" style="margin:0 0 8px">⚠️ 員工登入已改為<b>雲端伺服器驗證</b>：下面欄位只是「離線備援」用的舊密碼，改了不會影響正式登入。要改正式密碼請各自登入後用「修改密碼」，忘記密碼找 darren 到 Firebase 後台重設。</div>`
+  el.innerHTML = `<div class="hint" style="margin:0 0 8px">下面就是<b>管理後台／會計／出納登入要打的密碼</b>。改好按右邊「<b>更新</b>」即存，會同步到所有電腦、下次登入立刻用新的。</div>`
     + `<div class="pw-row"><span class="pw-k">管理後台密碼</span><input class="t pw-in" id="acAdmin" value="${q(a.adminPass)}"><button class="mini" onclick="acctSaveAdmin()">更新</button></div>`
     + `<div class="pw-row"><span class="pw-k">會計密碼</span><input class="t pw-in" id="acAcct" value="${q(a.acctPass||'123')}"><button class="mini" onclick="acctSaveRole('acct')">更新</button></div>`
     + `<div class="pw-row"><span class="pw-k">出納密碼</span><input class="t pw-in" id="acCashier" value="${q(a.cashierPass||'123')}"><button class="mini" onclick="acctSaveRole('cashier')">更新</button></div>`;
@@ -7814,12 +7781,8 @@ function acctAdd(){
   const authEmail=(_staffSlug(u)||"rep")+"@"+STAFF_EMAIL_DOMAIN;
   a.sales.push({u, name:n, title:t, phone:"", email:"", line:"", p, vipPass:v, authEmail:authEmail});
   setAccounts(a); renderPwList();
-  if(window.fbAuth){   /* 同步開立雲端登入帳號 */
-    fbCreateStaff(authEmail,"oma2026").then(()=>toast("已新增業務："+u+"（初始登入密碼 oma2026 ・ 客戶密碼："+v+"）"))
-      .catch((e)=>alert("雲端帳號建立失敗（"+((e&&e.message)||"網路問題")+"）。\n請找 darren 到 Firebase 後台手動新增帳號："+authEmail));
-  }else{
-    toast("已新增業務："+u+"（客戶密碼："+v+"）");
-  }
+  /* 2026-09-16：新增業務＝只加進帳號表（同步到所有電腦），登入密碼＝你填的那組。不再另開 Firebase 帳號。 */
+  toast("已新增業務："+u+"（登入密碼："+p+" ・ 客戶密碼："+v+"）");
 }
 let pendingLogo=undefined;
 function onLogoPick(e){
