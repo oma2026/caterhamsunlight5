@@ -568,6 +568,32 @@
 .cb-dealt{ background:#fff2e0; color:#b5701a; }
 .cb-ready{ background:#eafaf0; color:#1b7e42; }
 .cb-ordered{ background:#e7ffe7; color:#137a13; }
+/* 2026-09-16 流程優化：等誰標籤 / 進度條 / 單一主要按鈕 / 篩選膠囊 */
+.who-tag{ display:inline-block; font-size:12.5px; font-weight:800; border-radius:999px; padding:5px 13px; white-space:nowrap; }
+.who-me{ background:#fdecea; color:#c0392b; }
+.who-cust{ background:#fbf1e0; color:#c77d1a; }
+.who-cash{ background:#f1ebfa; color:#7a49b8; }
+.who-done{ background:#e9f8ef; color:#1b6e3a; }
+.who-lost{ background:#eee; color:#888; }
+.cc-steps{ display:flex; gap:0; margin:14px 0 2px; }
+.cc-st{ flex:1; text-align:center; position:relative; font-size:10.5px; color:#bcbcbc; }
+.cc-st .dot{ width:20px; height:20px; border-radius:50%; background:#ececec; color:#aaa; display:flex; align-items:center; justify-content:center; margin:0 auto 4px; font-size:11px; font-weight:800; position:relative; z-index:2; }
+.cc-st::before{ content:""; position:absolute; top:10px; left:-50%; width:100%; height:2px; background:#ececec; z-index:1; }
+.cc-st:first-child::before{ display:none; }
+.cc-st.done .dot{ background:#bfe3cb; color:#1b6e3a; }
+.cc-st.done::before{ background:#bfe3cb; }
+.cc-st.now .dot{ background:#b1802a; color:#fff; box-shadow:0 0 0 3px #fffdf6; }
+.cc-st.now{ color:#b1802a; font-weight:800; }
+.cc-st.now::before{ background:#bfe3cb; }
+.case-primary{ background:#111; color:#fff; border:0; border-radius:10px; padding:11px 20px; font-size:14px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.case-primary.go{ background:#b1802a; }
+.case-primary:disabled{ background:#ececec; color:#a5a5a5; cursor:default; }
+.case-primary.filelabel{ display:inline-flex; align-items:center; cursor:pointer; }
+.case-pills{ display:flex; gap:8px; overflow-x:auto; margin-bottom:14px; }
+.case-pills button{ white-space:nowrap; border:1px solid var(--line,#d9d6ce); background:#fff; color:#555; border-radius:999px; padding:8px 15px; font-size:13px; cursor:pointer; }
+.case-pills button .pn{ display:inline-block; min-width:16px; margin-left:6px; background:#eee; color:#666; border-radius:999px; font-size:11px; padding:1px 6px; }
+.case-pills button.on{ background:#111; color:#fff; border-color:#111; }
+.case-pills button.on .pn{ background:#444; color:#fff; }
 .case-money{ font-size:14px; font-weight:700; color:#222; margin:10px 0 0; }
 .case-note{ font-size:12px; color:#8a857c; margin-top:6px; white-space:pre-wrap; }
 .case-actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px; padding-top:12px; border-top:1px dashed var(--line,#e5e2da); }
@@ -894,6 +920,7 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     </div>
   </div>
   <div class="case-stats" id="caseStats"></div>
+  <div class="case-pills" id="casePills"></div>
   <div class="case-filters">
     <input class="t" id="caseSearch" placeholder="搜尋客戶 / 車身碼 / 車型…" oninput="renderCases()" style="max-width:300px">
     <select class="t" id="caseStageFilter" onchange="renderCases()" style="max-width:170px">
@@ -2244,7 +2271,7 @@ function cliffStd(model){
       "定速巡航 Cruise control","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
       "LED 日行燈（整合於頭燈）Daytime running lights integrated in headlights","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊 Driver and passenger airbag",
       "碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖 Disc brakes, stabilisers, heat convection, tachometer, power steering, height-adjustable headlights, immobiliser",
-      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制 incl. ASR, hill holder, crosswind assist, trailer stability control","ESC Setup",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制 incl. ASR, hill holder, crosswind assist, trailer stability control","ESC 電子穩定系統校準 ESC Setup",
       "Traction+（含陡坡緩降 hill descent）","電動車窗 & 中控鎖（駕駛艙）Electric operated cab windows and central locking","電動加熱後視鏡 Electric and heated mirrors",
       "DAB 天線整合於後視鏡 Radio aerial integrated in mirror","音響預接線含喇叭 Radio pre-wiring incl. speakers","多功能方向盤 Multifunction steering wheel","Fix & Go 補胎組 Fix & Go breakdown kit",
       "行車電腦（含外溫顯示）On-board computer incl. outside temperature display","中央置杯架 Central cup holder","USB 充電（A+C）USB charger (A+C)",
@@ -2362,7 +2389,7 @@ function cliffStdX(){
       "定速巡航 Cruise control","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
       "LED 日行燈（整合於頭燈）Daytime running lights integrated in headlights","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊 Driver and passenger airbag",
       "碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖 Disc brakes, stabilisers, heat convection, tachometer, power steering, height-adjustable headlights, immobiliser",
-      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制 incl. ASR, hill holder, crosswind assist, trailer stability control","ESC Setup",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制 incl. ASR, hill holder, crosswind assist, trailer stability control","ESC 電子穩定系統校準 ESC Setup",
       "Traction+（含陡坡緩降 hill descent）","電動車窗 & 中控鎖（駕駛艙）Electric operated cab windows and central locking","電動加熱後視鏡 Electric and heated mirrors",
       "DAB 天線整合於後視鏡 Radio aerial integrated in mirror","音響預接線含喇叭 Radio pre-wiring incl. speakers","多功能方向盤 Multifunction steering wheel","Fix & Go 補胎組 Fix & Go breakdown kit",
       "行車電腦（含外溫顯示）On-board computer incl. outside temperature display","中央置杯架 Central cup holder","USB 充電（A+C）USB charger (A+C)",
@@ -2694,7 +2721,7 @@ function cliffStdX27(model){
       "定速巡航 Cruise control","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
       "LED 日行燈（整合於頭燈）Daytime running lights integrated in headlights","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊 Driver and passenger airbag",
       "碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖 Disc brakes, stabilisers, heat convection, tachometer, power steering, height-adjustable headlights, immobiliser",
-      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制 incl. ASR, hill holder, crosswind assist, trailer stability control, post-collision braking","ESC Setup",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制 incl. ASR, hill holder, crosswind assist, trailer stability control, post-collision braking","ESC 電子穩定系統校準 ESC Setup",
       "Traction+（含陡坡緩降 hill descent）","電動車窗 & 中控鎖（駕駛艙）Electric operated cab windows and central locking","電動加熱後視鏡 Electric and heated mirrors",
       "DAB 天線整合於後視鏡 Radio aerial integrated in mirror","音響預接線含喇叭 Radio pre-wiring incl. speakers","多功能方向盤 Multifunction steering wheel","Fix & Go 補胎組 Fix & Go breakdown kit",
       "行車電腦（含外溫顯示）On-board computer incl. outside temperature display","中央置杯架 Central cup holder","USB 充電（A+C）USB charger (A+C)",
@@ -2745,9 +2772,21 @@ CLIFF_600X27.tech=cliffTechX27("600");CLIFF_602X27.tech=cliffTechX27("602");CLIF
    差在選配／套件：Safety 全套變標配、Digital Package 拆成 7吋/10吋影音套件、
    新增 ACC 套件與 104Ah 鋰電池、Chassis Package 改 1034.55、Co-Driver 改 1108.50、
    601 的 Combi 6 DE 因原本已標配柴油暖氣故較便宜（517.65 對 540/600 的 1078.93）。 */
-const CLIFF_STD_27 = CLIFF_STD.concat([
-  "MY27 標配安全配備：煞車輔助（含行人偵測）、車道維持、交通標誌辨識、駕駛疲勞偵測、智慧速限、後方停車感測、胎壓偵測 Standard safety (MY27): Full Brake Control w/ pedestrian detection, Lane control, Traffic sign recognition, Driver Drowsiness Detection, Intelligent Speed Assist, Parking sensors, Tyre pressure indicator"
-]);
+/* MY27 標配＝沿用 MY26 完整分組標配（cliffStd，每項中英並列），再把 MY27 變標配的安全配備補進「基礎車輛」那組。 */
+function cliffStd27(model){
+  var addSafety=[
+    "胎壓偵測 Tyre pressure indicator",
+    "後方停車感測器 Parking sensors",
+    "煞車輔助（含行人偵測）Full Brake Control with Pedestrian Detection",
+    "駕駛疲勞偵測 Driver Drowsiness Detection",
+    "智慧速度輔助 Intelligent Speed Assist",
+    "車道維持輔助 Lane control",
+    "交通標誌辨識 Traffic sign recognition"
+  ];
+  return cliffStd(model).map(function(gp){
+    return (gp[0].indexOf("基礎車輛")===0) ? [gp[0], gp[1].concat(addSafety)] : gp;
+  });
+}
 function cliffCats27(model){
   const is540=model==="540", is601=model==="601";
   const CHASSIS_PACK=["電動折疊後視鏡（含除霜）Electric folding and defrosting mirrors","盲點偵測輔助 Blind spot assistant","電子駐車煞車 Electric park brake"];
@@ -2817,10 +2856,15 @@ function cliffCats27(model){
   ];
 }
 const FIAT_ADV27="Adventure · Fiat Ducato", REF_ADV27="CLIFF Adventure · Fiat · MY27";
-const CLIFF_54027=mkCliff("54027","CLIFF 540 Adventure",41313,"Fiat Ducato · Adventure",FIAT_ADV27,cliffCats27("540"),CLIFF_STD_27,REF_ADV27,"27");
-const CLIFF_60027=mkCliff("60027","CLIFF 600 Adventure",42135,"Fiat Ducato · Adventure",FIAT_ADV27,cliffCats27("600"),CLIFF_STD_27,REF_ADV27,"27");
-const CLIFF_60127=mkCliff("60127","CLIFF 601 Adventure",42958,"Fiat Ducato · Adventure · 柴油暖氣",FIAT_ADV27,cliffCats27("601"),CLIFF_STD_27,REF_ADV27,"27");
-CLIFF_54027.tech=cliffTech("540");CLIFF_60027.tech=cliffTech("600");CLIFF_60127.tech=cliffTech("601");
+const CLIFF_54027=mkCliff("54027","CLIFF 540 Adventure",41313,"Fiat Ducato · Adventure",FIAT_ADV27,cliffCats27("540"),cliffStd27("540"),REF_ADV27,"27");
+const CLIFF_60027=mkCliff("60027","CLIFF 600 Adventure",42135,"Fiat Ducato · Adventure",FIAT_ADV27,cliffCats27("600"),cliffStd27("600"),REF_ADV27,"27");
+const CLIFF_60127=mkCliff("60127","CLIFF 601 Adventure",42958,"Fiat Ducato · Adventure · 柴油暖氣",FIAT_ADV27,cliffCats27("601"),cliffStd27("601"),REF_ADV27,"27");
+/* MY27 技術規格＝沿用 MY26 那份（540/600/601 各項一致），只有「臥鋪數」不同：MY27 是 2-4 / 2-4 / 4-6（MY26 為 2-5 / 2-5 / 4-7）。 */
+function cliffTech27(model){
+  var berths={"540":"2 – 4 OPT","600":"2 – 4 OPT","601":"4 – 6 OPT"}[model]||"2 – 4 OPT";
+  return cliffTech(model).map(function(r){ return (r[0].indexOf("臥鋪")===0) ? [r[0], berths] : r; });
+}
+CLIFF_54027.tech=cliffTech27("540");CLIFF_60027.tech=cliffTech27("600");CLIFF_60127.tech=cliffTech27("601");
 // ===== CLIFF Peugeot 標緻 MY26（CLIFF 540 / 600 / 640）=====
 function cliffTechPeu(model){
   const lwh={"540":"541 / 205 / 258","600":"599 / 205 / 258","640":"636 / 205 / 258"};
@@ -2858,7 +2902,7 @@ function cliffStdPeu(){
       "Peugeot Boxer 3,500kg · 2.2 BlueHDi 140hp · 6速手排 Euro6","Peugeot 原廠白 Peugeot white",
       "Start & Stop（含 booster）","60L 柴油油箱 60l fuel tank","手動駕駛艙冷氣 Manual cab air conditioning","定速巡航 Cruise control","15吋 鋼圈 Steel rims 15\"","M+S* Camping 雪地胎（雪花標）","前輪驅動 Front Wheel Drive",
       "LED 日行燈（整合頭燈）Daytime running lights integrated in headlights","黑框頭燈 Headlights with black frame","駕駛 & 副駕安全氣囊 Driver and passenger airbag","碟煞・前後軸穩定桿・暖氣對流・轉速表・動力方向盤・可調頭燈・防盜鎖・三點式安全帶 Disc brakes, stabilisers, heat convection, tachometer, power steering, height-adjustable headlights, immobiliser, 3-point seat belts",
-      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車 incl. ASR, hill holder, crosswind assist, trailer stability control, post-collision braking","ESC Setup","Traction+（含陡坡緩降）",
+      "ABS 防鎖死煞車系統、EBD 電子煞車力分配、ESP 電子穩定系統、ESC 電子穩定控制 ABS, EBD, ESP, ESC","含 ASR 防滑控制、坡道起步輔助、側風輔助系統、拖車穩定控制、碰撞後自動煞車 incl. ASR, hill holder, crosswind assist, trailer stability control, post-collision braking","ESC 電子穩定系統校準 ESC Setup","Traction+（含陡坡緩降）",
       "行車電腦（含外溫顯示）On-board computer incl. outside temperature display","電動車窗 & 中控鎖（駕駛艙）Electric operated cab windows and central locking","電動加熱後視鏡 Electric and heated mirrors","DAB 天線整合後視鏡 Radio aerial integrated in mirror","音響預接線含喇叭 Radio pre-wiring incl. speakers","多功能方向盤 Multifunction steering wheel","Fix & Go 補胎組 Fix & Go breakdown kit","中央置杯架 Central cup holder","USB 充電（A+C）USB charger (A+C)",
       "Captain Chair 駕駛 & 副駕座椅（含扶手、居家布材）","座椅可旋轉 Swivel driver and passenger seats","座椅腰靠 Seats with lumbar support","駕駛座高低 & 傾角可調 Height and rake adjustment for driver seat"
     ]],
@@ -6593,6 +6637,28 @@ function caseFlowKey(it){
   return "draft";
 }
 function caseStatusText(it){ return ({sub:"客戶已送出",draft:"客戶已送出",quoted:"已報價",contract:"簽約文件已產生，等待客戶簽名",signed:"待出納確認訂金",won:"待出納確認訂金",dep_marked:"待出納確認訂金（業務已回報）",dep_confirmed:"已成交（訂金已確認）",ordered:"公司已下定",lost:"已結案未成交"})[caseFlowKey(it)]||"客戶已送出"; }
+/* ===== 2026-09-16 流程優化：六步進度條 + 「等誰」標籤 =====（只改畫面呈現，不動狀態邏輯） */
+var CASE_STEPS=["待報價","已報價","待簽約","待收訂金","已成交","已下定"];
+function caseStepIndex(it){ return ({sub:0,draft:0,quoted:1,contract:2,signed:3,won:3,dep_marked:3,dep_confirmed:4,ordered:5,lost:-1})[caseFlowKey(it)]; }
+var casePillFilter="all";
+function setCasePill(f){ casePillFilter=f; renderCases(); }
+/* 現在球在誰手上：等業務自己做 / 等客戶 / 等出納 / 已成交 / 已結案 */
+function caseWho(it){
+  var k=caseFlowKey(it);
+  if(k==="lost") return {t:"已結案",c:"who-lost",f:"lost"};
+  if(k==="dep_confirmed"||k==="ordered") return {t:"✓ 已成交",c:"who-done",f:"done"};
+  if(k==="signed"||k==="won"||k==="dep_marked") return {t:"🟣 等出納",c:"who-cash",f:"cash"};
+  if(k==="quoted"||k==="contract") return {t:"🟠 等客戶",c:"who-cust",f:"cust"};
+  return {t:"🔴 等我做",c:"who-me",f:"me"};   // sub / draft
+}
+function caseProgressHTML(it){
+  var cur=caseStepIndex(it), lost=(cur<0);
+  return '<div class="cc-steps">'+CASE_STEPS.map(function(s,i){
+    if(lost) return '<div class="cc-st"><div class="dot">–</div>'+s+'</div>';
+    var cls=i<cur?"done":(i===cur?"now":"");
+    return '<div class="cc-st '+cls+'"><div class="dot">'+(i<cur?"✓":(i+1))+'</div>'+s+'</div>';
+  }).join("")+'</div>';
+}
 function caseBadgeCls(it){ return ({sub:"cb-submitted",draft:"cb-submitted",quoted:"cb-quoted",contract:"cb-quoted",signed:"cb-quoted",won:"cb-dealt",dep_marked:"cb-dealt",dep_confirmed:"cb-ready",ordered:"cb-ordered",lost:"cb-submitted"})[caseFlowKey(it)]||"cb-submitted"; }
 function caseButtonsHTML(it){
   var t=it.type, id=it.id;
@@ -6607,20 +6673,34 @@ function caseButtonsHTML(it){
   var A_open="caseOpen(\'"+t+"\',\'"+id+"\')", A_qv="caseQuickView(\'"+t+"\',\'"+id+"\')", A_pdf="caseGeneratePDF(\'"+t+"\',\'"+id+"\')", A_con="caseGenerateContractDirect(\'"+t+"\',\'"+id+"\')", A_deal="caseMarkDeal(\'"+id+"\')", A_dep="caseToggleDeposit(\'"+id+"\')", A_lost="caseMarkLost(\'"+id+"\')", A_vc="viewContract(\'"+id+"\')", A_del="caseDelete(\'"+t+"\',\'"+id+"\')";
   function mi(oc,label){ return '<button class="case-mi" onclick="'+oc+'">'+label+'</button>'; }
   function db(label,oc,en){ return en?('<button class="btn ghost casedl" onclick="'+oc+'">'+label+'</button>'):('<button class="btn ghost casedl casedis" disabled>'+label+'</button>'); }
-  var uplBtn=(hasContract&&active)?('<label class="btn ghost casedl" style="cursor:pointer">📎 上傳客戶已簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+id+'\',this)"></label>'):('<button class="btn ghost casedl casedis" disabled>📎 上傳客戶已簽名合約</button>');
-  var row=[];
-  row.push(db('📄 下載報價單', A_pdf, true));
-  row.push(db('📄 '+(hasContract?'下載':'產生')+'簽約文件', A_con, hasContract||active));
-  row.push(uplBtn);
-  var depLabel=(dep==="confirmed")?'訂金已確認':((dep==="sales_marked_paid")?'訂金待公司確認':'回報客戶已付訂金');
-  row.push(db(depLabel, A_dep, isWon&&dep==="unpaid"&&active));
-  var m=[ mi(A_qv,"查看客戶選擇 / 明細"), mi(A_open,"查看 / 修改案件") ];
+  /* 2026-09-16 流程優化：依現在的階段，只給業務「一顆該按的主要按鈕」；其餘全部收進「更多操作」，不刪任何功能。 */
+  var k=caseFlowKey(it);
+  var upload='<label class="case-primary go filelabel">上傳客戶簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+id+'\',this)"></label>';
+  var primary;
+  if(k==="sub"||k==="draft") primary='<button class="case-primary go" onclick="'+A_open+'">開始報價</button>';
+  else if(k==="quoted") primary='<button class="case-primary go" onclick="'+A_con+'">產生簽約文件</button>';
+  else if(k==="contract") primary=upload;
+  else if(k==="signed"||k==="won"||k==="dep_marked"){
+    primary=(isWon&&dep==="unpaid"&&active)
+      ? '<button class="case-primary go" onclick="'+A_dep+'">回報客戶已付訂金</button>'
+      : '<button class="case-primary" disabled>等出納確認訂金</button>';
+  }
+  else primary='<button class="case-primary" onclick="'+A_pdf+'">下載報價單</button>';   // 已成交 / 已下定 / 已結案：主要動作＝重印
+  /* 更多操作：把所有其他動作都收進來（下載報價單、產生/下載簽約文件、上傳、訂金回報、查看、修改、結案、刪除） */
+  var m=[];
+  m.push(mi(A_pdf,"下載報價單"));
+  if(hasContract||active) m.push(mi(A_con,(hasContract?"下載":"產生")+"簽約文件"));
+  if(hasContract&&active&&k!=="contract") m.push('<label class="case-mi" style="cursor:pointer">上傳客戶簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+id+'\',this)"></label>');
+  if(isWon&&dep==="unpaid"&&active&&!(k==="signed"||k==="won"||k==="dep_marked")) m.push(mi(A_dep,"回報客戶已付訂金"));
+  if(dep==="sales_marked_paid") m.push(mi(A_dep,"取消『已付訂金』回報"));
+  m.push(mi(A_qv,"查看客戶選擇 / 明細"));
+  m.push(mi(A_open,"查看 / 修改案件"));
   if(isSigned) m.push(mi(A_vc,"檢視客戶簽名合約"));
   if(isWon && active) m.push(mi(A_deal,"修改成交金額"));
   if(active && t==="deal") m.push(mi(A_lost,"結案為未成交"));
   m.push('<button class="case-mi danger" onclick="'+A_del+'">刪除案件</button>');
   var note=(hasContract&&!isSigned&&active)?'<div class="case-hint2">客戶簽名後，上傳「已簽名合約」即完成成交（系統會自動標記成交，成交金額預設為報價金額，可再修改）。</div>':"";
-  return '<div class="case-actrow">'+row.join("")+'<details class="case-more"><summary>更多操作 ▾</summary><div class="case-menu">'+m.join("")+'</div></details></div>'+note;
+  return '<div class="case-actrow">'+primary+'<details class="case-more"><summary>更多操作 ▾</summary><div class="case-menu">'+m.join("")+'</div></details></div>'+note;
 }
 function renderCases(){
   var st=caseStats();
@@ -6629,8 +6709,17 @@ function renderCases(){
   if(se) se.innerHTML=sd.map(function(s){return '<div class="cstat"><div class="n">'+s[2]+'</div><div class="l">'+s[1]+'</div></div>';}).join("");
   var q=((document.getElementById("caseSearch")||{}).value||"").trim().toLowerCase();
   var fk=(document.getElementById("caseStageFilter")||{}).value||"all";
-  var items=_caseItems().filter(function(it){
+  /* 2026-09-16：篩選膠囊（等我做 / 等客戶 / 等出納 / 已成交 / 全部）＝依「現在等誰」快速過濾 */
+  var allItems=_caseItems();
+  var pf=(typeof casePillFilter!=="undefined")?casePillFilter:"all";
+  var cnt={me:0,cust:0,cash:0,done:0};
+  allItems.forEach(function(it){ var f=caseWho(it).f; if(cnt[f]!=null) cnt[f]++; });
+  var pills=[["all","全部",allItems.length],["me","🔴 等我做",cnt.me],["cust","🟠 等客戶",cnt.cust],["cash","🟣 等出納",cnt.cash],["done","🟢 已成交",cnt.done]];
+  var pe=document.getElementById("casePills");
+  if(pe) pe.innerHTML=pills.map(function(p){ return '<button class="'+(p[0]===pf?"on":"")+'" onclick="setCasePill(\''+p[0]+'\')">'+p[1]+'<span class="pn">'+p[2]+'</span></button>'; }).join("");
+  var items=allItems.filter(function(it){
     if(q){ var hay=((it.cust||"")+" "+(it.vin||"")+" "+(it.car||"")).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+    if(pf!=="all" && caseWho(it).f!==pf) return false;
     if(fk!=="all" && caseStageKey(it)!==fk) return false;
     return true;
   });
@@ -6644,9 +6733,11 @@ function renderCases(){
       money='報價 NT$'+((c.quoteTotal||0).toLocaleString("en-US"));
       if(c.dealStatus==="deal_won"&&c.dealPrice) money+=' ・ 成交 NT$'+((+c.dealPrice).toLocaleString("en-US"));
     }
+    var who=caseWho(it);
     return '<div class="case-card">'
-      +'<div class="cc-top"><div><div class="cc-cust">'+it.cust+'</div><div class="cc-sub">'+(it.car||"—")+(it.vin?(" · 車身碼 "+it.vin):"")+" · "+fmtDT(it.updatedAt||it.ts)+'</div></div><span class="case-badge '+caseBadgeCls(it)+'">'+caseStatusText(it)+'</span></div>'
+      +'<div class="cc-top"><div><div class="cc-cust">'+it.cust+'</div><div class="cc-sub">'+(it.car||"—")+(it.vin?(" · 車身碼 "+it.vin):"")+" · "+fmtDT(it.updatedAt||it.ts)+'</div></div><span class="who-tag '+who.c+'">'+who.t+'</span></div>'
       +(money?'<div class="case-money">'+money+'</div>':'')
+      +caseProgressHTML(it)
       +'<div class="case-actions">'+caseButtonsHTML(it)+'</div>'
       +'</div>';
   }).join("");
