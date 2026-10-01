@@ -4466,7 +4466,7 @@ function pickYear(y){
 }
 /* 客戶端(VIP) Sunlight 只顯示這 11 台（T 系列 7 + CLIFF 4）；業務/管理端不受限、看全部 */
 const CUST_SUNLIGHT_WL = new Set(["t58c26","t66sc26","t67sc26","t58a26","t66sa26","t67sa26","t67a26","cliff540","cliff600","cliff601",
-  "cliff600x27","cliff602x27","cliff640x27",   /* MY27 Cliff X（2026-09-04 新增；要對客戶隱藏可在管理後台按隱藏） */
+  /* MY27 Cliff X 600/602/640（2026-10-01 darren：先隱藏，客戶看不到；業務按「顯示隱藏車款」仍看得到，要放出來就加回這裡或在管理後台按顯示） */
   "cliff54027","cliff60027","cliff60127"]);   /* MY27 標準 Cliff 540/600/601（2026-09-16 新增） */
 /* 客戶端(VIP) Crosscamp 只顯示 ELMNT 5.41（2026-09-16）；5.4 DS / 6.0 DS / 6.4 ES 先隱藏，業務/管理端按「顯示隱藏車款」仍看得到 */
 const CUST_CROSSCAMP_WL = new Set(["cc541"]);
