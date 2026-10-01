@@ -1699,7 +1699,9 @@ const PRICE_CFG_DEFAULT={
   "cliff640x27":{bc:2,oc:2.4,tw:400000},
   "cliff54027":{bc:2,oc:2.4,tw:400000},
   "cliff60027":{bc:2,oc:2.4,tw:400000},
-  "cliff60127":{bc:2,oc:2.4,tw:400000}
+  "cliff60127":{bc:2,oc:2.4,tw:400000},
+  /* MY27 T 系列 Citroën：沿用 MY26 T 的總價加權 220000（車身/配備係數沿用全域預設） */
+  "t58c27":{tw:220000},"t66sc27":{tw:220000},"t67c27":{tw:220000},"t68c27":{tw:220000}
 };
 function getPriceCfg(id){
   if(!id) return {};
@@ -2946,7 +2948,7 @@ function cliffStdPeu(){
       "人體工學廚房含寬敞檯面 Ergonomically arranged kitchen with spacious work top","廚櫃大抽屜（緩衝關閉）Large drawer with soft-close in the kitchen unit","彈性掛桿系統含兩掛勾 Flexible railing system with two hooks","雙口瓦斯爐（電子點火、玻璃蓋）2-burner hob with electrical ignition and glass lid","爐後檯面 Worktop behind cooker","清水箱 100L / 廢水箱 90L Water tank 100 l / waste water tank 90 l","壓縮機冰箱 84L Compressor fridge 84 l","LED 燈管 LED light tube"
     ]],
     ["浴室 Bathroom",[ "固定洗手台 Fixed washbasin","寬敞置物區 Spacious storage area","卡匣式馬桶 C223 Cassette toilet C 223","嵌入式 LED 聚光燈 Recessed LED spotlights","天窗含紗窗 Roof light with fly screen" ]],
-    ["布材 Soft furnishing",[ "Sandbar" ]],
+    ["布材 Soft furnishing",[ "標準布材花色 Sandbar" ]],
   ];
 }
 function cliffCatsPeu(model){
@@ -3083,7 +3085,7 @@ function tStdCit(code){
       bathRail && "彈性掛桿系統含兩掛勾 Flexible railing",
       "淋浴間內襯 Shower cubicle lining"
     ])],
-    ["布材 Soft furnishing",[ "Sandbar" ]],
+    ["布材 Soft furnishing",[ "標準布材花色 Sandbar" ]],
   ];
 }
 function tCatsCit(code){
@@ -3226,7 +3228,7 @@ function tStdCit25(code){
       bathRail && "彈性掛桿系統含兩掛勾 Flexible railing",
       "淋浴間內襯"
     ])],
-    ["布材 Soft furnishing",[ "Sandbar" ]],
+    ["布材 Soft furnishing",[ "標準布材花色 Sandbar" ]],
   ];
 }
 function tCatsCit25(code){
@@ -3486,7 +3488,65 @@ const T_T68CA26=mkT("t68ca26","T68C Adventure","Fiat Ducato · Adventure","Adven
 const T_T69LCA26=mkT("t69lca26","T69LC Adventure","Fiat Ducato · Adventure","Adventure · Fiat Ducato",51191,50936.87,"26",tCats("T69LC"));
 const T_CARS_25=[T_T58C25,T_T67SC25,T_T67C25,T_T68C25,T_T68CC25,T_T69LCC25,T_T58A25,T_T67SA25,T_T67A25,T_T68A25,T_T68CA25,T_T69LCA25,T_T68J25];
 const T_CARS_26=[T_T58C26,T_T66SC26,T_T67SC26,T_T67C26,T_T68C26,T_T68CC26,T_T69LCC26,T_T58A26,T_T66SA26,T_T67SA26,T_T67A26,T_T68A26,T_T68CA26,T_T69LCA26];
-const T_CARS=T_CARS_25.concat(T_CARS_26);
+
+/* ===== T 系列 Citroën MY27（半整合式 · Citroën Jumper · 2.2 BlueHDi）=====
+   2026-10-01 由「Ｔ系列_Citroën_MY27.xlsx」＋「底價 MY27.pdf」匯入。T58/T66S/T67/T68 四款。
+   底價與 MY26 Citroën 完全相同；差在：Safety 全套變標配、新增 ACC 套件/7吋影音/彩繪前保桿套件/104Ah 鋰電池、
+   遮陽篷 4m/4.5m 改價、Pack One/All-In-One 取消、T58 臥鋪數 2-4（MY26 為 4）。 */
+function tCatsCit27(code){
+  var base=tCatsCit(code);
+  var newAwn = code==="T58"?802.35 : code==="T66S"?938.42 : 1086.32;   // MY27 遮陽篷改價（4m 938.42 / 4.5m 1086.32；T58 3.5m 不變）
+  var drop=["Safety Pack","安全包 + ACC","Pack One","Pack All-In-One"];
+  var ACC=["主動車距巡航 Adaptive Cruise Control >30 km/h","雨滴 / 光線感應器 Rain and light sensor"];
+  var INFO7=["7吋收音機（含 Apple CarPlay / Android Auto）7\" radio incl. Apple CarPlay / Android Auto","倒車攝影機（動態輔助線）Rear view camera with dynamic grid lines"];
+  var BUMPER=["車色前保桿 Body-colour front bumper","黑色底盤護板 Skid Plate","霧燈 Fog lights"];
+  return base.map(function(gp){
+    var g=gp[0], items=gp[1];
+    if(g.indexOf("電力")===0){
+      return [g, items.concat([
+        ["鋰電池 104Ah（取代 AGM 95Ah）Lithium battery 104 Ah instead of AGM 95 Ah",{STD:738.76},-15],
+        ["第二顆 104Ah 鋰電池 Additional 104 Ah lithium battery",{STD:960.61},10.5]
+      ])];
+    }
+    if(g.indexOf("套件")===0){
+      var kept=items.filter(function(o){ return !drop.some(function(d){ return o[0].indexOf(d)>=0; }); });
+      kept=kept.map(function(o){ return (o[0].indexOf("露營遮陽篷")===0) ? [o[0],{STD:newAwn},o[2]] : o; });
+      return [g, kept.concat([
+        ["彩繪前保桿套件 Package painted front bumper",{STD:398.59},2,BUMPER],
+        ["ACC 套件 ACC Pack",{STD:516.91},0,ACC],
+        ["7吋影音套件 7\" Infotainment package",{STD:664.81},0,INFO7]
+      ])];
+    }
+    return gp;
+  });
+}
+function tStdCit27(code){
+  var addSafety=[
+    "胎壓偵測 Tyre pressure indicator",
+    "倒車雷達監測 Reverse Monitoring (Radar)",
+    "煞車輔助（含行人偵測）Full Brake Control with Pedestrian Detection",
+    "駕駛疲勞偵測 Driver Drowsiness Detection",
+    "智慧速度輔助 Intelligent Speed Assist",
+    "車道維持輔助 Lane Control",
+    "交通標誌辨識 Traffic sign recognition"
+  ];
+  return tStdCit(code).map(function(gp){
+    return (gp[0].indexOf("基礎車輛")===0) ? [gp[0], gp[1].concat(addSafety)] : gp;
+  });
+}
+function tTechCit27(code){
+  return tTechCit(code).map(function(r){
+    return (r[0].indexOf("臥鋪")===0 && code==="T58") ? [r[0],"2 – 4 選配"] : r;
+  });
+}
+const T_T58C27 =mkT("t58c27","T58","Citroën · 半整合式 · MY27","Citroën 底盤",43070,42816.07,"27",tCatsCit27("T58"));
+const T_T66SC27=mkT("t66sc27","T66S","Citroën · 半整合式 · MY27","Citroën 底盤",44993,44738.76,"27",tCatsCit27("T66S"));
+const T_T67C27 =mkT("t67c27","T67","Citroën · 半整合式 · MY27","Citroën 底盤",46546,46291.70,"27",tCatsCit27("T67"));
+const T_T68C27 =mkT("t68c27","T68","Citroën · 半整合式 · MY27","Citroën 底盤",46546,46291.70,"27",tCatsCit27("T68"));
+/* tech / included 由後面的 T 系列統一迴圈接（已加 MY27 Citroën 分支），這裡不重複設定 */
+const T_CARS_27=[T_T58C27,T_T66SC27,T_T67C27,T_T68C27];
+
+const T_CARS=T_CARS_25.concat(T_CARS_26).concat(T_CARS_27);
 // T 系列 MY26 Footnotes（依配備表 1)–5)）
 const T_FOOTNOTES=[
   {t:"行駛前請確認清水箱容量不超過 20 公升。 Before driving, please ensure that the fresh water tank does not contain more than 20 l."},
@@ -3855,6 +3915,7 @@ const T_TECH_CODES=["T58","T66S","T67S","T67","T68","T68C","T69LC"];
 CARS.forEach(c=>{ if(c.line==="t" && c.cats && c.cats.length){ const code=(c.name.split(" ")[0]||"").trim(); if(T_TECH_CODES.includes(code)){
   const isCit = c.name.replace(code,"").trim()===""; // Citroën：車名即代碼、無 Adventure/20 Jahre
   if(isCit && c.my==="25"){ c.cit=true; c.cit25=true; c.tech=tTechCit25(code); c.included={STD:tStdCit25(code)}; }
+  else if(isCit && c.my==="27"){ c.cit=true; c.tech=tTechCit27(code); c.included={STD:tStdCit27(code)}; }   /* MY27 Citroën（2026-10-01） */
   else if(isCit && c.my==="26"){ c.cit=true; c.tech=tTechCit(code); c.included={STD:tStdCit(code)}; }
   else if(!isCit && c.my==="25"){ c.fiat25=true; c.tech=tTech25(code); c.included={STD:tStd25(code)}; }
   else { c.tech=tTech(code); c.included={STD:tStd(code)}; }
@@ -4467,7 +4528,8 @@ function pickYear(y){
 /* 客戶端(VIP) Sunlight 只顯示這 11 台（T 系列 7 + CLIFF 4）；業務/管理端不受限、看全部 */
 const CUST_SUNLIGHT_WL = new Set(["t58c26","t66sc26","t67sc26","t58a26","t66sa26","t67sa26","t67a26","cliff540","cliff600","cliff601",
   /* MY27 Cliff X 600/602/640（2026-10-01 darren：先隱藏，客戶看不到；業務按「顯示隱藏車款」仍看得到，要放出來就加回這裡或在管理後台按顯示） */
-  "cliff54027","cliff60027","cliff60127"]);   /* MY27 標準 Cliff 540/600/601（2026-09-16 新增） */
+  "cliff54027","cliff60027","cliff60127",   /* MY27 標準 Cliff 540/600/601（2026-09-16 新增） */
+  "t58c27"]);   /* MY27 T 系列 Citroën：只放 T58 給客戶看；T66S/T67/T68 隱藏（2026-10-01 darren，業務按「顯示隱藏車款」仍看得到） */
 /* 客戶端(VIP) Crosscamp 只顯示 ELMNT 5.41（2026-09-16）；5.4 DS / 6.0 DS / 6.4 ES 先隱藏，業務/管理端按「顯示隱藏車款」仍看得到 */
 const CUST_CROSSCAMP_WL = new Set(["cc541"]);
 /* 客戶端(VIP) ERIBA 只顯示 Touring 430 / 530（2026-09-16）；其餘 16 台先隱藏，Feeling / Novaline 兩個系列頁籤對客戶自動不顯示 */
