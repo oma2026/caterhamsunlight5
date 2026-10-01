@@ -2821,10 +2821,10 @@ function cliffCats27(model){
   return [
     ["底盤 & 動力 Base vehicle / Engine",[
       ["8速自排 140hp 8-speed automatic",{STD:S},60],
-      ["8速自排 180hp 8-speed automatic",{STD:4768.27},60],
+      ["8速自排 180hp 8-speed automatic",{STD:2402.62},0],
       ["Maxi 底盤 140hp 6速手排 Maxi Chassis 3.5t 140 BHP 6-speed manual",{STD:is540?"na":295.06},40],
-      ["Maxi 底盤 140hp 8速自排 Maxi Chassis 3.5t 140 BHP 8-speed automatic",{STD:is540?"na":2660.71},60],
-      ["Maxi 底盤 180hp 8速自排 Maxi Chassis 3.5t 180 BHP 8-speed automatic",{STD:is540?"na":5064.07},60],
+      ["Maxi 底盤 140hp 8速自排 Maxi Chassis 3.5t 140 BHP 8-speed automatic",{STD:is540?"na":295.06},0],
+      ["Maxi 底盤 180hp 8速自排 Maxi Chassis 3.5t 180 BHP 8-speed automatic",{STD:is540?"na":2698.42},0],
       ["全 LED 頭燈（含 LED 日行燈、動態方向燈）Full LED headlamps incl. wiping indicators and LED daytime running lights",{STD:812.71},0],
       ["胎壓偵測 Tyre pressure indicator",{STD:S},0.8],
       ["拖車電路預接 Electrical preparation for trailer coupling",{STD:S},0],
@@ -4850,6 +4850,12 @@ function ssDecalImg(cname,oname){
   return `<img src="${DECAL_IMG[k]}" alt="" style="height:36px;border-radius:6px;margin-right:8px;vertical-align:middle;flex:0 0 auto">`;
 }
 function renderOptions(){
+  // MY26 選配僅限管理後台（老闆）檢視；業務／客戶隱藏（2026-10-01 darren）。車款、車價、標配照常顯示。
+  if(cur && (cur.my==="26"||cur.my==="both") && role!=="admin"){
+    optWrap.innerHTML='<div class="empty" style="padding:26px;color:#8a857c;line-height:1.7">此年式（MY26）的選配僅限管理後台檢視。<br>如需為客戶報價，請改選 <b>MY27</b> 車款。</div>';
+    optHint.textContent="";
+    return;
+  }
   let html=""; let total=0;
   cur.cats.forEach((cat,ci)=>{
     const [cname,opts]=cat;
