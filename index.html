@@ -3546,16 +3546,20 @@ function tStdCit27(code){
 function tTechCit27(code){
   var massRun={T58:"2717（2581–2853）",T66S:"2811（2670–2952）",T67:"2869（2726–3012）",T68:"2911（2765–3057）"}[code]||"△ 依公告";
   var massOpt={T58:"438",T66S:"328",T67:"274",T68:"225"}[code]||"△ 依公告";
+  var midBed={T58:"—",T66S:"210 x 58 選配",T67:"210 x 100 選配",T68:"210 x 65 選配"}[code]||"—";
   var rearBed={T58:"200 x 135 – 115",T66S:"200 x 80 / 190 x 80 / 210 x 162 選配",T67:"205 x 80 / 210 x 80 / 210 x 168 選配",T68:"210 x 80 / 215 x 80 / 210 x 168 選配"}[code]||"—";
   var locker={T58:"65 x 65",T66S:"95 x 110 / 75 x 80 選配",T67:"95 x 110 / 75 x 80 選配",T68:"95 x 110 / 75 x 80 選配"}[code]||"—";
+  var fridge={T58:"78 (11)",T66S:"137 (15)",T67:"78 (11) · 156 (29) 選配",T68:"78 (11) · 156 (29) 選配"}[code];   // T66S 原廠 137（之前誤打 135）
   var out=tTechCit(code).map(function(r){
     if(r[0].indexOf("臥鋪")===0 && code==="T58") return [r[0],"2 – 4 選配"];
     if(r[0].indexOf("行駛整備重量")===0) return [r[0], massRun];
     if(r[0].indexOf("選配可用重量")===0) return [r[0], massOpt];
+    if(r[0].indexOf("冰箱容積")===0 && fridge) return [r[0], fridge];
     return r;
   });
   var extra=[
     ["車頂床 / 下拉床尺寸 Overcab / pull-down bed (cm)","195 x 140 – 110 選配"],
+    ["中央床尺寸 Central / middle bed (cm)",midBed],
     ["後床尺寸 Rear bed (cm)",rearBed],
     ["置物櫃內徑 右/左 Storage locker inner W×H (cm)",locker]
   ];
