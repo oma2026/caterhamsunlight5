@@ -3496,12 +3496,19 @@ const T_CARS_26=[T_T58C26,T_T66SC26,T_T67SC26,T_T67C26,T_T68C26,T_T68CC26,T_T69L
 function tCatsCit27(code){
   var base=tCatsCit(code);
   var newAwn = code==="T58"?802.35 : code==="T66S"?938.42 : 1086.32;   // MY27 遮陽篷改價（4m 938.42 / 4.5m 1086.32；T58 3.5m 不變）
-  var drop=["Safety Pack","安全包 + ACC","Pack One","Pack All-In-One"];
+  var drop=["Safety Pack","安全包 + ACC"];   /* MY27 只有 Safety Pack／Safety+ACC 變標配被拿掉；Pack One／All-In-One 仍在（對照 MY27 Excel） */
   var ACC=["主動車距巡航 Adaptive Cruise Control >30 km/h","雨滴 / 光線感應器 Rain and light sensor"];
   var INFO7=["7吋收音機（含 Apple CarPlay / Android Auto）7\" radio incl. Apple CarPlay / Android Auto","倒車攝影機（動態輔助線）Rear view camera with dynamic grid lines"];
   var BUMPER=["車色前保桿 Body-colour front bumper","黑色底盤護板 Skid Plate","霧燈 Fog lights"];
+  var TVPACK=["22吋智慧電視 & 電視架 22\" Smart TV & holder","Teleco Flatsat 自動衛星 Teleco Flatsat"];
+  var LTEPACK=["22吋智慧電視 & 電視架 22\" Smart TV & holder","WiFi","LTE 天線 LTE antenna"];
   return base.map(function(gp){
     var g=gp[0], items=gp[1];
+    if(g.indexOf("底盤")===0){   /* 新增：車重提升 3.65t */
+      return [g, items.concat([
+        ["車重提升至 3.65 噸（不需改底盤）Weight increase to 3.65 t (no chassis modification)",{STD:184.13},0]
+      ])];
+    }
     if(g.indexOf("電力")===0){
       return [g, items.concat([
         ["鋰電池 104Ah（取代 AGM 95Ah）Lithium battery 104 Ah instead of AGM 95 Ah",{STD:738.76},-15],
@@ -3514,7 +3521,9 @@ function tCatsCit27(code){
       return [g, kept.concat([
         ["彩繪前保桿套件 Package painted front bumper",{STD:398.59},2,BUMPER],
         ["ACC 套件 ACC Pack",{STD:516.91},0,ACC],
-        ["7吋影音套件 7\" Infotainment package",{STD:664.81},0,INFO7]
+        ["7吋影音套件 7\" Infotainment package",{STD:664.81},0,INFO7],
+        ["TV Pack（22吋智慧電視 + Teleco Flatsat 自動衛星）TV Pack",{STD:2217.75},0,TVPACK],
+        ["LTE Pack（22吋智慧電視 + WiFi + LTE 天線）LTE Pack",{STD:1300.77},0,LTEPACK]
       ])];
     }
     return gp;
@@ -3535,9 +3544,24 @@ function tStdCit27(code){
   });
 }
 function tTechCit27(code){
-  return tTechCit(code).map(function(r){
-    return (r[0].indexOf("臥鋪")===0 && code==="T58") ? [r[0],"2 – 4 選配"] : r;
+  var massRun={T58:"2717（2581–2853）",T66S:"2811（2670–2952）",T67:"2869（2726–3012）",T68:"2911（2765–3057）"}[code]||"△ 依公告";
+  var massOpt={T58:"438",T66S:"328",T67:"274",T68:"225"}[code]||"△ 依公告";
+  var rearBed={T58:"200 x 135 – 115",T66S:"200 x 80 / 190 x 80 / 210 x 162 選配",T67:"205 x 80 / 210 x 80 / 210 x 168 選配",T68:"210 x 80 / 215 x 80 / 210 x 168 選配"}[code]||"—";
+  var locker={T58:"65 x 65",T66S:"95 x 110 / 75 x 80 選配",T67:"95 x 110 / 75 x 80 選配",T68:"95 x 110 / 75 x 80 選配"}[code]||"—";
+  var out=tTechCit(code).map(function(r){
+    if(r[0].indexOf("臥鋪")===0 && code==="T58") return [r[0],"2 – 4 選配"];
+    if(r[0].indexOf("行駛整備重量")===0) return [r[0], massRun];
+    if(r[0].indexOf("選配可用重量")===0) return [r[0], massOpt];
+    return r;
   });
+  var extra=[
+    ["車頂床 / 下拉床尺寸 Overcab / pull-down bed (cm)","195 x 140 – 110 選配"],
+    ["後床尺寸 Rear bed (cm)",rearBed],
+    ["置物櫃內徑 右/左 Storage locker inner W×H (cm)",locker]
+  ];
+  var idx=-1; for(var i=0;i<out.length;i++){ if(out[i][0].indexOf("軸距")===0){ idx=i; break; } }
+  if(idx>=0) Array.prototype.splice.apply(out,[idx+1,0].concat(extra)); else out=out.concat(extra);
+  return out;
 }
 const T_T58C27 =mkT("t58c27","T58","Citroën · 半整合式 · MY27","Citroën 底盤",43070,42816.07,"27",tCatsCit27("T58"));
 const T_T66SC27=mkT("t66sc27","T66S","Citroën · 半整合式 · MY27","Citroën 底盤",44993,44738.76,"27",tCatsCit27("T66S"));
