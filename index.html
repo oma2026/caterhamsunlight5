@@ -3493,41 +3493,87 @@ const T_CARS_26=[T_T58C26,T_T66SC26,T_T67SC26,T_T67C26,T_T68C26,T_T68CC26,T_T69L
    2026-10-01 由「Ｔ系列_Citroën_MY27.xlsx」＋「底價 MY27.pdf」匯入。T58/T66S/T67/T68 四款。
    底價與 MY26 Citroën 完全相同；差在：Safety 全套變標配、新增 ACC 套件/7吋影音/彩繪前保桿套件/104Ah 鋰電池、
    遮陽篷 4m/4.5m 改價、Pack One/All-In-One 取消、T58 臥鋪數 2-4（MY26 為 4）。 */
+/* T 系列 Citroën MY27 選配：英文一律照原廠 Excel「Optional extras」原文逐字（2026-10-01 darren），中文為對照翻譯。
+   遮陽篷 / Pack One / All-In-One 的尺寸與價格依車款（T58=3.5m、T66S=4m、T67/T68=4.5m）。 */
 function tCatsCit27(code){
-  var base=tCatsCit(code);
-  var newAwn = code==="T58"?802.35 : code==="T66S"?938.42 : 1086.32;   // MY27 遮陽篷改價（4m 938.42 / 4.5m 1086.32；T58 3.5m 不變）
-  var drop=["Safety Pack","安全包 + ACC"];   /* MY27 只有 Safety Pack／Safety+ACC 變標配被拿掉；Pack One／All-In-One 仍在（對照 MY27 Excel） */
-  var ACC=["主動車距巡航 Adaptive Cruise Control >30 km/h","雨滴 / 光線感應器 Rain and light sensor"];
-  var INFO7=["7吋收音機（含 Apple CarPlay / Android Auto）7\" radio incl. Apple CarPlay / Android Auto","倒車攝影機（動態輔助線）Rear view camera with dynamic grid lines"];
+  var A="all";
+  function ok(av){ return av===A || av.indexOf(code)>=0; }
+  var size = code==="T58"?"3.5m" : code==="T66S"?"4m" : "4.5m";
+  var awnP = code==="T58"?802.35 : code==="T66S"?938.42 : 1086.32;
+  var awnW = code==="T58"?28.7 : code==="T66S"?30 : 34;
+  var p1P  = code==="T58"?1112.94 : code==="T66S"?1194.29 : 1283.03;
+  var p1W  = code==="T58"?38.7 : code==="T66S"?40 : 44;
+  var aioP = code==="T58"?3227.9 : code==="T66S"?3309.24 : 3390.59;
+  var aioW = code==="T58"?55.7 : code==="T66S"?57 : 61;
+  var p1En  = code==="T58"?"Pack One Black (Awning 3.5m, bike rack for 3 bikes)" : code==="T66S"?"Paket One Black (Awning 4m, bike rack for 3 bikes)" : "Pack One Black (Awning 4.5m, bike rack for 3 bikes)";
+  var aioEn = code==="T58"?"Pack All-In-One Black (Awning 3.5m , bike rack for 3 bikes, 22\" Smart TV + holder, Teleco Flatsat Classic 65)" : "Package All-In-One Black (Awning "+size+" , bike rack for 3 bikes, 22\" Smart TV + holder, Teleco Flatsat Classic 65)";
   var BUMPER=["車色前保桿 Body-colour front bumper","黑色底盤護板 Skid Plate","霧燈 Fog lights"];
-  var TVPACK=["22吋智慧電視 & 電視架 22\" Smart TV & holder","Teleco Flatsat 自動衛星 Teleco Flatsat"];
-  var LTEPACK=["22吋智慧電視 & 電視架 22\" Smart TV & holder","WiFi","LTE 天線 LTE antenna"];
-  return base.map(function(gp){
-    var g=gp[0], items=gp[1];
-    if(g.indexOf("底盤")===0){   /* 新增：車重提升 3.65t */
-      return [g, items.concat([
-        ["車重提升至 3.65 噸（不需改底盤）Weight increase to 3.65 t (no chassis modification)",{STD:184.13},0]
-      ])];
-    }
-    if(g.indexOf("電力")===0){
-      return [g, items.concat([
-        ["鋰電池 104Ah（取代 AGM 95Ah）Lithium battery 104 Ah instead of AGM 95 Ah",{STD:738.76},-15],
-        ["第二顆 104Ah 鋰電池 Additional 104 Ah lithium battery",{STD:960.61},10.5]
-      ])];
-    }
-    if(g.indexOf("套件")===0){
-      var kept=items.filter(function(o){ return !drop.some(function(d){ return o[0].indexOf(d)>=0; }); });
-      kept=kept.map(function(o){ return (o[0].indexOf("露營遮陽篷")===0) ? [o[0],{STD:newAwn},o[2]] : o; });
-      return [g, kept.concat([
-        ["彩繪前保桿套件 Package painted front bumper",{STD:398.59},2,BUMPER],
-        ["ACC 套件 ACC Pack",{STD:516.91},0,ACC],
-        ["7吋影音套件 7\" Infotainment package",{STD:664.81},0,INFO7],
-        ["TV Pack（22吋智慧電視 + Teleco Flatsat 自動衛星）TV Pack",{STD:2217.75},0,TVPACK],
-        ["LTE Pack（22吋智慧電視 + WiFi + LTE 天線）LTE Pack",{STD:1300.77},0,LTEPACK]
-      ])];
-    }
-    return gp;
-  });
+  var ALLOY=["真皮方向盤 & 排檔頭 Leather steering wheel and gear knob","銀色出風口飾件 Techno-Trim","16吋 雙色鋁圈 16\" two-colour alloy wheels"];
+  var BASIC=["Bridge Light","舒適入口門含車窗 Comfort entrance door with window","一體式紗門 Integrated flyscreen door","全景天窗 70×50 cm Panoramic roof light 70 × 50 cm","透明天窗 40×40 cm Clear roof light 40 × 40 cm"];
+  var ACC=["主動車距巡航 Adaptive Cruise Control >30 km/h","雨滴 / 光線感應器 Rain and light sensor"];
+  var INFO7=["7吋收音機（含 Apple CarPlay / Android Auto）","倒車攝影機（動態輔助線）"];
+  var TVPACK=["22吋智慧電視 & 電視架 22\" Smart TV & holder","Teleco Flatsat Classic 65 自動衛星"];
+  var LTEPACK=["22吋智慧電視 & 電視架 22\" Smart TV & holder","WiFi","LTE 天線含路由器 LTE antenna incl. router"];
+  var BIKE3="自行車架（可載 3 部）bike rack for 3 bikes";
+  var DATA=[
+    ["底盤 & 動力 Base vehicle / Engine",[
+      ["8速自排變速箱","Citroën Jumper 3.500 kg | 2.2 | 103 kW | 140 BHP Euro 6 | 8-speed automatic gearbox3)",2365.65,60,A],
+      ["電子手煞車","Electric Park Brake",450.35,-9.4,A],
+      ["90 公升油箱","90l fuel tank",S,23,A],
+      ["車重提升至 3.65 噸（不需改底盤）","Weight increase to 3,65 t (no chassis modification)*",184.13,0,A]
+    ]],
+    ["車體改裝 Conversion",[
+      ["隔熱廢水箱","Insulated waste water tank",132.37,8,A],
+      ["第二外部置物門（尺寸依車型）","2nd external storage door (size depends on layout)",295.06,3,["T66S","T67","T68"]],
+      ["駕駛艙天窗","Cab sunroof",369.01,7,A]
+    ]],
+    ["舒適 Comfort",[
+      ["單人床轉雙人床","Bed conversion single to double bed",258.08,5,["T66S","T67","T68"]],
+      ["座位區轉換床","Bed conversion for seating area",258.08,5,["T66S","T67","T68"]],
+      ["下拉床","Pull-down bed with Clima-Plux elements",1182.45,44,A],
+      ["側長椅第 5 座位（含安全帶）","5th seat on side bench with seat belt*4)",425.21,15,["T66S","T67","T68"]],
+      ["浴室木地板隔扇","Wooden duckboard for the shower tray",65.82,2,A]
+    ]],
+    ["電力 Installations",[
+      ["12V 電視預接線 + 平板電視架","12V TV pre-cabling incl. flat screen holder",161.95,3,A],
+      ["行動網路（WiFi/LTE 天線含路由器）","Mobile internet (WiFi / LTE antenna incl. Router)",738.76,1.4,A],
+      ["倒車顯影預接線","Pre-cabling reversing camera",124.97,1,A],
+      ["太陽能預接線","Pre-cabling solar system",124.97,2,A],
+      ["太陽能板 100W（含 MPPT 控制器）","Solar system 100 Watt incl. MPPT controller5)",516.91,7.3,A],
+      ["鋰電池 104Ah（取代 AGM 95Ah）","Lithium battery 104 Ah instead of AGM 95 Ah",738.76,-15,A],
+      ["第二顆 104Ah 鋰電池","Additional 104 Ah lithium battery",960.61,10.5,A]
+    ]],
+    ["暖氣 / 瓦斯 Heating",[
+      ["Caramatic SafeDrive PLUS（雙鋼瓶系統，含瓦斯壓力調節器與撞擊感測器）","Caramatic SafeDrive PLUS (two-bottle system with gas pressure regulator and crash sensor)",221.11,3.5,A]
+    ]],
+    ["廚房 Kitchen",[
+      ["大型冰箱 156L（含獨立冷凍 29L）","Large 156 l fridge with separate 29 l freezer compartment",553.88,13,["T67","T68"]]
+    ]],
+    ["布材 Soft furnishing（選色）",[
+      ["Performance Grey 性能灰","Performance Grey",161.95,0,A],
+      ["Green Trail 綠色小徑","Green Trail",161.95,0,A]
+    ]],
+    ["套件 Packs",[
+      ["Basic Pack 基本套件","Basic Pack",783.13,14.3,A,BASIC],
+      ["彩繪前保桿套件","Package painted front bumper",398.59,3,A,BUMPER],
+      ["雙色鋁圈套件","Two-colour alloy wheels Pack",886.66,8,A,ALLOY],
+      ["ACC 套件","ACC Pack6)",516.91,2.5,A,ACC],
+      ["7吋影音套件","7\" Infotainment package7) 8)",664.81,4,A,INFO7],
+      ["露營遮陽篷 "+size+"（黑）","Awning - "+size+" (black)",awnP,awnW,A],
+      ["Pack One Black（遮陽篷 "+size+" + "+BIKE3+"）",p1En,p1P,p1W,A],
+      ["Pack All-In-One Black（遮陽篷 "+size+" + 自行車架 + 22吋智慧電視 + Teleco Flatsat）",aioEn,aioP,aioW,A],
+      ["TV Pack（22吋智慧電視 + Teleco Flatsat Classic 65）","TV Pack (22\" Smart TV & holder | Teleco Flatsat Classic 65)",2217.75,17,A,TVPACK],
+      ["LTE Pack（22吋智慧電視 + WiFi + LTE 天線含路由器）","LTE Pack (22\" Smart TV & holder| WiFi | LTE antenna incl. router)",1300.77,7.4,A,LTEPACK]
+    ]]
+  ];
+  return DATA.map(function(g){
+    var items=g[1].filter(function(it){ return ok(it[4]); }).map(function(it){
+      var row=[it[0]+" "+it[1], {STD:it[2]}, it[3]];
+      if(it[5]) row.push(it[5]);
+      return row;
+    });
+    return [g[0], items];
+  }).filter(function(g){ return g[1].length; });
 }
 /* T 系列 Citroën MY27 標配：英文一律照原廠 Excel「Standaard specificatie」原文逐字（2026-10-01 darren 要求），中文為對照翻譯。
    每一項 [中文, 原廠英文, 適用車款]；適用為 "all" 或車款陣列。 */
