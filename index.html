@@ -2783,9 +2783,30 @@ function cliffStd27(model){
     "車道維持輔助 Lane control",
     "交通標誌辨識 Traffic sign recognition"
   ];
-  return cliffStd(model).map(function(gp){
+  var out = cliffStd(model).map(function(gp){
     return (gp[0].indexOf("基礎車輛")===0) ? [gp[0], gp[1].concat(addSafety)] : gp;
   });
+  /* MY27 更正：540 的「彈性掛桿系統含兩掛勾」原廠 MY27 是廚房標配（MY26 的刪除規則對 MY27 的 540 不適用，故補回） */
+  if(model==="540"){
+    var rail="彈性掛桿系統含兩掛勾 Flexible railing system with two hooks";
+    out = out.map(function(gp){
+      if(gp[0].indexOf("廚房")===0 && gp[1].indexOf(rail)<0){
+        var arr=gp[1].slice();
+        var idx=arr.findIndex(function(x){return x.indexOf("廚櫃大抽屜")===0;});
+        if(idx>=0) arr.splice(idx+1,0,rail); else arr.push(rail);
+        return [gp[0], arr];
+      }
+      return gp;
+    });
+  }
+  /* MY27 更正（2026-10-01 darren 決定）：這三項沿用 MY26，MY27 原廠 Excel 已不列為標配 → 對齊 MY27 拿掉。 */
+  var dropMy26=[
+    "左側行進方向後掀窗（含遮光簾 + 紗窗）Rear hinged window on left side with blind and fly screen",
+    "起居區 40×40cm 天窗（含紗窗 + 遮光簾）Roof light 40×40 cm over living area with fly screen and blinds",
+    "半餐廳區含整合置物櫃 Half dinette with integrated storage compartment"
+  ];
+  out = out.map(function(gp){ return [gp[0], gp[1].filter(function(x){ return dropMy26.indexOf(x)<0; })]; });
+  return out;
 }
 function cliffCats27(model){
   const is540=model==="540", is601=model==="601";
