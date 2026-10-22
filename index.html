@@ -4625,6 +4625,17 @@ function updateSummaryActions(){
   if(done){ done.style.display=caseMode?"":"none"; done.textContent = editingCaseRef ? "✓ 完成（回案件）" : "✓ 建立案件"; }
 }
 
+function _staffHandoff(){   // VIP 頁帶來的員工帳密 → 自動填入並送出登入
+  try{
+    var raw=sessionStorage.getItem("oma_staff_handoff"); if(!raw) return;
+    sessionStorage.removeItem("oma_staff_handoff");
+    var h=JSON.parse(raw); if(!h||!h.name) return;
+    if(h.ts && (Date.now()-h.ts>120000)) return;   // 逾 2 分鐘作廢
+    var u=document.getElementById("loginUser"), p=document.getElementById("loginPass");
+    if(u) u.value=h.name; if(p) p.value=h.pw||"";
+    setTimeout(function(){ if(typeof doLogin==="function") doLogin(); }, 150);
+  }catch(e){}
+}
 function init(){
   seedXGroupsIfEmpty();
   migrateAccounts();
@@ -4642,7 +4653,7 @@ function init(){
   renderSaved();
   updateUserBadge();
   if(readVipHandoff()){ showVipLoading(); if(!tryVipHandoff()) scheduleVipHandoff(); }   // 從 VIP 入口頁帶進來 → 自動登入
-  else if(location.hash.toLowerCase().indexOf("staff")>=0){ openLogin(); }   // 從 VIP 頁選「員工」帶進來 → 直接開員工登入，不再選一次
+  else if(location.hash.toLowerCase().indexOf("staff")>=0){ openLogin(); _staffHandoff(); }   // 從 VIP 頁選「員工」帶進來 → 直接開員工登入；若帶了帳密就自動登入
   else openRoleGate();
 }
 function renderBrands(){
