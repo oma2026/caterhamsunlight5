@@ -1192,8 +1192,8 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
   <div class="modal-card">
     <button class="modal-x" onclick="closeLogin()">✕</button>
     <h3 id="loginTitle" style="margin:0 0 14px">登入</h3>
-    <div class="field" id="loginSalesRow"><label class="f">選擇身分 Role</label>
-      <select class="t" id="loginUser" onchange="onLoginUserChange()"></select>
+    <div class="field" id="loginSalesRow"><label class="f">英文名字 Name</label>
+      <input class="t" id="loginUser" placeholder="輸入你的英文名字" autocapitalize="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div class="field" id="loginPassRow" style="margin-top:10px"><label class="f">密碼</label>
       <input class="t" id="loginPass" type="password" onkeydown="if(event.key==='Enter')doLogin()">
@@ -1466,8 +1466,9 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 <div id="roleGateBg" class="modal-bg gate" style="display:none">
   <div class="modal-card" style="max-width:440px;text-align:center">
     <h3 style="margin:0 0 4px">歐馬企業 · 報價系統</h3>
-    <p class="hint" style="margin:0 0 18px">員工登入（VIP 客戶請使用專屬入口連結）</p>
-    <button class="btn primary" style="width:100%" onclick="pickRole('staff')">👤 歐馬企業員工登入</button>
+    <p class="hint" style="margin:0 0 18px">請選擇登入身分</p>
+    <button class="btn primary" style="width:100%" onclick="pickRole('staff')">① 👤 員工登入</button>
+    <button class="btn" style="width:100%;margin-top:10px" onclick="pickRole('vip')">② 🧑 客戶登入</button>
   </div>
 </div>
 <!-- VIP 客戶登入 -->
@@ -5645,9 +5646,8 @@ function openLogin(preselect){
   const a=getAccounts();
   document.getElementById("loginTitle").textContent="登入 Login";
   const sel=document.getElementById("loginUser");
-  sel.innerHTML=`<option value="__admin">管理後台 Admin（老闆）</option><option value="__acct">會計 Accountant</option><option value="__cashier">出納 Cashier</option>`
-    + a.sales.map(s=>`<option value="${s.u}">${s.shared?"業務共用（多人共用）":s.u+"（"+s.title+"）"}</option>`).join("");
-  if(preselect) sel.value=preselect; else if(currentSales) sel.value=currentSales.u;
+  const NAME_FOR_ROLE={"__admin":"darren","__acct":"accounting01","__cashier":"accounting10"};   // 角色→英文登入名（預填用）
+  if(preselect) sel.value=NAME_FOR_ROLE[preselect]||preselect; else if(currentSales) sel.value=currentSales.u; else sel.value="";
   document.getElementById("loginPass").value=""; document.getElementById("loginErr").style.display="none";
   onLoginUserChange();
   const isGate = !role;   // 尚未登入過 = 開頭的登入關卡
@@ -5746,7 +5746,11 @@ function fbSendPwReset(email){
 }
 function doLogin(){
   const a=getAccounts(); const err=document.getElementById("loginErr");
-  const u=document.getElementById("loginUser").value;
+  const _raw=(document.getElementById("loginUser").value||"").trim(), _low=_raw.toLowerCase();
+  const LOGIN_ROLES={darren:"__admin",accounting01:"__acct",accounting04:"__acct",accounting10:"__cashier"};   // 角色→英文登入名字
+  let u;
+  if(LOGIN_ROLES[_low]) u=LOGIN_ROLES[_low];
+  else { const _acc=a.sales.find(s=>!s.shared && String(s.u).toLowerCase()===_low); if(!_acc){ err.textContent="找不到這個名字"; err.style.display=""; return; } u=_acc.u; }
   const pass=document.getElementById("loginPass").value;
   const finish=()=>{
     if(u==="__admin"){ role="admin"; currentSales=null; closeLogin(); applyView("admin"); showAdminDash(); toast("已登入管理後台"); return; }
