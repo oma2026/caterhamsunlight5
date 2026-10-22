@@ -4642,6 +4642,7 @@ function init(){
   renderSaved();
   updateUserBadge();
   if(readVipHandoff()){ showVipLoading(); if(!tryVipHandoff()) scheduleVipHandoff(); }   // 從 VIP 入口頁帶進來 → 自動登入
+  else if(location.hash.toLowerCase().indexOf("staff")>=0){ openLogin(); }   // 從 VIP 頁選「員工」帶進來 → 直接開員工登入，不再選一次
   else openRoleGate();
 }
 function renderBrands(){
