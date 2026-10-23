@@ -5718,6 +5718,7 @@ function logout(){
   document.getElementById("vSales").style.display="";
   { const _a=document.getElementById("vAcct"),_c=document.getElementById("vCashier"); if(_a)_a.style.display="none"; if(_c)_c.style.display="none"; }
   updateSummaryActions();
+  if(location.hash.toLowerCase().indexOf("staff")>=0){ location.href="https://oma2026.github.io/vipentry/"; return; }   // 從 VIP 頁進來的員工 → 登出回 VIP 入口，重新選系統
   openRoleGate();
 }
 /* ===== 雲端登入輔助（Firebase Auth）=====
