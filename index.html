@@ -554,9 +554,14 @@
 .dash-panel-h .dp-badge{ min-width:22px; height:22px; padding:0 8px; border-radius:11px; background:#b23b2e; color:#fff; font-size:12px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
 .dash-tb{ width:100%; border-collapse:collapse; }
 .dash-tb th{ text-align:left; font-size:12px; font-weight:700; color:#6b665d; padding:10px 16px; background:#eef0e6; border:1px solid #d7d9cc; white-space:nowrap; }
-.dash-tb td{ padding:12px 16px; border:1px solid #e3e1d8; font-size:14px; vertical-align:middle; }
+.dash-tb td{ padding:12px 16px; border:1px solid #e3e1d8; font-size:14px; vertical-align:middle; word-break:break-word; }
 .dash-tb .tb-cust{ font-weight:800; color:#1a1a18; }
 .dash-tb .tb-view{ text-align:right; white-space:nowrap; }
+.k-items{ border:1px solid #e3e1d8; border-radius:10px; overflow:hidden; }
+.k-items .k-item{ display:flex; justify-content:space-between; gap:12px; align-items:baseline; padding:8px 12px; font-size:13px; border-top:1px solid #efeee7; }
+.k-items .k-item:first-child{ border-top:0; font-weight:800; background:#f6f5ee; font-size:14px; }
+.k-items .k-pr{ color:#6b665d; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.k-items .k-empty{ padding:10px 12px; color:#9a958c; font-size:13px; }
 .dash-empty{ padding:30px 18px; color:#8a857c; font-size:14px; text-align:center; }
 /* 固定左側選單：寬螢幕每頁都在；窄螢幕隱藏、改用上方「選單」 */
 #sideNav{ display:none; }
@@ -1374,14 +1379,17 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
       <div class="field"><label class="f">領牌名義人（同買方可留空）</label><input class="t" id="k_regname"></div>
       <div class="field"><label class="f">領牌名義人證號 / 統編</label><input class="t" id="k_regid"></div>
     </div>
+    <div class="tech-h" style="margin-top:14px">車型與選購配備（請確認）</div>
+    <div id="k_items" class="k-items"></div>
     <div class="tech-h" style="margin-top:14px">車輛（未填會留底線）</div>
     <div class="row2">
       <div class="field"><label class="f">車身號碼</label><input class="t" id="k_vin" placeholder="留空印「客製化新車（待生產）」"></div>
       <div class="field"><label class="f">產地</label><input class="t" id="k_origin"></div>
     </div>
     <div class="tech-h" style="margin-top:14px">付款與其他</div>
-    <div class="row2">
-      <div class="field"><label class="f">付款方式</label><input class="t" id="k_pay" placeholder="現金 / 匯款 / 刷卡 / 分期"></div>
+    <div class="field"><label class="f">成交價（車價 NT$，未含奢侈稅）</label><input class="t" id="k_price" type="number" step="1000" placeholder="留空＝用目前報價金額"></div>
+    <div class="row2" style="margin-top:8px">
+      <div class="field"><label class="f">付款方式</label><select class="t" id="k_pay"><option value="">請選擇</option><option value="現金">現金</option><option value="匯款">匯款</option><option value="刷卡">刷卡</option><option value="分期">分期</option></select></div>
       <div class="field"><label class="f">預計交車</label><input class="t" id="k_deliver" placeholder="例：簽約後約 6 個月"></div>
     </div>
     <div class="row2" style="margin-top:8px">
@@ -6169,7 +6177,7 @@ function refreshDash(){
                 +'</td></tr>';
         }).join("");
         var badge=(showBadge&&arr.length)?' <span class="dp-badge">'+arr.length+'</span>':'';
-        return '<div class="dash-panel"><div class="dash-panel-h">'+title+badge+'</div><div style="overflow-x:auto"><table class="dash-tb"><thead><tr><th>客戶</th><th>車型</th><th>狀態</th><th>時間</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+        return '<div class="dash-panel"><div class="dash-panel-h">'+title+badge+'</div><div style="overflow-x:auto"><table class="dash-tb" style="table-layout:fixed;min-width:820px"><colgroup><col style="width:14%"><col style="width:25%"><col style="width:11%"><col style="width:16%"><col style="width:34%"></colgroup><thead><tr><th>客戶</th><th>車型</th><th>狀態</th><th>時間</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
       };
       di.innerHTML = mkPanel("客戶送來的報價單", items.filter(function(it){return it.type==="sub";}), "檢視", "目前沒有客戶送來的報價單。客戶用你發的代碼送出後，就會出現在這裡。", true)
                    + mkPanel("我自己建的案件", items.filter(function(it){return it.type==="deal";}), "檢視", "目前沒有自己建的案件。按「新增案件」做的報價會出現在這裡。", false);
@@ -6718,7 +6726,7 @@ function _afterContractPrint(){
   if(!_contractCaseId) return;
   var id=_contractCaseId; _contractCaseId=null;
   var deals=getDeals(); var d=deals.find(function(x){return x.id===id;}); if(!d) return;
-  var fields={}; ["k_name","k_id","k_phone","k_email","k_birth","k_addr","k_regname","k_regid","k_vin","k_origin","k_color","k_fuel","k_pay","k_deliver","k_review","k_court","k_note","k_dep1","k_dep2"].forEach(function(k){ var el=document.getElementById(k); if(el) fields[k]=el.value; });
+  var fields={}; ["k_name","k_id","k_phone","k_email","k_birth","k_addr","k_regname","k_regid","k_vin","k_origin","k_color","k_fuel","k_price","k_pay","k_deliver","k_review","k_court","k_note","k_dep1","k_dep2"].forEach(function(k){ var el=document.getElementById(k); if(el) fields[k]=el.value; });
   d.contractFields=fields;
   if(d.contractStatus!=="signed_uploaded"){ d.contractStatus="generated"; if(d.dealStatus==="quoted"||d.dealStatus==="quote"||!d.dealStatus) d.dealStatus="contract_generated"; }
   d.contractGeneratedAt=nowTs(); d.contractGeneratedBy=_actor().name;
@@ -8645,6 +8653,22 @@ function openContract(){
     setIfEmpty("k_dep1", d1?String(d1):"");
     setIfEmpty("k_dep2", d2>0?String(d2):"");
   }catch(e){}
+  // 車型與選購配備清單（唯讀，給業務核對）＋成交價預設帶入目前報價
+  try{
+    var _ci=contractItemsTotal();
+    var _ib=document.getElementById("k_items");
+    if(_ib){
+      if(_ci.allItems&&_ci.allItems.length){
+        _ib.innerHTML=_ci.allItems.map(function(o,i){
+          var pr=(o.price===0)?"標準配備":(o.key===_ci.baseKey?nt(baseNTWithWeight(o.price,o.key)):nt(retailOf(o.price,o.key)));
+          return '<div class="k-item"><span>'+(i===0?'🚗 ':'・')+_esc(o.name)+'</span><span class="k-pr">'+pr+'</span></div>';
+        }).join("");
+      }else{
+        _ib.innerHTML='<div class="k-empty">此案件沒有可顯示的車型／配備</div>';
+      }
+    }
+    var _pf=document.getElementById("k_price"); if(_pf&&!_pf.value) _pf.value=_ci.total?String(_ci.total):"";
+  }catch(e){}
   document.getElementById("contractBg").style.display="flex";
 }
 function closeContract(){ document.getElementById("contractBg").style.display="none"; }
@@ -8663,6 +8687,8 @@ function printContract(){
   if(!cur||!variant){ toast("請先選好車型與配備"); return; }
   const s=getSettings();
   const {allItems, total:listTotal, baseKey}=contractItemsTotal();
+  // 合約表單開著時，以表單「成交價」欄為準（留空＝用目前報價金額）；直接列印路徑的模式是隱藏的，不受影響
+  try{ var _bg=document.getElementById("contractBg"); if(_bg && _bg.style.display==="flex"){ var _pf=document.getElementById("k_price"); if(_pf){ var _raw=String(_pf.value).replace(/[,\s]/g,""); var _pv=Math.round(+_raw); CONTRACT_PRICE_OVERRIDE=(_raw!=="" && isFinite(_pv) && _pv>0)?_pv:null; } } }catch(e){}
   const total=(CONTRACT_PRICE_OVERRIDE!=null && CONTRACT_PRICE_OVERRIDE>0)?CONTRACT_PRICE_OVERRIDE:listTotal;  // 成交價優先
   const dealDiscount=Math.max(0, listTotal-total);   // 議價折讓 = 配備小計 − 成交價
   CONTRACT_PRICE_OVERRIDE=null;
