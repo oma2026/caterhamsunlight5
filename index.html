@@ -559,6 +559,23 @@
 .dash-tb .tb-cust{ font-weight:800; color:#1a1a18; }
 .dash-tb .tb-view{ text-align:right; white-space:nowrap; }
 .dash-empty{ padding:30px 18px; color:#8a857c; font-size:14px; text-align:center; }
+/* 固定左側選單：寬螢幕每頁都在；窄螢幕隱藏、改用上方「選單」 */
+#sideNav{ display:none; }
+.dnav-item[data-side].on{ background:#111; }
+.dnav-item[data-side].on .dnav-tx b{ color:#fff; }
+.dnav-item[data-side].on .dnav-tx small{ color:#c9c9c9; }
+.dnav-item[data-side].on .dnav-ic{ background:#333; }
+@media(min-width:1080px){
+  body.sidenav-on #sideNav{
+    display:block; position:fixed; top:var(--navtop,66px); left:0; bottom:0; width:238px;
+    background:var(--wash,#f6f6f4); border-right:1px solid var(--line,#d9d6ce);
+    overflow-y:auto; z-index:20; padding:18px 12px;
+  }
+  body.sidenav-on #dashView,
+  body.sidenav-on #casesView,
+  body.sidenav-on #codeView,
+  body.sidenav-on #quoteWrap{ margin-left:238px; }
+}
 /* ===== 三步驟精靈 ===== */
 .wzbar{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
 .wzsteps{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -576,6 +593,7 @@
 <style>
 /* 客戶案件 */
 #casesView{ display:none; max-width:1180px; margin:0 auto; padding:24px 22px 90px; }
+#codeView{ display:none; max-width:900px; margin:0 auto; padding:24px 22px 90px; }
 .cases-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
 .cases-head h2{ margin:0; font-size:22px; }
 .case-stats, .dash-stats{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px; }
@@ -902,48 +920,51 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 </div>
 
 <!-- ===== 業務工作台 ===== -->
+<!-- ===== 固定左側選單（業務端每一頁都看得到）===== -->
+<nav id="sideNav">
+  <div class="dnav-group">作業</div>
+  <button class="dnav-item" data-side="dash" onclick="showDashboard()">
+    <span class="dnav-ic">🏠</span>
+    <span class="dnav-tx"><b>工作台</b><small>報價單總覽</small></span>
+  </button>
+  <button class="dnav-item" data-side="new" onclick="caseNew()">
+    <span class="dnav-ic">📝</span>
+    <span class="dnav-tx"><b>新增案件</b><small>現場報價：選車 → 選配 → 客戶</small></span>
+  </button>
+  <button class="dnav-item" data-side="cases" onclick="openCases()">
+    <span class="dnav-ic">🗂️</span>
+    <span class="dnav-tx"><b>客戶案件</b><small>報價・成交・合約</small></span>
+    <span class="dnav-badge" id="dashSubBadge">0</span>
+  </button>
+  <button class="dnav-item" data-side="code" onclick="openMyCode()">
+    <span class="dnav-ic">🔑</span>
+    <span class="dnav-tx"><b>我的客戶代碼</b><small>給客戶的登入代碼與連結</small></span>
+  </button>
+  <div class="dnav-group">帳號</div>
+  <button class="dnav-item" onclick="openChangePw('sales-self')">
+    <span class="dnav-ic">⚙️</span>
+    <span class="dnav-tx"><b>帳號設定</b></span>
+  </button>
+  <button class="dnav-item" onclick="logout()">
+    <span class="dnav-ic">🚪</span>
+    <span class="dnav-tx"><b>登出</b></span>
+  </button>
+</nav>
 <div id="dashView">
-  <div class="dash-shell">
-    <aside class="dash-nav">
-      <div class="dnav-group">作業</div>
-      <button class="dnav-item" onclick="caseNew()">
-        <span class="dnav-ic">📝</span>
-        <span class="dnav-tx"><b>新增案件</b><small>現場報價：選車 → 選配 → 客戶</small></span>
-      </button>
-      <button class="dnav-item" onclick="openCases()">
-        <span class="dnav-ic">🗂️</span>
-        <span class="dnav-tx"><b>客戶案件</b><small>報價・成交・合約</small></span>
-        <span class="dnav-badge" id="dashSubBadge">0</span>
-      </button>
-      <button class="dnav-item" onclick="openMyCode()">
-        <span class="dnav-ic">🔑</span>
-        <span class="dnav-tx"><b>我的客戶代碼</b><small>給客戶的登入代碼與連結</small></span>
-      </button>
-      <div class="dnav-group">帳號</div>
-      <button class="dnav-item" onclick="openChangePw('sales-self')">
-        <span class="dnav-ic">⚙️</span>
-        <span class="dnav-tx"><b>帳號設定</b></span>
-      </button>
-      <button class="dnav-item" onclick="logout()">
-        <span class="dnav-ic">🚪</span>
-        <span class="dnav-tx"><b>登出</b></span>
-      </button>
-    </aside>
-    <section class="dash-main">
-      <div class="dash-hi" id="dashHi">工作台</div>
-      <div class="dash-sub">請選擇要進行的作業</div>
-      <div id="dashInbox"></div>
-    </section>
-  </div>
+  <div class="dash-hi" id="dashHi">工作台</div>
+  <div class="dash-sub">請選擇要進行的作業</div>
+  <div id="dashInbox"></div>
 </div>
 
-<!-- ===== 我的客戶代碼 modal ===== -->
-<div id="codeBg" class="modal-bg" style="display:none">
-  <div class="modal-card" style="max-width:560px">
-    <button class="modal-x" onclick="closeMyCode()">✕</button>
-    <h3 style="margin:0 0 10px">我的客戶代碼</h3>
-    <div id="codeBody"></div>
+<!-- ===== 我的客戶代碼（整頁）===== -->
+<div id="codeView">
+  <div class="cases-head">
+    <h2>我的客戶代碼</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost" onclick="showDashboard()">← 工作台</button>
+    </div>
   </div>
+  <div id="codeBody"></div>
 </div>
 
 <!-- ===== 客戶案件 ===== -->
@@ -5712,7 +5733,7 @@ const VIP_SCOPES=[
   {id:"crosscamp",label:"Crosscamp"},
   {id:"burstner",label:"Bürstner"}
 ];   // 新車報價只發新車品牌的碼；改裝的碼由改裝系統自己發
-function vipScopeLabel(id){ var f=VIP_SCOPES.find(function(s){return s.id===id;}); return f?f.label:(id||"—"); }
+function vipScopeLabel(id){ if(id==="camper") return "改裝報價"; var f=VIP_SCOPES.find(function(s){return s.id===id;}); return f?f.label:(id||"—"); }
 function _allVipCodesLower(){   // 收集所有已用代碼（含舊固定碼）→ 新碼防撞
   var set=new Set(), a=getAccounts();
   (a.sales||[]).forEach(function(s){
@@ -5770,7 +5791,21 @@ function applyView(v){
     const sn=document.getElementById("sumNotesWrap"); if(sn) sn.style.display = (role==="vip") ? "" : "none"; }
   rerenderPrices();
   if(role && typeof startAutoLogout==="function") startAutoLogout();   // 登入後啟動自動登出計時
+  syncSideNav();
 }
+/* 固定左側選單：依身分顯示（只有業務端）＋量上方工具列高度 */
+function syncSideNav(){
+  try{
+    var h=document.querySelector("header.app");
+    if(h) document.documentElement.style.setProperty("--navtop", h.offsetHeight+"px");
+    document.body.classList.toggle("sidenav-on", role==="sales");
+  }catch(e){}
+}
+function setSideActive(key){
+  try{ var items=document.querySelectorAll('#sideNav .dnav-item[data-side]');
+    for(var i=0;i<items.length;i++){ items[i].classList.toggle("on", items[i].getAttribute("data-side")===key); } }catch(e){}
+}
+try{ window.addEventListener("resize", syncSideNav); }catch(e){}
 function updateUserBadge(){
   const el=document.getElementById("userBadge");
   if(role==="vip" && vipSales){
@@ -5954,9 +5989,11 @@ function showDashboard(){
   if(typeof hideAdminDash==="function") hideAdminDash();
   editingCaseRef=null; _caseMode=null;
   var c=document.getElementById("casesView"); if(c) c.style.display="none";
+  var cvw=document.getElementById("codeView"); if(cvw) cvw.style.display="none";
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var d=document.getElementById("dashView"); if(d) d.style.display="block";
   var b=document.getElementById("wzBack"); if(b) b.style.display="";
+  if(typeof setSideActive==="function") setSideActive("dash");
   refreshDash(); window.scrollTo(0,0);
 }
 /* ===================== 管理後台 Dashboard + 車型資料庫 + 報價預覽 ===================== */
@@ -6176,7 +6213,12 @@ function openMyCode(){
       +'<div class="hint" style="margin-top:12px;line-height:1.7">把代碼給客戶，請他到 <b>'+VIP_ENTRY_URL+'</b> 輸入代碼即可（不用打名字）。客戶只會看到你指定的那個品牌，送出的單會進你的「客戶案件」。</div>';
     renderMyCodes();
   }
-  document.getElementById("codeBg").style.display="flex";
+  /* 整頁顯示（不是彈窗）：隱藏其他頁、只留我的客戶代碼 */
+  if(typeof hideAdminDash==="function") hideAdminDash();
+  ["dashView","casesView","quoteWrap","adminDashView","carDbView","adminCasesView","importView","formulaView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  var cv=document.getElementById("codeView"); if(cv) cv.style.display="block";
+  if(typeof setSideActive==="function") setSideActive("code");
+  window.scrollTo(0,0);
 }
 function renderMyCodes(){
   var s=currentSales; if(!s) return;
@@ -6203,7 +6245,7 @@ function renderMyCodes(){
   }).join("");
   wrap.innerHTML='<div style="overflow-x:auto;border:1px solid var(--line);border-radius:12px"><table class="dash-tb"><thead><tr><th>代碼</th><th>品牌</th><th>客戶</th><th>狀態</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
-function vipViewSub(subId){ closeMyCode(); if(typeof caseOpen==="function") caseOpen("sub", subId); }
+function vipViewSub(subId){ var cv=document.getElementById("codeView"); if(cv) cv.style.display="none"; if(typeof caseOpen==="function") caseOpen("sub", subId); }
 function vipAddCode(){
   var s=currentSales; if(!s){ toast("請先以業務身分登入"); return; }
   var scope=(document.getElementById("vipNewScope")||{}).value||"caterham";
@@ -6219,7 +6261,7 @@ function vipToggleCode(code, active){
   setVipCustomerActive(s.u, code, active);
   renderMyCodes();
 }
-function closeMyCode(){ document.getElementById("codeBg").style.display="none"; }
+function closeMyCode(){ var cv=document.getElementById("codeView"); if(cv) cv.style.display="none"; if(typeof showDashboard==="function") showDashboard(); }
 
 /* ===================== 客戶案件（統一流程） ===================== */
 var editingCaseRef=null;   // {type:'sub'|'deal', id}
@@ -7237,22 +7279,25 @@ function renderCases(){
 }
 function showQuoteEditor(){
   var c=document.getElementById("casesView"); if(c) c.style.display="none";
+  var cvw=document.getElementById("codeView"); if(cvw) cvw.style.display="none";
   var d=document.getElementById("dashView"); if(d) d.style.display="none";
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="";
   var b=document.getElementById("wzBack"); if(b) b.style.display=(role==="sales")?"":"none";
 }
 function openCases(){
   editingCaseRef=null; _caseMode=null;
-  ["adminDashView","carDbView","adminCasesView","importView","formulaView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
+  ["adminDashView","carDbView","adminCasesView","importView","formulaView","codeView"].forEach(function(id){var e=document.getElementById(id); if(e) e.style.display="none";});
   var q=document.getElementById("quoteWrap"); if(q) q.style.display="none";
   var d=document.getElementById("dashView"); if(d) d.style.display="none";
   var c=document.getElementById("casesView"); if(c) c.style.display="block";
   if(typeof updateSummaryActions==="function") updateSummaryActions();
+  if(typeof setSideActive==="function") setSideActive("cases");
   renderCases(); window.scrollTo(0,0);
 }
 function closeCases(){ var c=document.getElementById("casesView"); if(c) c.style.display="none"; }
 function caseNew(){
   editingCaseRef=null; _caseMode="new";
+  if(typeof setSideActive==="function") setSideActive("new");
   if(typeof resetSelectionUI==="function") resetSelectionUI();
   showQuoteEditor(); if(typeof goStep==="function") goStep(1);
   if(typeof updateSummary==="function") updateSummary();
