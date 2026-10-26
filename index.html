@@ -553,9 +553,8 @@
 .dash-panel-h{ display:flex; align-items:center; gap:10px; padding:14px 18px; font-size:16px; font-weight:800; color:#1a1a18; border-bottom:1px solid var(--line,#d9d6ce); background:#faf9f6; }
 .dash-panel-h .dp-badge{ min-width:22px; height:22px; padding:0 8px; border-radius:11px; background:#b23b2e; color:#fff; font-size:12px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
 .dash-tb{ width:100%; border-collapse:collapse; }
-.dash-tb th{ text-align:left; font-size:12px; font-weight:700; color:#8a857c; padding:10px 18px; background:#f4f2ec; border-bottom:1px solid var(--line,#d9d6ce); white-space:nowrap; }
-.dash-tb td{ padding:13px 18px; border-bottom:1px solid #efece5; font-size:14px; vertical-align:middle; }
-.dash-tb tr:last-child td{ border-bottom:0; }
+.dash-tb th{ text-align:left; font-size:12px; font-weight:700; color:#6b665d; padding:10px 16px; background:#eef0e6; border:1px solid #d7d9cc; white-space:nowrap; }
+.dash-tb td{ padding:12px 16px; border:1px solid #e3e1d8; font-size:14px; vertical-align:middle; }
 .dash-tb .tb-cust{ font-weight:800; color:#1a1a18; }
 .dash-tb .tb-view{ text-align:right; white-space:nowrap; }
 .dash-empty{ padding:30px 18px; color:#8a857c; font-size:14px; text-align:center; }
@@ -6162,13 +6161,18 @@ function refreshDash(){
           return '<tr><td class="tb-cust">'+_esc(it.cust||"（未填客戶）")+'</td><td>'+_esc(it.car||"—")+'</td>'
                 +'<td style="white-space:nowrap"><b style="color:'+color+'">'+_esc(label)+'</b></td>'
                 +'<td style="color:#8a857c;white-space:nowrap">'+fmtDT(it.updatedAt||it.ts)+'</td>'
-                +'<td class="tb-view"><a href="javascript:void(0)" onclick="caseGeneratePDF(\''+it.type+'\',\''+it.id+'\')" style="color:#1a56c6;text-decoration:underline;margin-right:12px;font-size:13px">報價單</a><button class="btn primary" onclick="caseOpen(\''+it.type+'\',\''+it.id+'\')">'+btn+'</button></td></tr>';
+                +'<td class="tb-view">'
+                  +'<a href="javascript:void(0)" onclick="caseGeneratePDF(\''+it.type+'\',\''+it.id+'\')" style="color:#1a56c6;text-decoration:underline;margin-right:10px;font-size:13px">報價單</a>'
+                  +'<a href="javascript:void(0)" onclick="caseGenerateContract(\''+it.type+'\',\''+it.id+'\')" style="color:#1a56c6;text-decoration:underline;margin-right:12px;font-size:13px">合約</a>'
+                  +'<button class="btn primary" onclick="caseOpen(\''+it.type+'\',\''+it.id+'\')">'+btn+'</button>'
+                  +'<a href="javascript:void(0)" onclick="caseDelete(\''+it.type+'\',\''+it.id+'\');refreshDash()" style="color:#c0392b;text-decoration:underline;margin-left:12px;font-size:13px">刪除</a>'
+                +'</td></tr>';
         }).join("");
         var badge=(showBadge&&arr.length)?' <span class="dp-badge">'+arr.length+'</span>':'';
         return '<div class="dash-panel"><div class="dash-panel-h">'+title+badge+'</div><div style="overflow-x:auto"><table class="dash-tb"><thead><tr><th>客戶</th><th>車型</th><th>狀態</th><th>時間</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
       };
-      di.innerHTML = mkPanel("客戶送來的報價單", items.filter(function(it){return it.type==="sub";}), "看報價", "目前沒有客戶送來的報價單。客戶用你發的代碼送出後，就會出現在這裡。", true)
-                   + mkPanel("我自己建的案件", items.filter(function(it){return it.type==="deal";}), "開啟", "目前沒有自己建的案件。按「新增案件」做的報價會出現在這裡。", false);
+      di.innerHTML = mkPanel("客戶送來的報價單", items.filter(function(it){return it.type==="sub";}), "檢視", "目前沒有客戶送來的報價單。客戶用你發的代碼送出後，就會出現在這裡。", true)
+                   + mkPanel("我自己建的案件", items.filter(function(it){return it.type==="deal";}), "檢視", "目前沒有自己建的案件。按「新增案件」做的報價會出現在這裡。", false);
     }
   }catch(e){}
 }
