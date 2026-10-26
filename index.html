@@ -943,7 +943,6 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
       <button class="btn primary" onclick="caseNew()">＋ 新增案件</button>
     </div>
   </div>
-  <div class="case-stats" id="caseStats"></div>
   <div class="case-pills" id="casePills"></div>
   <div class="case-filters">
     <input class="t" id="caseSearch" placeholder="搜尋客戶 / 車身碼 / 車型…" oninput="renderCases()" style="max-width:300px">
@@ -6133,7 +6132,7 @@ function openMyCode(){
         +'<div style="font-weight:800;margin-bottom:9px">＋ 發一組新代碼給客戶</div>'
         +'<div style="font-size:12px;color:var(--ink-2);font-weight:600;margin-bottom:4px">這組只看哪一個</div>'
         +'<select id="vipNewScope" class="t" style="width:100%;box-sizing:border-box">'+opts+'</select>'
-        +'<div style="font-size:12px;color:var(--ink-2);font-weight:600;margin:10px 0 4px">備註（這組給誰的，只有你看得到）</div>'
+        +'<div style="font-size:12px;color:var(--ink-2);font-weight:600;margin:10px 0 4px">備註</div>'
         +'<input id="vipNewNote" class="t" placeholder="例：台北 王先生、0912…" style="width:100%;box-sizing:border-box">'
         +'<button class="btn primary" style="width:100%;margin-top:11px" onclick="vipAddCode()">產生代碼</button>'
       +'</div>'
