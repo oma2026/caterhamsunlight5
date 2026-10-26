@@ -5710,9 +5710,8 @@ const VIP_SCOPES=[
   {id:"sunlight",label:"Sunlight 露營車"},
   {id:"eriba",label:"ERIBA"},
   {id:"crosscamp",label:"Crosscamp"},
-  {id:"burstner",label:"Bürstner"},
-  {id:"camper",label:"改裝報價"}
-];
+  {id:"burstner",label:"Bürstner"}
+];   // 新車報價只發新車品牌的碼；改裝的碼由改裝系統自己發
 function vipScopeLabel(id){ var f=VIP_SCOPES.find(function(s){return s.id===id;}); return f?f.label:(id||"—"); }
 function _allVipCodesLower(){   // 收集所有已用代碼（含舊固定碼）→ 新碼防撞
   var set=new Set(), a=getAccounts();
