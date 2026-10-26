@@ -936,14 +936,14 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     <span class="dnav-ic">📝</span>
     <span class="dnav-tx"><b>新增案件</b><small>現場報價：選車 → 選配 → 客戶</small></span>
   </button>
-  <button class="dnav-item" data-side="cases" onclick="openCases()">
-    <span class="dnav-ic">🗂️</span>
-    <span class="dnav-tx"><b>客戶案件</b><small>報價・成交・合約</small></span>
-    <span class="dnav-badge" id="dashSubBadge">0</span>
-  </button>
   <button class="dnav-item" data-side="code" onclick="openMyCode()">
     <span class="dnav-ic">🔑</span>
     <span class="dnav-tx"><b>我的客戶代碼</b><small>給客戶的登入代碼與連結</small></span>
+  </button>
+  <div class="dnav-group">切換系統</div>
+  <button class="dnav-item" onclick="switchToCamper()">
+    <span class="dnav-ic">🔄</span>
+    <span class="dnav-tx"><b>改裝報價</b><small>切換到改裝報價系統</small></span>
   </button>
   <div class="dnav-group">帳號</div>
   <button class="dnav-item" onclick="openChangePw('sales-self')">
@@ -6203,6 +6203,14 @@ function copyText(txt, okMsg){
   try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, function(){ copyFallback(txt); done(); }); return; } }catch(e){}
   copyFallback(txt); done();
 }
+/* 一鍵切換到改裝報價系統（同網域，帶身分過去自動登入，不用重打密碼） */
+function switchToCamper(){
+  try{
+    var u = (role==="admin")?"darren":(role==="acct")?"accounting01":(role==="cashier")?"accounting10":((currentSales&&currentSales.u)||"");
+    if(u) sessionStorage.setItem("oma_staff_handoff", JSON.stringify({name:u, pw:"123", ts:Date.now()}));
+  }catch(e){}
+  location.href="https://oma2026.github.io/camperconversionquote4/#staff";
+}
 function openMyCode(){
   var s=currentSales; if(!s){ if(typeof toast==="function") toast("請先以業務身分登入"); return; }
   var who=[s.title,s.name].filter(Boolean).join(" ")||s.u;
@@ -6237,7 +6245,7 @@ function setVipCodeFilter(v){ vipCodeFilter=v||"all"; renderMyCodes(); }
 function renderMyCodes(){
   var s=currentSales; if(!s) return;
   var wrap=document.getElementById("vipCodeList"); if(!wrap) return;
-  var list=listVipCustomers(s.u);
+  var list=listVipCustomers(s.u).filter(function(c){ return String(c.scope||"")!=="camper"; });   // 改裝(camper)碼只在改裝 App 管，不在新車這頁顯示
   var fw=document.getElementById("vipCodeFilterWrap");
   if(!list.length){ wrap.innerHTML='<div class="hint" style="padding:8px 2px">還沒發過代碼。用上面「發一組新代碼」產生第一組。</div>'; if(fw) fw.innerHTML=''; return; }
   /* 品牌篩選（跟國泰一樣：全部 或 個別品牌） */
@@ -7444,7 +7452,7 @@ function caseFinish(){
     else { _promoteToDeal(); }
   }
   editingCaseRef=null; _caseMode=null;
-  openCases();
+  if(typeof showDashboard==="function") showDashboard(); else openCases();
 }
 
 /* ===== 從成交頁列印合約書 ===== */
@@ -7947,7 +7955,7 @@ function renderAdminMenu(){
     label="管理 ▾";
   } else if((admin && VIEW==="sales") || sales){
     const n=(typeof inboxCount==="function")?inboxCount():0;
-    items=[[`客戶案件（${n}）`,"openCases"],["我的客戶代碼","openMyCode"],["帳號設定","__pwself"]];
+    items=[["我的客戶代碼","openMyCode"],["🔄 改裝報價","switchToCamper"],["帳號設定","__pwself"]];
     label = n>0 ? `選單 (${n}) ▾` : "選單 ▾";
   }
   if(btn) btn.textContent=label;
