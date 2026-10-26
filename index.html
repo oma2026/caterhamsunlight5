@@ -5707,7 +5707,6 @@ const LS_ACCT="ctm_accounts_v2";
 function defaultAccounts(){ return {sales:[
   {u:"共用", name:"", title:"業務共用", phone:"", email:"", line:"", p:"123", vipPass:"", shared:true},
   {u:"Peter", name:"潘宗瑜", title:"副總經理", phone:"0912-612502", email:"peter@o-ma.com.tw", line:"@pan12", p:"123", vipPass:""},
-  {u:"CBC", name:"陳柏丞", title:"銷售經理", phone:"0982-270163", email:"cbc@o-ma.com.tw", line:"0982270163", p:"123", vipPass:""},
   {u:"Allen", name:"賴倚賢", title:"銷售經理", phone:"0902-269858", email:"lai@o-ma.com.tw", line:"0902269858", p:"123", vipPass:""},
   {u:"Gary", name:"蔡春連", title:"銷售經理", phone:"0918-830588", email:"gary.tsai@o-ma.com.tw", line:"chunlien26", p:"123", vipPass:""}
 ], adminPass:"oma2026", acctPass:"123", cashierPass:"123"}; }
@@ -5934,9 +5933,10 @@ function fbSendPwReset(email){
 function doLogin(){
   const a=getAccounts(); const err=document.getElementById("loginErr");
   const _raw=(document.getElementById("loginUser").value||"").trim(), _low=_raw.toLowerCase();
-  const LOGIN_ROLES={darren:"__admin",accounting01:"__acct",accounting04:"__acct",accounting10:"__cashier"};   // 角色→英文登入名字
+  const LOGIN_ROLES={darren:"__admin",accounting01:"__acct",accounting04:"__acct",accounting10:"__cashier",purchase:"__acct",tech:"__acct"};   // 角色→英文登入名字（採購/技術新車無專屬頁，登入看已成交總覽）
   let u;
   if(LOGIN_ROLES[_low]) u=LOGIN_ROLES[_low];
+  else if(_low==="sales"){ const _sh=a.sales.find(s=>s.shared)||a.sales.find(s=>s.u==="共用"); if(!_sh){ err.textContent="找不到這個名字"; err.style.display=""; return; } u=_sh.u; }   // sales = 業務共用
   else { const _acc=a.sales.find(s=>!s.shared && String(s.u).toLowerCase()===_low); if(!_acc){ err.textContent="找不到這個名字"; err.style.display=""; return; } u=_acc.u; }
   const pass=document.getElementById("loginPass").value;
   const finish=()=>{
