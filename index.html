@@ -921,14 +921,13 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     <section class="dash-main">
       <div class="dash-hi" id="dashHi">工作台</div>
       <div class="dash-sub">請選擇要進行的作業</div>
-      <div class="dash-stats" id="dashStats"></div>
     </section>
   </div>
 </div>
 
 <!-- ===== 我的客戶代碼 modal ===== -->
 <div id="codeBg" class="modal-bg" style="display:none">
-  <div class="modal-card" style="max-width:460px">
+  <div class="modal-card" style="max-width:560px">
     <button class="modal-x" onclick="closeMyCode()">✕</button>
     <h3 style="margin:0 0 10px">我的客戶代碼</h3>
     <div id="codeBody"></div>
@@ -1106,6 +1105,8 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
             <div class="bal"><span>交車前餘款 Balance</span><b id="sumBal">—</b></div>
           </div>
           <div id="sumNotesWrap" style="display:none;margin-top:14px">
+            <div style="font-size:12px;color:var(--ink-2);font-weight:600;margin-bottom:5px">您的名字 <span style="color:#b8860b">＊必填</span></div>
+            <input id="sumName" placeholder="請留下您的大名，方便業務與您聯繫" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;background:#fff;color:var(--ink);margin-bottom:12px">
             <div style="font-size:12px;color:var(--ink-2);font-weight:600;margin-bottom:5px">留言 / 備註給業務</div>
             <textarea id="sumNotes" rows="2" placeholder="想跟業務說的話、特殊需求…" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:13px;resize:vertical;background:#fff;color:var(--ink)"></textarea>
           </div>
@@ -4195,11 +4196,9 @@ let customerName="", vipSales=null;
 function getSubs(){ try{return JSON.parse(localStorage.getItem(LS_SUBS))||[];}catch(e){return [];} }
 function saveSubs(a){ localStorage.setItem(LS_SUBS,JSON.stringify(a)); }
 
-function openRoleGate(){
-  if(location.hash.toLowerCase().indexOf("staff")>=0){ location.href="https://oma2026.github.io/vipentry/"; return; }   // 從 VIP 頁來的（#staff）→ 不顯示 App 自己的關卡，一律回 VIP 入口選系統
-  document.getElementById("loginBg").style.display="none";
-  document.getElementById("vipBg").style.display="none";
-  document.getElementById("roleGateBg").style.display="flex";
+function openRoleGate(){   // 身分關卡已移除：沒登入一律回 VIP 入口（唯一入口），App 自己不再出現①員工/②客戶
+  try{ if(window.self!==window.top){ window.top.location.reload(); return; } }catch(e){}   // 在 VIP iframe 內（客戶）→ 重載入口頁回登入
+  location.href="https://oma2026.github.io/vipentry/";
 }
 function pickRole(kind){
   document.getElementById("roleGateBg").style.display="none";
@@ -4245,11 +4244,13 @@ let _vipHandoffTries=0, _vipHandoffTimer=null;
 function tryVipHandoff(){
   const h=readVipHandoff(); if(!h) return false;
   const pass=(h.pass||"").trim().toLowerCase();
+  const repU=(h.rep||"").trim();
   const a=getAccounts();
-  const acc=(a&&a.sales)?a.sales.find(s=>!s.shared && effectiveVip(s).toLowerCase()===pass):null;
+  let acc=repU ? ((a&&a.sales)?a.sales.find(s=>!s.shared && s.u===repU):null) : null;   // 虛擬帳號碼：VIP 已驗證 → 照業務代號認人
+  if(!acc) acc=(a&&a.sales)?a.sales.find(s=>!s.shared && effectiveVip(s).toLowerCase()===pass):null;   // 舊固定碼：照代碼對業務
   if(!acc) return false;   // 帳號尚未由雲端載入 → 交由 __cloudRefresh / 輪詢稍後重試
   try{ h.ts=Date.now(); sessionStorage.setItem(VIP_HANDOFF_KEY,JSON.stringify(h)); }catch(e){}   // 更新時戳：同分頁重新整理仍保持登入
-  brandLock=(h.brand==="sunlight"||h.brand==="caterham")?h.brand:null;
+  brandLock=(["caterham","sunlight","eriba","crosscamp","burstner"].indexOf(h.brand)>=0)?h.brand:null;
   if(brandLock){ curBrand=brandLock; CURSYM=symForBrand(brandLock); }
   ["roleGateBg","vipBg","loginBg"].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display="none"; });
   hideVipLoading();
@@ -4318,6 +4319,14 @@ function submitToSales(){
   if(!_guard("submitToSales",1500)) return;
   if(!cur||!variant){ toast("請先選一部車與配備"); return; }
   { const _de=configError(); if(_de){ toast(_de); return; } }
+  /* VIP 客戶：以「您的名字」欄為準（必填），同步到報價資料 */
+  { const _snEl=document.getElementById("sumName");
+    if(_snEl){
+      const _sn=(_snEl.value||"").trim();
+      if(!_sn){ toast("請先填寫您的名字再送出"); try{ _snEl.focus(); _snEl.scrollIntoView({block:"center"}); }catch(e){} return; }
+      if(document.getElementById("c_name")) c_name.value=_sn;
+    }
+  }
   if(!_caseRequireName("請先填寫您的大名再送出")) return;
   const subs=getSubs();
   subs.unshift({
@@ -4651,6 +4660,30 @@ function updateSummaryActions(){
   if(done){ done.style.display=caseMode?"":"none"; done.textContent = editingCaseRef ? "✓ 完成（回案件）" : "✓ 建立案件"; }
 }
 
+/* ===== 記住員工登入：重新整理後沿用，不用重登（滿 1 小時失效，比照自動登出的絕對上限） ===== */
+var _STAFF_SESS_KEY="oma_ctm_staff_sess";
+function _saveStaffSession(sess){ try{ sess.ts=Date.now(); localStorage.setItem(_STAFF_SESS_KEY, JSON.stringify(sess)); }catch(e){} }
+function _clearStaffSession(){ try{ localStorage.removeItem(_STAFF_SESS_KEY); }catch(e){} }
+function _restoreStaffSession(){   // 有存過登入且未逾時 → 直接進對應畫面，回傳 true
+  try{
+    var raw=localStorage.getItem(_STAFF_SESS_KEY); if(!raw) return false;
+    var s=JSON.parse(raw); if(!s||!s.role) return false;
+    if(s.ts && (Date.now()-s.ts>3600000)){ _clearStaffSession(); return false; }   // 超過 1 小時 → 失效
+    var a=getAccounts();
+    if(s.role==="admin"){ role="admin"; currentSales=null; applyView("admin"); showAdminDash(); return true; }
+    if(s.role==="acct"){ role="acct"; currentSales=null; openAcctView(); return true; }
+    if(s.role==="cashier"){ role="cashier"; currentSales=null; openCashierView(); return true; }
+    if(s.role==="sales"){
+      var acc=a.sales.find(function(x){return x.u===s.u;}); if(!acc){ _clearStaffSession(); return false; }   // 帳號已不存在 → 當沒登入
+      role="sales";
+      currentSales={u:acc.u,name:acc.name||"",title:acc.title,phone:acc.phone||"",email:acc.email||"",line:acc.line||""};
+      applyView("sales"); showDashboard();
+      if(document.getElementById("c_sales")) c_sales.value=[acc.title,acc.name].filter(Boolean).join(" ")+"（"+acc.u+"）";
+      return true;
+    }
+    return false;
+  }catch(e){ return false; }
+}
 function _staffHandoff(){   // VIP 頁帶來的員工帳密 → 背景自動登入（蓋「登入中…」，不讓登入框閃出來）
   try{
     var raw=sessionStorage.getItem("oma_staff_handoff"); if(!raw) return false;
@@ -4687,9 +4720,13 @@ function init(){
   loadSettings();
   renderSaved();
   updateUserBadge();
-  if(readVipHandoff()){ showVipLoading(); if(!tryVipHandoff()) scheduleVipHandoff(); }   // 從 VIP 入口頁帶進來 → 自動登入
-  else if(location.hash.toLowerCase().indexOf("staff")>=0){ if(!_staffHandoff()) location.href="https://oma2026.github.io/vipentry/"; }   // 從 VIP 頁選「員工」帶進來 → 帶了帳密就背景自動登入(不閃登入框)；沒帶(重新整理等)→ 回 VIP 入口，App 永不顯示自己的登入框
-  else openRoleGate();
+  if(readVipHandoff()){ showVipLoading(); if(!tryVipHandoff()) scheduleVipHandoff(); }   // 從 VIP 入口頁帶進來 → 自動登入（客戶）
+  else if(location.hash.toLowerCase().indexOf("staff")>=0){
+    if(_staffHandoff()){}                                   // 從 VIP 新選員工（有帶帳密）→ 背景自動登入
+    else if(_restoreStaffSession()){}                       // 重新整理（沒帶帳密但有登入紀錄）→ 沿用登入、停在原頁
+    else location.href="https://oma2026.github.io/vipentry/";   // 都沒有 → 回 VIP 入口
+  }
+  else if(!_restoreStaffSession()) openRoleGate();   // 單機入口：有登入紀錄就沿用，否則顯示身分關卡
 }
 function renderBrands(){
   if(brandLock){ brandTabs.style.display="none"; brandTabs.innerHTML=""; return; }   // VIP 鎖定品牌 → 隱藏切換鈕
@@ -5652,6 +5689,50 @@ function getAccounts(){
 }
 function sharedSales(){ const a=getAccounts(); const s=a.sales.find(x=>x.shared)||a.sales.find(x=>x.u==="共用")||{u:"共用",title:"業務共用",name:""}; return {u:s.u,name:s.name||"",title:s.title||"業務共用",phone:s.phone||"",email:s.email||"",line:s.line||""}; }
 function setAccounts(a){ localStorage.setItem(LS_ACCT,JSON.stringify(a)); }
+/* ===== 客戶代碼（虛擬帳號）：一個客戶一組隨機碼，鎖定只看哪個品牌／改裝，掛在發碼的業務底下 =====
+   存在 sales[].vipCustomers（隨 ctm_accounts_v2 同步雲端，VIP 入口匿名就讀得到） */
+const VIP_SCOPES=[
+  {id:"caterham",label:"Caterham（Seven）"},
+  {id:"sunlight",label:"Sunlight 露營車"},
+  {id:"eriba",label:"ERIBA"},
+  {id:"crosscamp",label:"Crosscamp"},
+  {id:"burstner",label:"Bürstner"},
+  {id:"camper",label:"改裝報價"}
+];
+function vipScopeLabel(id){ var f=VIP_SCOPES.find(function(s){return s.id===id;}); return f?f.label:(id||"—"); }
+function _allVipCodesLower(){   // 收集所有已用代碼（含舊固定碼）→ 新碼防撞
+  var set=new Set(), a=getAccounts();
+  (a.sales||[]).forEach(function(s){
+    if(!s.shared){ try{ set.add(effectiveVip(s).toLowerCase()); }catch(e){} }
+    (s.vipCustomers||[]).forEach(function(c){ if(c&&c.code) set.add(String(c.code).toLowerCase()); });
+  });
+  return set;
+}
+function genVipCode(){
+  var AL="ABCDEFGHJKMNPQRSTUVWXYZ23456789";   // 去掉易混的 I L O 0 1
+  var used=_allVipCodesLower(), code="";
+  for(var t=0;t<80;t++){ code=""; for(var i=0;i<6;i++) code+=AL.charAt(Math.floor(Math.random()*AL.length)); if(!used.has(code.toLowerCase())) return code; }
+  return code;
+}
+function listVipCustomers(repU){ var a=getAccounts(), s=(a.sales||[]).find(function(x){return x.u===repU;}); return (s&&Array.isArray(s.vipCustomers))?s.vipCustomers:[]; }
+function addVipCustomer(repU, scope, note){
+  var a=getAccounts(), s=(a.sales||[]).find(function(x){return x.u===repU;}); if(!s) return null;
+  if(!Array.isArray(s.vipCustomers)) s.vipCustomers=[];
+  var code=genVipCode();
+  s.vipCustomers.unshift({code:code, scope:scope, note:(note||"").trim(), active:true, ts:Date.now()});
+  setAccounts(a); return code;
+}
+function setVipCustomerActive(repU, code, active){
+  var a=getAccounts(), s=(a.sales||[]).find(function(x){return x.u===repU;}); if(!s||!s.vipCustomers) return;
+  var c=s.vipCustomers.find(function(x){return x.code===code;}); if(c){ c.active=!!active; setAccounts(a); }
+}
+/* VIP 入口／App 收 handoff 用：全站找這組代碼 → 回傳 {rep, scope, active}（只找虛擬帳號碼，不含舊固定碼） */
+function findVipCustomer(code){
+  var low=String(code||"").trim().toLowerCase(); if(!low) return null; var a=getAccounts();
+  for(var i=0;i<(a.sales||[]).length;i++){ var s=a.sales[i]; var list=s.vipCustomers||[];
+    for(var j=0;j<list.length;j++){ if(list[j]&&String(list[j].code).toLowerCase()===low) return {rep:s.u, scope:list[j].scope, active:list[j].active!==false}; } }
+  return null;
+}
 let currentSales=null;   // {u,title}
 let loginMode=null;      // 'sales' | 'admin'
 let role=null;           // 'admin' | 'sales'（本次登入身分）
@@ -5736,6 +5817,7 @@ function stopAutoLogout(){ _autoOn=false; clearTimeout(_idleTimer); clearTimeout
 ["mousemove","mousedown","keydown","touchstart","scroll","click"].forEach(function(ev){ try{ document.addEventListener(ev,_resetIdle,true); }catch(e){} });
 function logout(){
   stopAutoLogout();
+  _clearStaffSession();   // 登出就清掉「記住登入」，之後重新整理不會又自動登入
   if(window.fbSignOutStaff)window.fbSignOutStaff();   /* 雲端員工登入一併退出（會自動換回匿名通行證） */
   role=null; currentSales=null; vipSales=null; customerName=""; VIEW="sales";
   { const _a=document.getElementById("acctBg"); if(_a) _a.style.display="none"; const _c=document.getElementById("cashierBg"); if(_c) _c.style.display="none"; }
@@ -5821,6 +5903,11 @@ function doLogin(){
   else if(u==="__cashier") ok=(pass===(a.cashierPass||"123"));
   else { const acc=a.sales.find(s=>s.u===u); if(!acc){ err.textContent="找不到此業務"; err.style.display=""; return; } ok=(pass===acc.p); }
   if(!ok){ err.textContent="密碼錯誤"; err.style.display=""; return; }
+  /* 密碼對了 → 記住這次登入，之後重新整理可沿用、不用重登 */
+  if(u==="__admin") _saveStaffSession({role:"admin"});
+  else if(u==="__acct") _saveStaffSession({role:"acct"});
+  else if(u==="__cashier") _saveStaffSession({role:"cashier"});
+  else _saveStaffSession({role:"sales", u:u});
   if(window.fbAuth && window.fbCloudDataLogin){
     err.textContent="連線中…"; err.style.display="";
     let done=false; const go=()=>{ if(done) return; done=true; err.style.display="none"; finish(); };   // finish 只跑一次
@@ -6035,21 +6122,64 @@ function copyText(txt, okMsg){
 }
 function openMyCode(){
   var s=currentSales; if(!s){ if(typeof toast==="function") toast("請先以業務身分登入"); return; }
-  var code=(typeof effectiveVip==="function")?effectiveVip(s):((typeof getVipPrefix==="function"?getVipPrefix():"2026")+s.u);
   var who=[s.title,s.name].filter(Boolean).join(" ")||s.u;
   var body=document.getElementById("codeBody");
   if(body){
+    var opts=VIP_SCOPES.map(function(x){ return '<option value="'+x.id+'">'+x.label+'</option>'; }).join("");
     body.innerHTML=
-      '<div class="hint" style="margin-bottom:2px">業務姓名</div>'
-      +'<div style="font-size:17px;font-weight:800;color:#1a1a18">'+who+'（'+s.u+'）</div>'
-      +'<div class="code-box"><div class="cb-lbl">客戶登入代碼</div><div class="cb-code" id="myCodeVal">'+code+'</div></div>'
-      +'<div class="code-actions">'
-      +'<button class="btn primary" onclick="copyText(document.getElementById(\'myCodeVal\').textContent,\'已複製代碼\')">複製代碼</button>'
-      +'<button class="btn" onclick="copyText(VIP_ENTRY_URL,\'已複製客戶登入連結\')">複製客戶登入連結</button>'
+       '<div class="hint" style="margin-bottom:2px">業務</div>'
+      +'<div style="font-size:16px;font-weight:800;color:#1a1a18;margin-bottom:12px">'+_esc(who)+'（'+_esc(s.u)+'）</div>'
+      +'<div style="padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#faf9f6">'
+        +'<div style="font-weight:800;margin-bottom:9px">＋ 發一組新代碼給客戶</div>'
+        +'<div style="font-size:12px;color:var(--ink-2);font-weight:600;margin-bottom:4px">這組只看哪一個</div>'
+        +'<select id="vipNewScope" class="t" style="width:100%;box-sizing:border-box">'+opts+'</select>'
+        +'<div style="font-size:12px;color:var(--ink-2);font-weight:600;margin:10px 0 4px">備註（這組給誰的，只有你看得到）</div>'
+        +'<input id="vipNewNote" class="t" placeholder="例：台北 王先生、0912…" style="width:100%;box-sizing:border-box">'
+        +'<button class="btn primary" style="width:100%;margin-top:11px" onclick="vipAddCode()">產生代碼</button>'
       +'</div>'
-      +'<div class="hint" style="margin-top:16px;line-height:1.7">把這組代碼給您的客戶。客戶到登入連結 <b>'+VIP_ENTRY_URL+'</b> 輸入後，送出的單就會進到您的「客戶送來的單」。</div>';
+      +'<div style="font-weight:800;margin:16px 0 8px">已發出的代碼</div>'
+      +'<div id="vipCodeList"></div>'
+      +'<div class="hint" style="margin-top:12px;line-height:1.7">把代碼給客戶，請他到 <b>'+VIP_ENTRY_URL+'</b> 輸入代碼即可（不用打名字）。客戶只會看到你指定的那個品牌，送出的單會進你的「客戶案件」。</div>';
+    renderMyCodes();
   }
   document.getElementById("codeBg").style.display="flex";
+}
+function renderMyCodes(){
+  var s=currentSales; if(!s) return;
+  var wrap=document.getElementById("vipCodeList"); if(!wrap) return;
+  var list=listVipCustomers(s.u);
+  if(!list.length){ wrap.innerHTML='<div class="hint" style="padding:8px 2px">還沒發過代碼。用上面「發一組新代碼」產生第一組。</div>'; return; }
+  wrap.innerHTML=list.map(function(c){
+    var on=c.active!==false;
+    return '<div style="border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:9px;'+(on?'':'opacity:.55;background:#f6f5f2')+'">'
+      +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+        +'<span style="font-family:ui-monospace,Menlo,monospace;font-size:20px;font-weight:800;letter-spacing:3px">'+_esc(c.code)+'</span>'
+        +'<span style="font-size:12px;font-weight:700;background:#edeaf6;color:#3a3a6a;padding:2px 9px;border-radius:999px">'+_esc(vipScopeLabel(c.scope))+'</span>'
+        +(on?'':'<span style="font-size:12px;font-weight:700;background:#f0d7d4;color:#9a3b2e;padding:2px 9px;border-radius:999px">已停用</span>')
+        +(c.note?'<span style="margin-left:auto;font-size:13px;color:#8a857c">'+_esc(c.note)+'</span>':'')
+      +'</div>'
+      +'<div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap">'
+        +'<button class="btn" onclick="copyText(\''+_esc(c.code)+'\',\'已複製代碼\')">複製代碼</button>'
+        +'<button class="btn" onclick="copyText(VIP_ENTRY_URL,\'已複製登入連結\')">複製登入連結</button>'
+        +'<button class="btn" onclick="vipToggleCode(\''+_esc(c.code)+'\','+(on?'false':'true')+')">'+(on?'停用':'重新啟用')+'</button>'
+      +'</div>'
+    +'</div>';
+  }).join("");
+}
+function vipAddCode(){
+  var s=currentSales; if(!s){ toast("請先以業務身分登入"); return; }
+  var scope=(document.getElementById("vipNewScope")||{}).value||"caterham";
+  var note=(document.getElementById("vipNewNote")||{}).value||"";
+  var code=addVipCustomer(s.u, scope, note);
+  if(!code){ toast("產生失敗，請重試"); return; }
+  var nn=document.getElementById("vipNewNote"); if(nn) nn.value="";
+  renderMyCodes();
+  toast("已產生代碼："+code);
+}
+function vipToggleCode(code, active){
+  var s=currentSales; if(!s) return;
+  setVipCustomerActive(s.u, code, active);
+  renderMyCodes();
 }
 function closeMyCode(){ document.getElementById("codeBg").style.display="none"; }
 
