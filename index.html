@@ -533,6 +533,21 @@
 .dash-card .dc-badge{ position:absolute; top:14px; right:16px; min-width:24px; height:24px; padding:0 7px; border-radius:12px; background:#b23b2e; color:#fff; font-size:13px; font-weight:800; display:none; align-items:center; justify-content:center; }
 .dash-card .dc-badge.on{ display:flex; }
 .dash-foot{ display:flex; gap:10px; margin-top:26px; }
+/* 業務端首頁：左側選單 ｜ 右側內容（比照 CRM／經銷存） */
+.dash-shell{ display:flex; gap:30px; align-items:flex-start; }
+.dash-nav{ flex:0 0 250px; position:sticky; top:16px; }
+.dnav-group{ font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:#a7a299; font-weight:800; margin:20px 10px 8px; }
+.dnav-group:first-child{ margin-top:0; }
+.dnav-item{ position:relative; width:100%; text-align:left; display:flex; align-items:center; gap:12px; border:0; background:transparent; border-radius:12px; padding:11px 12px; cursor:pointer; color:#1a1a18; transition:background .15s; }
+.dnav-item:hover{ background:#f1efe8; }
+.dnav-item .dnav-ic{ width:38px; height:38px; flex:none; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:19px; background:#f4f2ec; }
+.dnav-item .dnav-tx{ min-width:0; }
+.dnav-item .dnav-tx b{ display:block; font-size:15px; font-weight:800; line-height:1.25; }
+.dnav-item .dnav-tx small{ display:block; font-size:12px; color:#8a857c; margin-top:1px; }
+.dnav-badge{ margin-left:auto; min-width:22px; height:22px; padding:0 7px; border-radius:11px; background:#b23b2e; color:#fff; font-size:12px; font-weight:800; display:none; align-items:center; justify-content:center; }
+.dnav-badge.on{ display:flex; }
+.dash-main{ flex:1 1 auto; min-width:0; }
+@media(max-width:760px){ .dash-shell{ flex-direction:column; gap:18px; } .dash-nav{ flex:none; width:100%; position:static; } }
 /* ===== 三步驟精靈 ===== */
 .wzbar{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
 .wzsteps{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -877,27 +892,37 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
 
 <!-- ===== 業務工作台 ===== -->
 <div id="dashView">
-  <div class="dash-hi" id="dashHi">工作台</div>
-  <div class="dash-sub">請選擇要進行的作業</div>
-  <div class="dash-stats" id="dashStats"></div>
-  <div class="dash-cards">
-    <div class="dash-card" onclick="caseNew()">
-      <div class="dash-ic">📝</div>
-      <div><div class="dc-t">新增案件</div><div class="dc-d">現場報價：選車 → 選配 → 客戶</div></div>
-    </div>
-    <div class="dash-card" onclick="openCases()">
-      <div class="dash-ic">🗂️</div>
-      <div><div class="dc-t">客戶案件</div><div class="dc-d">所有案件一路到底：報價・成交・合約</div></div>
-      <span class="dc-badge" id="dashSubBadge">0</span>
-    </div>
-    <div class="dash-card" onclick="openMyCode()">
-      <div class="dash-ic">🔑</div>
-      <div><div class="dc-t">我的客戶代碼</div><div class="dc-d">給客戶的登入代碼與連結</div></div>
-    </div>
-  </div>
-  <div class="dash-foot">
-    <button class="btn ghost" onclick="openChangePw('sales-self')">帳號設定</button>
-    <button class="btn ghost" onclick="logout()">登出</button>
+  <div class="dash-shell">
+    <aside class="dash-nav">
+      <div class="dnav-group">作業</div>
+      <button class="dnav-item" onclick="caseNew()">
+        <span class="dnav-ic">📝</span>
+        <span class="dnav-tx"><b>新增案件</b><small>現場報價：選車 → 選配 → 客戶</small></span>
+      </button>
+      <button class="dnav-item" onclick="openCases()">
+        <span class="dnav-ic">🗂️</span>
+        <span class="dnav-tx"><b>客戶案件</b><small>報價・成交・合約</small></span>
+        <span class="dnav-badge" id="dashSubBadge">0</span>
+      </button>
+      <button class="dnav-item" onclick="openMyCode()">
+        <span class="dnav-ic">🔑</span>
+        <span class="dnav-tx"><b>我的客戶代碼</b><small>給客戶的登入代碼與連結</small></span>
+      </button>
+      <div class="dnav-group">帳號</div>
+      <button class="dnav-item" onclick="openChangePw('sales-self')">
+        <span class="dnav-ic">⚙️</span>
+        <span class="dnav-tx"><b>帳號設定</b></span>
+      </button>
+      <button class="dnav-item" onclick="logout()">
+        <span class="dnav-ic">🚪</span>
+        <span class="dnav-tx"><b>登出</b></span>
+      </button>
+    </aside>
+    <section class="dash-main">
+      <div class="dash-hi" id="dashHi">工作台</div>
+      <div class="dash-sub">請選擇要進行的作業</div>
+      <div class="dash-stats" id="dashStats"></div>
+    </section>
   </div>
 </div>
 
