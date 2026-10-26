@@ -6220,7 +6220,7 @@ function openMyCode(){
         +'<input id="vipNewNote" class="t" placeholder="例：台北 王先生、0912…" style="width:100%;box-sizing:border-box">'
         +'<button class="btn primary" style="width:100%;margin-top:11px" onclick="vipAddCode()">產生代碼</button>'
       +'</div>'
-      +'<div style="font-weight:800;margin:16px 0 8px">已發出的代碼</div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 8px;flex-wrap:wrap"><span style="font-weight:800">已發出的代碼</span><span id="vipCodeFilterWrap"></span></div>'
       +'<div id="vipCodeList"></div>'
       +'<div class="hint" style="margin-top:12px;line-height:1.7">把代碼給客戶，請他到 <b>'+VIP_ENTRY_URL+'</b> 輸入代碼即可（不用打名字）。客戶只會看到你指定的那個品牌，送出的單會進你的「客戶案件」。</div>';
     renderMyCodes();
@@ -6232,13 +6232,26 @@ function openMyCode(){
   if(typeof setSideActive==="function") setSideActive("code");
   window.scrollTo(0,0);
 }
+var vipCodeFilter="all";
+function setVipCodeFilter(v){ vipCodeFilter=v||"all"; renderMyCodes(); }
 function renderMyCodes(){
   var s=currentSales; if(!s) return;
   var wrap=document.getElementById("vipCodeList"); if(!wrap) return;
   var list=listVipCustomers(s.u);
-  if(!list.length){ wrap.innerHTML='<div class="hint" style="padding:8px 2px">還沒發過代碼。用上面「發一組新代碼」產生第一組。</div>'; return; }
+  var fw=document.getElementById("vipCodeFilterWrap");
+  if(!list.length){ wrap.innerHTML='<div class="hint" style="padding:8px 2px">還沒發過代碼。用上面「發一組新代碼」產生第一組。</div>'; if(fw) fw.innerHTML=''; return; }
+  /* 品牌篩選（跟國泰一樣：全部 或 個別品牌） */
+  var seen={}, scopeList=[];
+  list.forEach(function(c){ var sc=String(c.scope||""); if(!seen[sc]){ seen[sc]=1; scopeList.push(sc); } });
+  if(vipCodeFilter!=="all" && !seen[vipCodeFilter]) vipCodeFilter="all";
+  if(fw){
+    if(scopeList.length>1){
+      fw.innerHTML='<select class="t" style="padding:6px 10px;font-size:13px;max-width:200px" onchange="setVipCodeFilter(this.value)"><option value="all"'+(vipCodeFilter==="all"?' selected':'')+'>全部品牌</option>'+scopeList.map(function(sc){ return '<option value="'+_esc(sc)+'"'+(vipCodeFilter===sc?' selected':'')+'>'+_esc(vipScopeLabel(sc))+'</option>'; }).join("")+'</select>';
+    } else { fw.innerHTML=''; }
+  }
+  var shown=(vipCodeFilter==="all")?list:list.filter(function(c){ return String(c.scope||"")===vipCodeFilter; });
   var subs=getSubs();
-  var rows=list.map(function(c){
+  var rows=shown.map(function(c){
     var on=c.active!==false;
     var sub=subs.filter(function(x){ return x.vipCode && String(x.vipCode).toLowerCase()===String(c.code).toLowerCase(); }).sort(function(a,b){ return b.ts-a.ts; })[0];
     var custCell;
@@ -6255,6 +6268,7 @@ function renderMyCodes(){
       +'<td class="tb-view" style="white-space:nowrap"><button class="btn" onclick="copyText(\''+_esc(c.code)+'\',\'已複製代碼\')">複製</button> <button class="btn" onclick="vipToggleCode(\''+_esc(c.code)+'\','+(on?'false':'true')+')">'+(on?'停用':'啟用')+'</button></td>'
     +'</tr>';
   }).join("");
+  if(!rows){ wrap.innerHTML='<div class="hint" style="padding:8px 2px">這個品牌還沒有發過代碼。</div>'; return; }
   wrap.innerHTML='<div style="overflow-x:auto;border:1px solid var(--line);border-radius:12px"><table class="dash-tb"><thead><tr><th>代碼</th><th>品牌</th><th>客戶</th><th>狀態</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 function vipViewSub(subId){ var cv=document.getElementById("codeView"); if(cv) cv.style.display="none"; if(typeof caseOpen==="function") caseOpen("sub", subId); }
