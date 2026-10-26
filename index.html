@@ -4639,13 +4639,8 @@ function _staffHandoff(){   // VIP 頁帶來的員工帳密 → 背景自動登�
       if(typeof doLogin!=="function") return;
       doLogin();
       var e=document.getElementById("loginErr");
-      if(e && e.style.display!=="none" && e.textContent!=="連線中…"){   // 帳密不對 → 露出登入框讓人手動輸入
-        hideVipLoading();
-        document.getElementById("loginPass").value="";
-        var bg=document.getElementById("loginBg");
-        bg.classList.add("gate"); document.getElementById("loginCancel").style.display="none";
-        bg.style.display="flex";
-        setTimeout(function(){ document.getElementById("loginPass").focus(); },30);
+      if(e && e.style.display!=="none" && e.textContent!=="連線中…"){   // 帳密不對 → 回 VIP 入口重新輸入，App 永不顯示自己的登入框
+        location.href="https://oma2026.github.io/vipentry/";
       }
     }, 30);
     return true;
@@ -4668,7 +4663,7 @@ function init(){
   renderSaved();
   updateUserBadge();
   if(readVipHandoff()){ showVipLoading(); if(!tryVipHandoff()) scheduleVipHandoff(); }   // 從 VIP 入口頁帶進來 → 自動登入
-  else if(location.hash.toLowerCase().indexOf("staff")>=0){ if(!_staffHandoff()) openLogin(); }   // 從 VIP 頁選「員工」帶進來 → 帶了帳密就背景自動登入(不閃登入框)；沒帶才顯示登入框
+  else if(location.hash.toLowerCase().indexOf("staff")>=0){ if(!_staffHandoff()) location.href="https://oma2026.github.io/vipentry/"; }   // 從 VIP 頁選「員工」帶進來 → 帶了帳密就背景自動登入(不閃登入框)；沒帶(重新整理等)→ 回 VIP 入口，App 永不顯示自己的登入框
   else openRoleGate();
 }
 function renderBrands(){
