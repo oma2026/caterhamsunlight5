@@ -548,6 +548,17 @@
 .dnav-badge.on{ display:flex; }
 .dash-main{ flex:1 1 auto; min-width:0; }
 @media(max-width:760px){ .dash-shell{ flex-direction:column; gap:18px; } .dash-nav{ flex:none; width:100%; position:static; } }
+/* 工作台的「客戶送來的報價單」表格（比照國泰主管儀表板：乾淨表格＋檢視鈕） */
+.dash-panel{ border:1px solid var(--line,#d9d6ce); border-radius:14px; overflow:hidden; margin-top:24px; background:#fff; }
+.dash-panel-h{ display:flex; align-items:center; gap:10px; padding:14px 18px; font-size:16px; font-weight:800; color:#1a1a18; border-bottom:1px solid var(--line,#d9d6ce); background:#faf9f6; }
+.dash-panel-h .dp-badge{ min-width:22px; height:22px; padding:0 8px; border-radius:11px; background:#b23b2e; color:#fff; font-size:12px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
+.dash-tb{ width:100%; border-collapse:collapse; }
+.dash-tb th{ text-align:left; font-size:12px; font-weight:700; color:#8a857c; padding:10px 18px; background:#f4f2ec; border-bottom:1px solid var(--line,#d9d6ce); white-space:nowrap; }
+.dash-tb td{ padding:13px 18px; border-bottom:1px solid #efece5; font-size:14px; vertical-align:middle; }
+.dash-tb tr:last-child td{ border-bottom:0; }
+.dash-tb .tb-cust{ font-weight:800; color:#1a1a18; }
+.dash-tb .tb-view{ text-align:right; white-space:nowrap; }
+.dash-empty{ padding:30px 18px; color:#8a857c; font-size:14px; text-align:center; }
 /* ===== 三步驟精靈 ===== */
 .wzbar{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
 .wzsteps{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -921,6 +932,7 @@ table.adm .btn{ padding:3px 9px; font-size:12px; }
     <section class="dash-main">
       <div class="dash-hi" id="dashHi">工作台</div>
       <div class="dash-sub">請選擇要進行的作業</div>
+      <div id="dashInbox"></div>
     </section>
   </div>
 </div>
@@ -4231,6 +4243,7 @@ function doVipLogin(){
 }
 /* ===== VIP 入口頁帶入：自動登入 + 鎖定品牌（同網域用 sessionStorage 交接，姓名/密碼不經網址）===== */
 const VIP_HANDOFF_KEY="oma_vip_handoff";
+var _vipCustCode="";   // 這位 VIP 客戶登入用的代碼 → 送單時蓋上，業務「我的客戶代碼」才點得回報價
 function readVipHandoff(){
   try{
     const raw=sessionStorage.getItem(VIP_HANDOFF_KEY); if(!raw) return null;
@@ -4248,6 +4261,7 @@ function tryVipHandoff(){
   let acc=repU ? ((a&&a.sales)?a.sales.find(s=>!s.shared && s.u===repU):null) : null;   // 虛擬帳號碼：VIP 已驗證 → 照業務代號認人
   if(!acc) acc=(a&&a.sales)?a.sales.find(s=>!s.shared && effectiveVip(s).toLowerCase()===pass):null;   // 舊固定碼：照代碼對業務
   if(!acc) return false;   // 帳號尚未由雲端載入 → 交由 __cloudRefresh / 輪詢稍後重試
+  _vipCustCode=(h.pass||"").trim();   // 記下這位客戶的代碼，送單時蓋上
   try{ h.ts=Date.now(); sessionStorage.setItem(VIP_HANDOFF_KEY,JSON.stringify(h)); }catch(e){}   // 更新時戳：同分頁重新整理仍保持登入
   brandLock=(["caterham","sunlight","eriba","crosscamp","burstner"].indexOf(h.brand)>=0)?h.brand:null;
   if(brandLock){ curBrand=brandLock; CURSYM=symForBrand(brandLock); }
@@ -4335,6 +4349,7 @@ function submitToSales(){
     salesCode:vipSales?vipSales.u:"", salesName:vipSales?[vipSales.title,vipSales.name].filter(Boolean).join(" "):"",
     carId:cur.id, carName:cur.name, variant:variant,
     notes:(document.getElementById("sumNotes")&&sumNotes.value)||(document.getElementById("c_notes")&&c_notes.value)||"",
+    vipCode:_vipCustCode||"",
     sel:JSON.parse(JSON.stringify(selected)), sigSel:JSON.parse(JSON.stringify(sigOptSel)),
     status:"new"
   });
@@ -6098,6 +6113,23 @@ function refreshDash(){
     var ds=document.getElementById("dashStats");
     if(ds){ var defs=[["客戶已送出",st.submitted],["已報價",st.quoted],["待上傳合約",st.contract],["已成交",st.dealt],["待公司下定",st.ready]];
       ds.innerHTML=defs.map(function(d){return '<div class="cstat"><div class="n">'+d[1]+'</div><div class="l">'+d[0]+'</div></div>';}).join(""); }
+    /* 工作台：客戶送來的報價單（表格＋看報價鈕，比照國泰主管儀表板） */
+    var di=document.getElementById("dashInbox");
+    if(di){
+      var subs=getSubs().filter(function(x){ return (!currentSales||x.salesCode===currentSales.u) && x.status!=="done"; }).sort(function(a,b){ return b.ts-a.ts; });
+      if(!subs.length){
+        di.innerHTML='<div class="dash-panel"><div class="dash-panel-h">客戶送來的報價單</div><div class="dash-empty">目前沒有客戶送來的報價單。<br>客戶用你發的代碼送出後，就會出現在這裡。</div></div>';
+      }else{
+        var rows=subs.map(function(s){
+          var nm=(s.customer&&s.customer!=="（未填）")?s.customer:"（未填客戶）";
+          var car=(typeof _subCarName==="function"?_subCarName(s):"")||"—";
+          return '<tr><td class="tb-cust">'+_esc(nm)+'</td><td>'+_esc(car)+'</td><td style="color:#8a857c;white-space:nowrap">'+fmtDT(s.ts)+'</td>'
+                +'<td class="tb-view"><button class="btn primary" onclick="caseOpen(\'sub\',\''+s.id+'\')">看報價</button></td></tr>';
+        }).join("");
+        di.innerHTML='<div class="dash-panel"><div class="dash-panel-h">客戶送來的報價單 <span class="dp-badge">'+subs.length+'</span></div>'
+          +'<div style="overflow-x:auto"><table class="dash-tb"><thead><tr><th>客戶</th><th>車型</th><th>送單時間</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+      }
+    }
   }catch(e){}
 }
 function dashNewQuote(){ hideDashboard(); if(typeof goStep==="function") goStep(1); window.scrollTo(0,0); }
@@ -6148,23 +6180,27 @@ function renderMyCodes(){
   var wrap=document.getElementById("vipCodeList"); if(!wrap) return;
   var list=listVipCustomers(s.u);
   if(!list.length){ wrap.innerHTML='<div class="hint" style="padding:8px 2px">還沒發過代碼。用上面「發一組新代碼」產生第一組。</div>'; return; }
-  wrap.innerHTML=list.map(function(c){
+  var subs=getSubs();
+  var rows=list.map(function(c){
     var on=c.active!==false;
-    return '<div style="border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:9px;'+(on?'':'opacity:.55;background:#f6f5f2')+'">'
-      +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
-        +'<span style="font-family:ui-monospace,Menlo,monospace;font-size:20px;font-weight:800;letter-spacing:3px">'+_esc(c.code)+'</span>'
-        +'<span style="font-size:12px;font-weight:700;background:#edeaf6;color:#3a3a6a;padding:2px 9px;border-radius:999px">'+_esc(vipScopeLabel(c.scope))+'</span>'
-        +(on?'':'<span style="font-size:12px;font-weight:700;background:#f0d7d4;color:#9a3b2e;padding:2px 9px;border-radius:999px">已停用</span>')
-        +(c.note?'<span style="margin-left:auto;font-size:13px;color:#8a857c">'+_esc(c.note)+'</span>':'')
-      +'</div>'
-      +'<div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap">'
-        +'<button class="btn" onclick="copyText(\''+_esc(c.code)+'\',\'已複製代碼\')">複製代碼</button>'
-        +'<button class="btn" onclick="copyText(VIP_ENTRY_URL,\'已複製登入連結\')">複製登入連結</button>'
-        +'<button class="btn" onclick="vipToggleCode(\''+_esc(c.code)+'\','+(on?'false':'true')+')">'+(on?'停用':'重新啟用')+'</button>'
-      +'</div>'
-    +'</div>';
+    var sub=subs.filter(function(x){ return x.vipCode && String(x.vipCode).toLowerCase()===String(c.code).toLowerCase(); }).sort(function(a,b){ return b.ts-a.ts; })[0];
+    var custCell;
+    if(sub){ custCell='<a href="javascript:void(0)" onclick="vipViewSub(\''+sub.id+'\')" style="color:#1a56c6;text-decoration:underline;font-weight:700;cursor:pointer">'+_esc(c.note||sub.customer||"查看報價")+'</a>'; }
+    else if(c.note){ custCell=_esc(c.note); }
+    else { custCell='<span style="color:#b9b4ab">—</span>'; }
+    var statusCell = !on ? '<span style="color:#9a3b2e;font-weight:700">已停用</span>'
+                    : (sub ? '<span style="color:#2f7d4f;font-weight:700">已送報價</span>' : '<span style="color:#8a857c">尚未使用</span>');
+    return '<tr'+(on?'':' style="opacity:.6"')+'>'
+      +'<td style="font-family:ui-monospace,Menlo,monospace;font-weight:800;letter-spacing:2px">'+_esc(c.code)+'</td>'
+      +'<td>'+_esc(vipScopeLabel(c.scope))+'</td>'
+      +'<td>'+custCell+'</td>'
+      +'<td style="white-space:nowrap">'+statusCell+'</td>'
+      +'<td class="tb-view" style="white-space:nowrap"><button class="btn" onclick="copyText(\''+_esc(c.code)+'\',\'已複製代碼\')">複製</button> <button class="btn" onclick="vipToggleCode(\''+_esc(c.code)+'\','+(on?'false':'true')+')">'+(on?'停用':'啟用')+'</button></td>'
+    +'</tr>';
   }).join("");
+  wrap.innerHTML='<div style="overflow-x:auto;border:1px solid var(--line);border-radius:12px"><table class="dash-tb"><thead><tr><th>代碼</th><th>品牌</th><th>客戶</th><th>狀態</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
+function vipViewSub(subId){ closeMyCode(); if(typeof caseOpen==="function") caseOpen("sub", subId); }
 function vipAddCode(){
   var s=currentSales; if(!s){ toast("請先以業務身分登入"); return; }
   var scope=(document.getElementById("vipNewScope")||{}).value||"caterham";
@@ -7130,7 +7166,8 @@ function caseButtonsHTML(it){
   var k=caseFlowKey(it);
   var upload='<label class="case-primary go filelabel">上傳客戶簽名合約<input type="file" accept="application/pdf,image/*" style="display:none" onchange="caseUploadContract(\''+id+'\',this)"></label>';
   var primary;
-  if(k==="sub"||k==="draft") primary='<button class="case-primary go" onclick="'+A_open+'">開始報價</button>';
+  if(k==="sub") primary='<button class="case-primary go" onclick="'+A_open+'">看客戶報價</button>';
+  else if(k==="draft") primary='<button class="case-primary go" onclick="'+A_open+'">開始報價</button>';
   else if(k==="quoted") primary='<button class="case-primary go" onclick="'+A_con+'">產生簽約文件</button>';
   else if(k==="contract") primary=upload;
   else if(k==="signed"||k==="won"||k==="dep_marked"){
