@@ -4171,6 +4171,7 @@ function getSubs(){ try{return JSON.parse(localStorage.getItem(LS_SUBS))||[];}ca
 function saveSubs(a){ localStorage.setItem(LS_SUBS,JSON.stringify(a)); }
 
 function openRoleGate(){
+  if(location.hash.toLowerCase().indexOf("staff")>=0){ location.href="https://oma2026.github.io/vipentry/"; return; }   // 從 VIP 頁來的（#staff）→ 不顯示 App 自己的關卡，一律回 VIP 入口選系統
   document.getElementById("loginBg").style.display="none";
   document.getElementById("vipBg").style.display="none";
   document.getElementById("roleGateBg").style.display="flex";
@@ -4625,16 +4626,30 @@ function updateSummaryActions(){
   if(done){ done.style.display=caseMode?"":"none"; done.textContent = editingCaseRef ? "✓ 完成（回案件）" : "✓ 建立案件"; }
 }
 
-function _staffHandoff(){   // VIP 頁帶來的員工帳密 → 自動填入並送出登入
+function _staffHandoff(){   // VIP 頁帶來的員工帳密 → 背景自動登入（蓋「登入中…」，不讓登入框閃出來）
   try{
-    var raw=sessionStorage.getItem("oma_staff_handoff"); if(!raw) return;
+    var raw=sessionStorage.getItem("oma_staff_handoff"); if(!raw) return false;
     sessionStorage.removeItem("oma_staff_handoff");
-    var h=JSON.parse(raw); if(!h||!h.name) return;
-    if(h.ts && (Date.now()-h.ts>120000)) return;   // 逾 2 分鐘作廢
+    var h=JSON.parse(raw); if(!h||!h.name) return false;
+    if(h.ts && (Date.now()-h.ts>120000)) return false;   // 逾 2 分鐘作廢
     var u=document.getElementById("loginUser"), p=document.getElementById("loginPass");
     if(u) u.value=h.name; if(p) p.value=h.pw||"";
-    setTimeout(function(){ if(typeof doLogin==="function") doLogin(); }, 150);
-  }catch(e){}
+    showVipLoading();   // 先蓋「登入中…」，登入框全程不顯示
+    setTimeout(function(){
+      if(typeof doLogin!=="function") return;
+      doLogin();
+      var e=document.getElementById("loginErr");
+      if(e && e.style.display!=="none" && e.textContent!=="連線中…"){   // 帳密不對 → 露出登入框讓人手動輸入
+        hideVipLoading();
+        document.getElementById("loginPass").value="";
+        var bg=document.getElementById("loginBg");
+        bg.classList.add("gate"); document.getElementById("loginCancel").style.display="none";
+        bg.style.display="flex";
+        setTimeout(function(){ document.getElementById("loginPass").focus(); },30);
+      }
+    }, 30);
+    return true;
+  }catch(e){ return false; }
 }
 function init(){
   seedXGroupsIfEmpty();
@@ -4653,7 +4668,7 @@ function init(){
   renderSaved();
   updateUserBadge();
   if(readVipHandoff()){ showVipLoading(); if(!tryVipHandoff()) scheduleVipHandoff(); }   // 從 VIP 入口頁帶進來 → 自動登入
-  else if(location.hash.toLowerCase().indexOf("staff")>=0){ openLogin(); _staffHandoff(); }   // 從 VIP 頁選「員工」帶進來 → 直接開員工登入；若帶了帳密就自動登入
+  else if(location.hash.toLowerCase().indexOf("staff")>=0){ if(!_staffHandoff()) openLogin(); }   // 從 VIP 頁選「員工」帶進來 → 帶了帳密就背景自動登入(不閃登入框)；沒帶才顯示登入框
   else openRoleGate();
 }
 function renderBrands(){
@@ -5679,6 +5694,7 @@ function goSales(){
   else openLogin();
 }
 function closeLogin(){
+  if(typeof hideVipLoading==="function") hideVipLoading();   // 自動登入成功 → 一併收掉「登入中…」蓋板
   document.getElementById("loginBg").style.display="none";
   if(!role) openRoleGate();   // 尚未登入就按 X／取消 → 退回身分選擇關卡，不讓未輸入密碼就進到 App
 }
