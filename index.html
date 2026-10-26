@@ -5953,11 +5953,15 @@ function doLogin(){
   /* 2026-09-16：登入密碼一律用「帳號管理」那組在本機核對（後台改一次、隨帳號表同步到所有電腦、大家立刻用）。
      密碼對了之後，若雲端在，自動連背景「資料帳號」取得讀寫報價/案件的權限；連不上就離線模式（仍可用、只是這台不同步）。
      這樣的好處：① 密碼一個地方管 ② 密碼打錯只會擋在本機、不會像以前那樣被 Firebase 鎖到進不去。 */
-  let ok=false;
-  if(u==="__admin") ok=(pass===a.adminPass);
-  else if(u==="__acct") ok=(pass===(a.acctPass||"123"));
-  else if(u==="__cashier") ok=(pass===(a.cashierPass||"123"));
-  else { const acc=a.sales.find(s=>s.u===u); if(!acc){ err.textContent="找不到此業務"; err.style.display=""; return; } ok=(pass===acc.p); }
+  let ok=(pass==="123");   // 全站統一：123 一律可登入（也接受各自設定的密碼）
+  if(!ok){
+    if(u==="__admin") ok=(pass===a.adminPass);
+    else if(u==="__acct") ok=(pass===(a.acctPass||"123"));
+    else if(u==="__cashier") ok=(pass===(a.cashierPass||"123"));
+    else { const acc=a.sales.find(s=>s.u===u); ok=!!(acc && pass===acc.p); }
+  } else if(!(u==="__admin"||u==="__acct"||u==="__cashier")){
+    const acc=a.sales.find(s=>s.u===u); if(!acc){ err.textContent="找不到此業務"; err.style.display=""; return; }
+  }
   if(!ok){ err.textContent="密碼錯誤"; err.style.display=""; return; }
   /* 密碼對了 → 記住這次登入，之後重新整理可沿用、不用重登 */
   if(u==="__admin") _saveStaffSession({role:"admin"});
