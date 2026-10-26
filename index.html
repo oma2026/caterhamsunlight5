@@ -6112,22 +6112,26 @@ function refreshDash(){
     var ds=document.getElementById("dashStats");
     if(ds){ var defs=[["客戶已送出",st.submitted],["已報價",st.quoted],["待上傳合約",st.contract],["已成交",st.dealt],["待公司下定",st.ready]];
       ds.innerHTML=defs.map(function(d){return '<div class="cstat"><div class="n">'+d[1]+'</div><div class="l">'+d[0]+'</div></div>';}).join(""); }
-    /* 工作台：客戶送來的報價單（表格＋看報價鈕，比照國泰主管儀表板） */
+    /* 工作台：兩個區塊——客戶送來的報價單、我自己建的案件（表格，比照國泰主管儀表板） */
     var di=document.getElementById("dashInbox");
     if(di){
-      var subs=getSubs().filter(function(x){ return (!currentSales||x.salesCode===currentSales.u) && x.status!=="done"; }).sort(function(a,b){ return b.ts-a.ts; });
-      if(!subs.length){
-        di.innerHTML='<div class="dash-panel"><div class="dash-panel-h">客戶送來的報價單</div><div class="dash-empty">目前沒有客戶送來的報價單。<br>客戶用你發的代碼送出後，就會出現在這裡。</div></div>';
-      }else{
-        var rows=subs.map(function(s){
-          var nm=(s.customer&&s.customer!=="（未填）")?s.customer:"（未填客戶）";
-          var car=(typeof _subCarName==="function"?_subCarName(s):"")||"—";
-          return '<tr><td class="tb-cust">'+_esc(nm)+'</td><td>'+_esc(car)+'</td><td style="color:#8a857c;white-space:nowrap">'+fmtDT(s.ts)+'</td>'
-                +'<td class="tb-view"><button class="btn primary" onclick="caseOpen(\'sub\',\''+s.id+'\')">看報價</button></td></tr>';
+      var items=(typeof _caseItems==="function")?_caseItems():[];
+      var mkPanel=function(title, arr, btn, empty, showBadge){
+        if(!arr.length) return '<div class="dash-panel"><div class="dash-panel-h">'+title+'</div><div class="dash-empty">'+empty+'</div></div>';
+        var rows=arr.map(function(it){
+          var k=(typeof caseStageKey==="function")?caseStageKey(it):(it.type==="sub"?"submitted":"quoted");
+          var label=(typeof caseStageLabel==="function")?caseStageLabel(k):k;
+          var color=(k==="submitted")?"#b23b2e":((k==="dealt"||k==="ordered")?"#2f7d4f":"#a86a12");
+          return '<tr><td class="tb-cust">'+_esc(it.cust||"（未填客戶）")+'</td><td>'+_esc(it.car||"—")+'</td>'
+                +'<td style="white-space:nowrap"><b style="color:'+color+'">'+_esc(label)+'</b></td>'
+                +'<td style="color:#8a857c;white-space:nowrap">'+fmtDT(it.updatedAt||it.ts)+'</td>'
+                +'<td class="tb-view"><a href="javascript:void(0)" onclick="caseGeneratePDF(\''+it.type+'\',\''+it.id+'\')" style="color:#1a56c6;text-decoration:underline;margin-right:12px;font-size:13px">報價單</a><button class="btn primary" onclick="caseOpen(\''+it.type+'\',\''+it.id+'\')">'+btn+'</button></td></tr>';
         }).join("");
-        di.innerHTML='<div class="dash-panel"><div class="dash-panel-h">客戶送來的報價單 <span class="dp-badge">'+subs.length+'</span></div>'
-          +'<div style="overflow-x:auto"><table class="dash-tb"><thead><tr><th>客戶</th><th>車型</th><th>送單時間</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
-      }
+        var badge=(showBadge&&arr.length)?' <span class="dp-badge">'+arr.length+'</span>':'';
+        return '<div class="dash-panel"><div class="dash-panel-h">'+title+badge+'</div><div style="overflow-x:auto"><table class="dash-tb"><thead><tr><th>客戶</th><th>車型</th><th>狀態</th><th>時間</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+      };
+      di.innerHTML = mkPanel("客戶送來的報價單", items.filter(function(it){return it.type==="sub";}), "看報價", "目前沒有客戶送來的報價單。客戶用你發的代碼送出後，就會出現在這裡。", true)
+                   + mkPanel("我自己建的案件", items.filter(function(it){return it.type==="deal";}), "開啟", "目前沒有自己建的案件。按「新增案件」做的報價會出現在這裡。", false);
     }
   }catch(e){}
 }
