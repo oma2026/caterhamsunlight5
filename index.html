@@ -553,8 +553,9 @@
 .dash-panel-h{ display:flex; align-items:center; gap:10px; padding:14px 18px; font-size:16px; font-weight:800; color:#1a1a18; border-bottom:1px solid var(--line,#d9d6ce); background:#faf9f6; }
 .dash-panel-h .dp-badge{ min-width:22px; height:22px; padding:0 8px; border-radius:11px; background:#b23b2e; color:#fff; font-size:12px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
 .dash-tb{ width:100%; border-collapse:collapse; }
-.dash-tb th{ text-align:left; font-size:12px; font-weight:700; color:#6b665d; padding:10px 16px; background:#eef0e6; border:1px solid #d7d9cc; white-space:nowrap; }
+.dash-tb th{ text-align:left; font-size:12px; font-weight:800; color:#2f4f32; padding:10px 16px; background:#e9f3e4; border:1px solid #cfe0c6; border-top:2px solid #3f9150; white-space:nowrap; }
 .dash-tb td{ padding:12px 16px; border:1px solid #e3e1d8; font-size:14px; vertical-align:middle; word-break:break-word; }
+.dash-tb tbody tr:nth-child(even) td{ background:#f7faf5; }
 .dash-tb .tb-cust{ font-weight:800; color:#1a1a18; }
 .dash-tb .tb-view{ text-align:right; white-space:nowrap; }
 .k-items{ border:1px solid #e3e1d8; border-radius:10px; overflow:hidden; }
@@ -6164,20 +6165,19 @@ function refreshDash(){
         if(!arr.length) return '<div class="dash-panel"><div class="dash-panel-h">'+title+'</div><div class="dash-empty">'+empty+'</div></div>';
         var rows=arr.map(function(it){
           var k=(typeof caseStageKey==="function")?caseStageKey(it):(it.type==="sub"?"submitted":"quoted");
-          var label=(typeof caseStageLabel==="function")?caseStageLabel(k):k;
-          var color=(k==="submitted")?"#b23b2e":((k==="dealt"||k==="ordered")?"#2f7d4f":"#a86a12");
+          var wonBtn=(k==="dealt"||k==="ordered"||k==="lost")?'':'<a href="javascript:void(0)" onclick="caseMarkDealWon(\''+it.type+'\',\''+it.id+'\')" style="color:#1b6e3a;text-decoration:underline;margin-left:12px;font-size:13px">已成交</a>';
           return '<tr><td class="tb-cust">'+_esc(it.cust||"（未填客戶）")+'</td><td>'+_esc(it.car||"—")+'</td>'
-                +'<td style="white-space:nowrap"><b style="color:'+color+'">'+_esc(label)+'</b></td>'
                 +'<td style="color:#8a857c;white-space:nowrap">'+fmtDT(it.updatedAt||it.ts)+'</td>'
                 +'<td class="tb-view">'
                   +'<a href="javascript:void(0)" onclick="caseGeneratePDF(\''+it.type+'\',\''+it.id+'\')" style="color:#1a56c6;text-decoration:underline;margin-right:10px;font-size:13px">報價單</a>'
                   +'<a href="javascript:void(0)" onclick="caseGenerateContract(\''+it.type+'\',\''+it.id+'\')" style="color:#1a56c6;text-decoration:underline;margin-right:12px;font-size:13px">合約</a>'
                   +'<button class="btn primary" onclick="caseOpen(\''+it.type+'\',\''+it.id+'\')">'+btn+'</button>'
+                  +wonBtn
                   +'<a href="javascript:void(0)" onclick="caseDelete(\''+it.type+'\',\''+it.id+'\');refreshDash()" style="color:#c0392b;text-decoration:underline;margin-left:12px;font-size:13px">刪除</a>'
                 +'</td></tr>';
         }).join("");
         var badge=(showBadge&&arr.length)?' <span class="dp-badge">'+arr.length+'</span>':'';
-        return '<div class="dash-panel"><div class="dash-panel-h">'+title+badge+'</div><div style="overflow-x:auto"><table class="dash-tb" style="table-layout:fixed;min-width:820px"><colgroup><col style="width:14%"><col style="width:25%"><col style="width:11%"><col style="width:16%"><col style="width:34%"></colgroup><thead><tr><th>客戶</th><th>車型</th><th>狀態</th><th>時間</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+        return '<div class="dash-panel"><div class="dash-panel-h">'+title+badge+'</div><div style="overflow-x:auto"><table class="dash-tb" style="table-layout:fixed;min-width:760px"><colgroup><col style="width:15%"><col style="width:28%"><col style="width:17%"><col style="width:40%"></colgroup><thead><tr><th>客戶</th><th>車型</th><th>時間</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
       };
       di.innerHTML = mkPanel("客戶送來的報價單", items.filter(function(it){return it.type==="sub";}), "檢視", "目前沒有客戶送來的報價單。客戶用你發的代碼送出後，就會出現在這裡。", true)
                    + mkPanel("我自己建的案件", items.filter(function(it){return it.type==="deal";}), "檢視", "目前沒有自己建的案件。按「新增案件」做的報價會出現在這裡。", false);
@@ -6736,6 +6736,28 @@ function _afterContractPrint(){
 }
 function caseDownloadQuote(type,id){ caseGeneratePDF(type,id); }
 function caseDownloadContract(type,id){ caseGenerateContract(type,id); }
+/* 工作台直接標記成交：問成交價（預設帶目前報價金額），把案件標成「已成交」 */
+function caseMarkDealWon(type,id){
+  if(!_guard("markwon_"+id)) return;
+  var run=function(){
+    if(!cur||!variant){ toast("此案件缺少可成交的內容"); return; }
+    var listTotal=0; try{ listTotal=contractItemsTotal().total; }catch(e){}
+    var inp=prompt("成交價（車價 NT$，未含奢侈稅）\n直接按「確定」＝用目前報價金額；有議價請改成實際成交價。", String(listTotal));
+    if(inp===null) return;
+    var dp=Math.round(+String(inp).replace(/[,\s]/g,"")); if(!(isFinite(dp)&&dp>0)) dp=listTotal;
+    var dealId=_promoteToDeal()||id;
+    var deals=getDeals(); var d=deals.find(function(x){return x.id===dealId;});
+    if(!d){ toast("標記成交失敗"); return; }
+    d.dealPrice=dp; d.status="done"; d.dealStatus="deal_won";
+    if(!d.dealMarkedAt){ d.dealMarkedAt=nowTs(); d.dealMarkedBy=_actor().name; }
+    d.updatedAt=nowTs(); saveDeals(deals);
+    logActivity(dealId,"標記成交","成交價 "+dp);
+    _caseRefresh(); if(typeof refreshDash==="function") refreshDash();
+    toast("已標記成交，成交價 NT$"+dp.toLocaleString("en-US"));
+  };
+  if(editingCaseRef && editingCaseRef.id===id && cur && variant){ run(); return; }
+  if(_caseLoadSilent(type,id)){ setTimeout(run, 80); }
+}
 /* 背景載入案件內容但「不換頁」（留在客戶案件），供產生報價單 / 合約用 */
 function _caseLoadSilent(type,id){
   editingCaseRef={type:type,id:id}; _caseMode="edit";
@@ -7184,8 +7206,8 @@ function caseFlowKey(it){
 }
 function caseStatusText(it){ return ({sub:"客戶已送出",draft:"客戶已送出",quoted:"已報價",contract:"簽約文件已產生，等待客戶簽名",signed:"待出納確認訂金",won:"待出納確認訂金",dep_marked:"待出納確認訂金（業務已回報）",dep_confirmed:"已成交（訂金已確認）",ordered:"公司已下定",lost:"已結案未成交"})[caseFlowKey(it)]||"客戶已送出"; }
 /* ===== 2026-09-16 流程優化：六步進度條 + 「等誰」標籤 =====（只改畫面呈現，不動狀態邏輯） */
-var CASE_STEPS=["待報價","已報價","待簽約","待收訂金","已成交","已下定"];
-function caseStepIndex(it){ return ({sub:0,draft:0,quoted:1,contract:2,signed:3,won:3,dep_marked:3,dep_confirmed:4,ordered:5,lost:-1})[caseFlowKey(it)]; }
+var CASE_STEPS=["報價","簽約收訂","已成交"];
+function caseStepIndex(it){ return ({sub:0,draft:0,quoted:1,contract:1,signed:1,won:1,dep_marked:1,dep_confirmed:2,ordered:2,lost:-1})[caseFlowKey(it)]; }
 var casePillFilter="all";
 function setCasePill(f){ casePillFilter=f; renderCases(); }
 /* 現在球在誰手上：等業務自己做 / 等客戶 / 等出納 / 已成交 / 已結案 */
@@ -8660,7 +8682,7 @@ function openContract(){
     if(_ib){
       if(_ci.allItems&&_ci.allItems.length){
         _ib.innerHTML=_ci.allItems.map(function(o,i){
-          var pr=(o.price===0)?"標準配備":(o.key===_ci.baseKey?nt(baseNTWithWeight(o.price,o.key)):nt(retailOf(o.price,o.key)));
+          var pr=(o.price===0)?"標準配備":(o.key===_ci.baseKey?ntfmtRaw(baseNTWithWeight(o.price,o.key)):ntfmtRaw(retailOf(o.price,o.key)));
           return '<div class="k-item"><span>'+(i===0?'🚗 ':'・')+_esc(o.name)+'</span><span class="k-pr">'+pr+'</span></div>';
         }).join("");
       }else{
