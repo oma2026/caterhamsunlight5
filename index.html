@@ -3860,15 +3860,20 @@ function ccTech(m){
     "60": {len:"599",h:"258 / 278",cb:"185 x 105 – 88",rb:"197 x 157 – 150",seats:"4",slp:"2 / 5",waste:"90",fresh:"100 / 20",wb:"404",mass:"2751（2613–2889）",opt:"402"},
     "64": {len:"636",h:"258 / 278",cb:"185 x 105 – 88",rb:"192 – 184 x 195",seats:"4",slp:"2 / 5",waste:"90",fresh:"100 / 20",wb:"404",mass:"2836（2694–2978）",opt:"310"}
   }[m];
+  const _hp=String(t.h).split("/").map(x=>x.trim());   // 車高「標準 / 選配」兩個數字
+  const _hStd=_hp[0]||t.h;
   const rows=[
     ["核准座位（含駕駛）Permitted seats",t.seats],
     ["臥鋪數（標準 / 最多）Berths",t.slp],
-    ["長 / 寬 / 高 L / W / H (cm)",t.len+" / 205 / "+t.h],
+    ["長 / 寬 / 高 L / W / H (cm)",t.len+" / 205 / "+_hStd],
+    ["含後視鏡車寬 Width incl. mirrors (cm)","265"],
+    ["車高：標準 / 升頂選配 Roof height std / optional (cm)",t.h],
     ["開頂後總高 Height with roof open (cm)","358"],
     ["室內站高 Headroom (cm)","189"],
     ["標準底盤 Standard chassis","Peugeot Boxer"],
     ["標準引擎 Standard engine","2.2 BlueHDi"],
     ["功率 kW (hp)","103 (140)"],
+    ["排放標準 Emission standard","Euro 6e-bis"],
     ["行駛整備重量 Mass in running order (kg)",t.mass],
     ["選配可用重量 Mass for optional equipment (kg)",t.opt],
     ["技術總重上限 Max laden mass (kg)",m==="541"?"3499":"3500"],
@@ -3879,7 +3884,7 @@ function ccTech(m){
     ["清水箱 Fresh water (l)",t.fresh],
     ["廢水箱 Waste water (l)",t.waste],
   ];
-  if(t.rb)rows.splice(15,0,["後床尺寸 Rear bed (cm)",t.rb]);
+  if(t.rb)rows.splice(18,0,["後床尺寸 Rear bed (cm)",t.rb]);
   return rows;
 }
 const CC_STD_BASE=[
@@ -3890,7 +3895,8 @@ const CC_STD_BASE=[
     "電動加熱後視鏡 Electric heated mirrors","駕駛/副駕座椅居家布材 Seats in living fabric","駕駛艙冷氣 Cab air conditioning",
     "後方停車感測器 Parking sensors rear","胎壓偵測 Tyre pressure monitoring","Fix & Go 補胎組 Fix & Go kit",
     "黑框頭燈 Headlights black frame","安全套件 New Pack Safety（煞車輔助含行人偵測、車道維持、交通標誌辨識、疲勞偵測、智慧速度輔助）",
-    "Traction+（含高負載 ESP）","USB 插座（B+C）USB socket"
+    "Traction+（含高負載 ESP）","USB 插座（B+C）USB socket",
+    "電子駐車煞車 Electric park brake","拖車鉤電路預接 Trailer coupling preparation"
   ]],
   ["外觀塗裝 Painting",[ "Expedition Grau 探險灰 Expedition Grey" ]],
 ];
@@ -3898,7 +3904,7 @@ const CC_CARS=[
   {id:"cc541",brand:"Crosscamp",brandId:"crosscamp",line:"elmnt",name:"ELMNT 5.41",year:"541cm · Peugeot Boxer · 升頂帳露營車",my:"27",
    ref:"CROSSCAMP ELMNT · MJ27",_curOverride:"€",variants:{STD:{label:"ELMNT · Peugeot Boxer",base:49999}},dpp:49999,
    included:{STD:CC_STD_BASE.concat([
-     ["車體外觀 Body",["Midi-Heki 70×50cm 天窗（座位區，含紗窗遮光簾）","Mini-Heki 40×40cm 天窗（車尾，含紗窗遮光簾）","電動入口踏階 Electric entrance step","後門/廚房/座位區車窗（含紗窗遮光簾）","一體式紗門 Flyscreen door","有框式車窗 Framed windows","16吋黑色鋁圈 16\" alloy black（手排）","真皮方向盤 & 排檔頭 Leather steering wheel","電子駐車煞車 Electric park brake","電動摺疊… 拖車電路預接 Trailer coupling preparation"]],
+     ["車體外觀 Body",["Midi-Heki 70×50cm 天窗（座位區，含紗窗遮光簾）","Mini-Heki 40×40cm 天窗（車尾，含紗窗遮光簾）","電動入口踏階 Electric entrance step","後門車窗（含紗窗遮光簾）Rear door windows","廚房及座位區車窗（含紗窗遮光簾）Kitchen & seating windows","一體式紗門 Flyscreen door","有框式車窗 Framed windows","16吋黑色鋁圈 16\" alloy black（Light 底盤）","真皮方向盤 & 排檔頭 Leather steering wheel"]],
      ["內裝 Interior",["雙口瓦斯爐（電子點火）2-burner hob","車頭上方大置物空間 Storage above cab","人體工學廚房含寬敞檯面 Ergonomic kitchen","駕駛艙摺疊遮陽（前擋+側窗）Folding cab blinds","Flexi 桌（車內外可用）Flexi table","多處置物空間 Storage","後置物空間含 4 綁點 Rear storage with lashing rings","可取出廚房模組（模組水箱）Removable kitchen module","車尾掛衣桿 Clothes rail","高質感側牆的舒適座位區","可取出沙發含床功能 Removable sofa with bed function","壓縮機冰箱 70L（雙向開門）Compressor fridge 70l","廚房底櫃含分層 Kitchen base unit","家具飾面 Makalu Pearl Grey","獨立水槽含設計水龍頭 Separate sink","Wohnwelt Canaima 布材"]],
      ["暖氣 / 水 / 瓦斯 Heating / Water / Gas",["板控面板顯示水位 & 電量 Board control panel","柴油暖氣（底置 2kW 熱風）Diesel heating underfloor 2kW","CP Classic 暖氣控制面板","清水桶 10L＋廢水桶 10L Water canisters","瓦斯艙（2.8kg 瓶）Gas locker 2.8kg"]],
      ["電力 Installations",["2×230V 插座、2×雙 USB Sockets","CEE 230V 外部插座（含保險）","可調光天花板/壁面照明 Dimmable lighting","充電器 12V/18A Charger","導航/倒車攝影預接線 Pre-wiring","高效免保養 AGM 電池 95Ah","開關位置優化（含入口處）Light switches"]],
@@ -4953,7 +4959,14 @@ function renderIncluded(){
 function priceFor(opt){ return opt[1][variant]; }
 /* 必選（鎖定）選項：170R / 340R 的「賽事防滾架」— 一律含、鎖住勾選、但價錢照算進總價 */
 const FORCED_RC_CARS = new Set(["170","340"]);
-function isForcedRC(oname){ return !!(typeof cur!=="undefined" && cur && FORCED_RC_CARS.has(cur.id) && variant==="R" && /賽事防滾架/.test(oname||"")); }
+function isForcedRC(oname){
+  if(typeof cur==="undefined" || !cur) return false;
+  // Caterham 170R／340R：賽事防滾架（R 版必附）
+  if(FORCED_RC_CARS.has(cur.id) && variant==="R" && /賽事防滾架/.test(oname||"")) return true;
+  // Crosscamp：領牌文件（原廠代碼 15152 ◆必選；台灣進口每輛必備 → 自動帶入、鎖住不可取消）
+  if(cur.brandId==="crosscamp" && /掛牌文件|領牌文件/.test(oname||"")) return true;
+  return false;
+}
 function applyForcedOpts(){
   if(typeof cur==="undefined" || !cur || !cur.cats) return;
   cur.cats.forEach((cat,ci)=>{ (cat[1]||[]).forEach((o,oi)=>{
@@ -5080,7 +5093,8 @@ function seedXGroupsIfEmpty(){
     "外觀塗裝 Painting":{"黑色金屬":"A","Lanzarote Grey（深灰）":"A","Expedition Grey（卡其灰）":"A"},
     "暖氣 / 瓦斯 Heating":{"Combi 4 柴油暖氣（含高度感測 + 數位面板）":"A","Combi 6 E 暖氣（含電熱、數位面板）":"A"},
     "底盤 & 動力 Base vehicle / Engine":{"Maxi 底盤 140hp 6速手排":"A","Maxi 底盤 180hp 8速自排":"A","Maxi 底盤 4,250kg 180hp 8速自排（HD）":"A"},
-    "SIGNATURE 內裝選項":{"儀表板 – 木紋飾 Dash Wood effect":"A","儀表板 – 真皮 Dash Leather":"A","儀表板 – 黑色 Alcantara":"A","儀表板 – 烤漆 Dash Painted":"A","儀表板 – 620 樣式 Dash 620 style":"A"}
+    "SIGNATURE 內裝選項":{"儀表板 – 木紋飾 Dash Wood effect":"A","儀表板 – 真皮 Dash Leather":"A","儀表板 – 黑色 Alcantara":"A","儀表板 – 烤漆 Dash Painted":"A","儀表板 – 620 樣式 Dash 620 style":"A"},
+    "套件 Packs":{"Chassis Paket 底盤套件":"A","Chassis Paket ACC 底盤套件含 ACC":"A"}   // Crosscamp：兩個 Chassis 套件擇一，不可同時勾
   });
 }
 function toggleOpt(id,val){
